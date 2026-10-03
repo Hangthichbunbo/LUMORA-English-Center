@@ -1,0 +1,21 @@
+/* Main Author: hoangthuhang */
+/* Scoped CSS cho Layout chính */
+
+a.navbar-brand[b-6096r5hge6] {
+  white-space: normal;
+  text-align: center;
+  word-break: break-all;
+}
+
+/* Đảm bảo màu chủ đạo xanh dương #007bff cho các thành phần */
+.btn-primary[b-6096r5hge6] {
+  color: #fff;
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-primary:hover[b-6096r5hge6] {
+  background-color: #0069d9;
+  border-color: #0062cc;
+}
+
