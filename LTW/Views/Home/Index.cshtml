@@ -1,0 +1,618 @@
+﻿@* ============================================================================
+   Main Author: hoangthuhang
+   Project: LTW Project - IELTS Online Tests Landing Page System
+   Architecture: ASP.NET Core MVC (Strongly Typed Razor View)
+   Model: LTW_5.Models.LandingPageViewModel (OOP Data Encapsulation)
+   File: Views/Home/Index.cshtml
+   Description: Giao diện chính của Landing Page phong cách 
+                dựa trên các biến CSS và design tokens chính thức:
+                1. Hero Section: Nền gradient ellipse teal (#32B4C8), đối tác BC & IDP
+                2. 4 Kỹ năng IELTS (Listening, Reading, Writing, Speaking) với gradient chính xác
+                3. Section 6 Steps: Lưới các bước học đạt mục tiêu IELTS
+                4. Section Latest Free Materials: Card đề thi thử mới nhất kèm đánh giá sao
+                5. Section Online Courses & Live Lessons: Khóa học quốc tế & Lớp học trực tuyến
+                6. Section Social Proof & Testimonials: Thống kê số liệu + Slider phản hồi
+                7. Section Expert Teaching Team & Valued Partners: Đội ngũ giáo viên và Đại học đối tác
+                8. Section FAQ: Câu hỏi thường gặp dạng accordion thu gọn/mở rộng
+                9. Section Get in touch / Contact Form: Form tư vấn ở chân trang
+   ============================================================================ *@
+
+@model LTW.Models.LandingPageViewModel
+
+@{
+    ViewData["Title"] = "LUMORA English Center - Official Style Platform";
+}
+
+<!-- ============================================================================
+     1. HERO SECTION:
+     linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(50, 179, 199, 0.12) 100%)
+     ============================================================================ -->
+<section class="hero-official-container" id="hero-banner">
+    <div class="container-fluid px-lg-5">
+        <div class="row align-items-center g-5">
+            <!-- Cột trái: Tiêu đề đối tác Platinum và giới thiệu -->
+            <div class="col-lg-7">
+                <!-- Thanh đối tác Platinum -->
+                <div class="official-partner-capsule">
+                    <i class="bi bi-patch-check-fill partner-trophy-symbol"></i>
+                    <span class="partner-capsule-text">
+                        @Model.PartnerHeadline
+                    </span>
+                    <div class="partner-mini-tags">
+                        <span class="badge-official-bc">BRITISH COUNCIL</span>
+                        <span class="badge-official-idp">idp</span>
+                    </div>
+                </div>
+
+                <!-- Tiêu đề lớn của Hero -->
+                <h1 class="hero-main-header">
+                    Luyện Thi IELTS Chuẩn <span class="hero-accent">Format Đề Thi Thật</span> Trên Máy Tính
+                </h1>
+
+                <!-- Mô tả ngắn gọn -->
+                <p class="hero-desc-lead">
+                    @Model.HeroSubtitle
+                </p>
+
+                <!-- Nút CTA chính và nút phụ -->
+                <div class="d-flex flex-wrap gap-3 align-items-center mb-4">
+                    <a href="#practice-section" class="btn btn-cta-accent px-4 py-3">
+                        <i class="bi bi-play-circle-fill fs-5"></i>
+                        <span>Start Practice</span>
+                    </a>
+                    <a href="#courses-section" class="btn btn-outline-brand px-4 py-3">
+                        <i class="bi bi-compass"></i>
+                        <span>Explore Courses</span>
+                    </a>
+                </div>
+
+                <!-- Cam kết chất lượng đối tác -->
+                <div class="row g-3 pt-3 border-top text-muted small">
+                    <div class="col-sm-4 d-flex align-items-center gap-2">
+                        <i class="bi bi-shield-check text-success fs-5"></i>
+                        <span>Đề thi bản quyền IDP & BC</span>
+                    </div>
+                    <div class="col-sm-4 d-flex align-items-center gap-2">
+                        <i class="bi bi-cpu text-primary fs-5"></i>
+                        <span>Chấm điểm AI tức thì</span>
+                    </div>
+                    <div class="col-sm-4 d-flex align-items-center gap-2">
+                        <i class="bi bi-people text-warning fs-5"></i>
+                        <span>2.5M+ Thí sinh tin cậy</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cột phải: Card mô phỏng đề thi với 4 Kỹ năng (Gradient chuẩn) -->
+            <div class="col-lg-5">
+                <div class="exam-simulation-board">
+                    <div class="exam-status-header">
+                        <div>
+                            <span class="badge bg-dark me-2">ACADEMIC</span>
+                            <span class="text-secondary fw-semibold small">Mock Test 2026 - Reading & Listening</span>
+                        </div>
+                        <div class="exam-timer-chip">
+                            <i class="bi bi-stopwatch"></i>
+                            <span>59:45 còn lại</span>
+                        </div>
+                    </div>
+
+                    <!-- Giao diện bài thi mô phỏng -->
+                    <div class="p-3 bg-light rounded-3 border mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-uppercase fw-bold text-muted" style="font-size: 11px;">Passage 1 • Questions 1 - 5</small>
+                            <span class="badge bg-white text-success border">
+                                <i class="bi bi-headphones me-1"></i> Audio chuẩn CD
+                            </span>
+                        </div>
+                        <h6 class="fw-bold mb-2 text-dark" style="font-size: 14px;">
+                            Complete the notes below. Choose ONE WORD ONLY from the passage.
+                        </h6>
+                        <div class="bg-white p-2 rounded border small text-secondary">
+                            <em>"The primary cause of the historical architecture preservation was..."</em>
+                        </div>
+                    </div>
+
+                    <!-- 4 Kỹ năng IELTS theo đúng hệ màu và gradient -->
+                    <div class="small fw-semibold text-muted mb-1">Hệ thống luyện thi chuẩn 4 kỹ năng:</div>
+                    <div class="skills-grid-row mb-3">
+                        <div class="skill-tab-pill listening">
+                            <i class="bi bi-headphones fs-5"></i>
+                            <span>Listening</span>
+                        </div>
+                        <div class="skill-tab-pill reading">
+                            <i class="bi bi-book fs-5"></i>
+                            <span>Reading</span>
+                        </div>
+                        <div class="skill-tab-pill writing">
+                            <i class="bi bi-pencil fs-5"></i>
+                            <span>Writing</span>
+                        </div>
+                        <div class="skill-tab-pill speaking">
+                            <i class="bi bi-mic fs-5"></i>
+                            <span>Speaking</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-top d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-check2-circle text-success fs-4"></i>
+                            <div>
+                                <small class="text-muted d-block" style="font-size: 11px;">Độ chính xác chuẩn</small>
+                                <strong class="text-dark small">Tương đương kỳ thi thật tại IDP/BC</strong>
+                            </div>
+                        </div>
+                        <a href="#practice-section" class="btn btn-brand btn-sm px-3">
+                            Thi thử ngay <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================================
+     2. SECTION 6 STEPS TO ACHIEVE YOUR IELTS GOALS
+     ============================================================================ -->
+<section class="steps-official-section" id="steps-section">
+    <div class="container-fluid px-lg-5">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-5">
+            <div>
+                <span class="section-label-tag">Lộ trình học tập</span>
+                <h2 class="section-headline-title">6 Steps to Achieve Your IELTS Goals</h2>
+                <p class="text-muted mb-0">Hệ thống các bước chuẩn hóa khoa học giúp bạn định vị năng lực và từng bước chinh phục điểm số mơ ước.</p>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <a href="#courses-section" class="btn btn-outline-brand">
+                    <span>VIEW ALL STEPS</span> <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var step in Model.Steps)
+            {
+                <div class="col-12 col-md-6 col-lg-4 col-xl-2">
+                    <div class="step-card-box">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="step-badge-number">@step.StepNumber</div>
+                            <span class="badge bg-light text-secondary border small">@step.Tag</span>
+                        </div>
+                        <div class="step-icon-glyph">
+                            <i class="@step.IconClass"></i>
+                        </div>
+                        <h4 class="step-header-text">@step.Title</h4>
+                        <p class="step-summary-text">@step.Description</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================================
+     3. SECTION LATEST FREE MATERIALS (MOCK TESTS 2025/2026)
+     ============================================================================ -->
+<section class="materials-official-section" id="practice-section">
+    <div class="container-fluid px-lg-5">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4">
+            <div>
+                <span class="section-label-tag">Thư viện đề thi miễn phí</span>
+                <h2 class="section-headline-title">Latest Free IELTS Materials</h2>
+                <p class="text-muted mb-0">Kho đề thi thử cập nhật theo tháng/năm chuẩn Cambridge và đề thi thật mới nhất.</p>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <a href="#practice-section" class="btn btn-cta-accent btn-sm px-3">
+                    <i class="bi bi-collection-play me-1"></i> Xem tất cả 500+ đề
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var material in Model.LatestMaterials)
+            {
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="material-test-card">
+                        <div class="material-top-strip">
+                            <span class="material-category-badge">@material.Category</span>
+                            <span class="material-hot-badge">@material.BadgeText</span>
+                        </div>
+                        <div class="material-content-wrap">
+                            <small class="text-muted fw-semibold" style="font-size: 12px;">@material.ReleaseMonth</small>
+                            <h4 class="material-card-heading">@material.Title</h4>
+
+                            <div class="d-flex gap-3 text-muted small mb-2">
+                                <span><i class="bi bi-journal-text me-1 text-primary"></i> @material.TestCount Tests</span>
+                                <span><i class="bi bi-clock me-1 text-primary"></i> @material.DurationMinutes mins</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center text-muted small mb-3">
+                                <span><i class="bi bi-eye me-1"></i> @material.ViewsCount.ToString("N0") lượt làm</span>
+                                <span class="text-warning fw-bold"><i class="bi bi-star-fill me-1"></i>@material.Rating</span>
+                            </div>
+
+                            <button type="button" class="btn btn-navy w-100 mt-auto" onclick="alert('Bắt đầu làm bài thi: @material.Title');">
+                                <i class="bi bi-pencil-square me-1"></i> Take Test
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================================
+     4. SECTION ONLINE COURSES & LIVE LESSONS
+     ============================================================================ -->
+<section class="courses-official-section" id="courses-section">
+    <div class="container-fluid px-lg-5">
+        <div class="text-center max-w-700 mx-auto mb-5">
+            <span class="section-label-tag">Đào tạo chuyên sâu</span>
+            <h2 class="section-headline-title">Online Courses & Live Lessons</h2>
+            <p class="text-muted mx-auto" style="max-width: 650px;">Được thiết kế bởi cựu giám khảo chấm thi quốc tế giúp bứt phá giới hạn band điểm cá nhân.</p>
+        </div>
+
+        <!-- Danh sách khóa học -->
+        <div class="row g-4">
+            @foreach (var course in Model.Courses)
+            {
+                <div class="col-12 col-md-4">
+                    <div class="course-box-card">
+                        <div class="course-top-banner">
+                            <span class="course-tag-pill">@course.Level</span>
+                            @if (course.IsBestSeller)
+                            {
+                                <span class="badge bg-danger position-absolute top-0 end-0 m-3">BEST SELLER</span>
+                            }
+                            <h4 class="fw-bold mb-1 text-white" style="font-size: 19px;">@course.Title</h4>
+                            <p class="small text-light opacity-75 mb-0">@course.Instructor</p>
+                        </div>
+                        <div class="p-4 d-flex flex-column flex-grow-1">
+                            <div class="d-flex justify-content-between text-muted small mb-3">
+                                <span><i class="bi bi-play-circle me-1 text-primary"></i> @course.LessonsCount bài giảng</span>
+                                <span class="text-warning fw-bold"><i class="bi bi-star-fill me-1"></i>@course.Rating</span>
+                            </div>
+
+                            <div class="d-flex align-items-baseline gap-2 mb-3">
+                                <span class="price-emphasis">@course.SalePrice</span>
+                                <span class="text-muted small text-decoration-line-through">@course.OriginalPrice</span>
+                            </div>
+
+                            <ul class="list-unstyled small text-secondary mb-4">
+                                <li class="mb-1"><i class="bi bi-check2 text-success me-1"></i> Tiêu chuẩn đánh giá sát đề thi thật</li>
+                                <li class="mb-1"><i class="bi bi-check2 text-success me-1"></i> Hỗ trợ sửa bài Writing & Speaking 1-1</li>
+                                <li><i class="bi bi-check2 text-success me-1"></i> Kho đề độc quyền cập nhật 2026</li>
+                            </ul>
+
+                            <a href="#contact-section" class="btn btn-cta-accent w-100 mt-auto">
+                                <i class="bi bi-cart-check me-1"></i> Đăng Ký Khóa Học
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Lớp học trực tuyến Live Lessons -->
+        <div class="mt-5 pt-4" id="live-lessons-section">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4">
+                <div>
+                    <span class="section-label-tag">Hội thảo tương tác</span>
+                    <h3 class="fw-bold text-dark mb-0">Free Live Webinars & Masterclasses</h3>
+                </div>
+                <div class="mt-2 mt-md-0">
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                        <i class="bi bi-record-circle me-1"></i> Sắp diễn ra trong tuần
+                    </span>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                @foreach (var lesson in Model.LiveLessons)
+                {
+                    <div class="col-12 col-md-4">
+                        <div class="p-4 bg-white border rounded-3 h-100 d-flex flex-column shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-primary-subtle text-primary">@lesson.Skill Masterclass</span>
+                                <small class="text-success fw-bold">@lesson.Status</small>
+                            </div>
+                            <h5 class="fw-bold text-dark mb-2" style="font-size: 16px; line-height: 1.4;">
+                                @lesson.Topic
+                            </h5>
+                            <p class="small text-secondary mb-2">
+                                <i class="bi bi-person me-1 text-primary"></i> Diễn giả: <strong>@lesson.Speaker</strong>
+                            </p>
+                            <p class="small text-muted mb-3">
+                                <i class="bi bi-calendar3 me-1 text-danger"></i> @lesson.DateTimeText
+                            </p>
+                            <button type="button" class="btn btn-outline-brand w-100 mt-auto" onclick="alert('Đã đăng ký thành công: @lesson.Topic');">
+                                <i class="bi bi-pencil-fill me-1"></i> Đăng ký giữ chỗ miễn phí
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Lộ trình tăng band điểm -->
+        <div class="band-roadmap-container">
+            <div class="text-center mb-4">
+                <h4 class="fw-bold text-dark">Lộ Trình Tăng Band Điểm Toàn Diện</h4>
+                <p class="text-muted small mb-0">Quy trình 4 giai đoạn chuẩn mực giúp xác định mục tiêu và phương pháp học</p>
+            </div>
+
+            <div class="row g-3">
+                @foreach (var milestone in Model.RoadmapMilestones)
+                {
+                    <div class="col-12 col-md-3">
+                        <div class="roadmap-step-node">
+                            <span class="roadmap-band-chip">@milestone.TargetBand</span>
+                            <h6 class="fw-bold mb-2">@milestone.Stage</h6>
+                            <p class="text-muted small mb-0">@milestone.Description</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================================
+     5. SECTION SOCIAL PROOF & TESTIMONIALS
+     ============================================================================ -->
+<section class="social-proof-official" id="social-testimonials-section">
+    <div class="container-fluid px-lg-5">
+        <div class="row g-4 mb-5">
+            <div class="col-6 col-md-3">
+                <div class="stat-counter-cell">
+                    <div class="stat-number-bold">500+</div>
+                    <small class="text-secondary fw-semibold">Đề thi thử miễn phí</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-counter-cell">
+                    <div class="stat-number-bold">2.5M+</div>
+                    <small class="text-secondary fw-semibold">Lượt làm bài toàn cầu</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-counter-cell">
+                    <div class="stat-number-bold">98%</div>
+                    <small class="text-secondary fw-semibold">Học viên cải thiện band</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-counter-cell">
+                    <div class="stat-number-bold">120+</div>
+                    <small class="text-secondary fw-semibold">Quốc gia tham gia</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mb-4">
+            <span class="section-label-tag">Phản hồi học viên</span>
+            <h2 class="section-headline-title">Học Viên Nói Gì Về Chúng Tôi?</h2>
+        </div>
+
+        <div id="socialCarouselOfficial" class="carousel slide" data-bs-ride="carousel" data-bs-interval="4500">
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <div class="row g-4 justify-content-center">
+                        @foreach (var review in Model.SocialTestimonials)
+                        {
+                            <div class="col-12 col-md-4">
+                                <div class="testimonial-student-card">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <img src="@review.AvatarUrl" alt="@review.StudentName" class="rounded-circle" width="44" height="44" style="object-fit: cover;" />
+                                            <div>
+                                                <h6 class="fw-bold mb-0 text-dark">@review.StudentName</h6>
+                                                <span class="badge bg-success-subtle text-success small">@review.BandAchieved</span>
+                                            </div>
+                                        </div>
+                                        <span class="badge bg-light text-dark border">
+                                            <i class="@review.PlatformIcon text-primary me-1"></i> @review.Platform
+                                        </span>
+                                    </div>
+                                    <p class="text-secondary small fst-italic mb-3">
+                                        "@review.Comment"
+                                    </p>
+                                    <div class="d-flex justify-content-between align-items-center pt-2 border-top text-muted small">
+                                        <div class="text-warning">
+                                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        </div>
+                                        <span><i class="bi bi-heart text-danger me-1"></i> @review.LikesCount.ToString("N0")</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================================
+     6. SECTION EXPERT TEACHING TEAM & VALUED PARTNERS
+     ============================================================================ -->
+<section class="team-official-section" id="teachers-section">
+    <div class="container-fluid px-lg-5">
+        <div class="text-center mb-5">
+            <span class="section-label-tag">Đội ngũ giảng viên</span>
+            <h2 class="section-headline-title">Expert Teaching Team</h2>
+            <p class="text-muted mx-auto" style="max-width: 600px;">Được hướng dẫn trực tiếp bởi cựu giám khảo khảo thí quốc tế đạt Band 9.0.</p>
+        </div>
+
+        <div class="row g-4 mb-5">
+            @foreach (var teacher in Model.TeachingTeam)
+            {
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="teacher-profile-card">
+                        <img src="@teacher.AvatarUrl" alt="@teacher.Name" class="teacher-avatar-circle shadow-sm" />
+                        <h5 class="fw-bold text-dark mb-1">@teacher.Name</h5>
+                        <small class="text-muted d-block mb-2">@teacher.Role</small>
+                        <span class="badge bg-primary-subtle text-primary fw-bold mb-2">@teacher.Score</span>
+                        <p class="text-secondary small mb-0 px-2">@teacher.Bio</p>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Các trường đại học đối tác -->
+        <div class="pt-4 border-top" id="partners-section">
+            <div class="text-center mb-4">
+                <span class="section-label-tag">Tổ chức liên kết</span>
+                <h4 class="fw-bold text-dark">Our Valued Partners</h4>
+            </div>
+
+            <div class="row g-3 justify-content-center">
+                @foreach (var partner in Model.Partners)
+                {
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <div class="partner-logo-item">
+                            <i class="@partner.IconClass text-primary fs-3 mb-1 d-block"></i>
+                            <strong class="d-block text-dark small">@partner.Name</strong>
+                            <small class="text-muted" style="font-size: 11px;">@partner.Description</small>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================================
+     7. SECTION FAQ: CÂU HỎI THƯỜNG GẶP (BOOTSTRAP ACCORDION)
+     ============================================================================ -->
+<section class="faq-official-section" id="faq-section">
+    <div class="container" style="max-width: 860px;">
+        <div class="text-center mb-5">
+            <span class="section-label-tag">Giải đáp thắc mắc</span>
+            <h2 class="section-headline-title">Frequently Asked Questions</h2>
+            <p class="text-muted mx-auto">Các câu hỏi thường gặp về bài thi thử, cách chấm điểm và các dịch vụ đào tạo.</p>
+        </div>
+
+        <div class="accordion accordion-iot-style" id="faqAccordionOfficial">
+            @for (int i = 0; i < Model.Faqs.Count; i++)
+            {
+                var faq = Model.Faqs[i];
+                var collapseId = $"collapseFaqOfficial{i}";
+                var headingId = $"headingFaqOfficial{i}";
+
+                <div class="accordion-item">
+                    <h3 class="accordion-header" id="@headingId">
+                        <button class="accordion-button @(i == 0 ? "" : "collapsed")" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#@collapseId"
+                                aria-expanded="@(i == 0 ? "true" : "false")" aria-controls="@collapseId">
+                            <i class="bi bi-question-circle text-primary me-2"></i> @faq.Question
+                        </button>
+                    </h3>
+                    <div id="@collapseId" class="accordion-collapse collapse @(i == 0 ? "show" : "")"
+                         aria-labelledby="@headingId" data-bs-parent="#faqAccordionOfficial">
+                        <div class="accordion-body text-secondary" style="line-height: 1.7;">
+                            @faq.Answer
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================================
+     8. SECTION GET IN TOUCH / CONTACT CONSULTATION FORM
+     ============================================================================ -->
+<section class="contact-official-section" id="contact-section">
+    <div class="container" style="max-width: 960px;">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-5">
+                <span class="badge bg-warning text-dark mb-2">TƯ VẤN LỘ TRÌNH 1-1</span>
+                <h2 class="fw-bold text-white mb-3" style="font-size: 32px;">Get in Touch With Us</h2>
+                <p class="text-light opacity-75 mb-4" style="line-height: 1.7;">
+                    Để lại thông tin để được đội ngũ chuyên gia phân tích bài test và thiết kế lộ trình tăng band điểm bài bản.
+                </p>
+
+                <div class="d-flex flex-column gap-3 text-light small">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-telephone text-warning fs-5"></i>
+                        <span>Hotline: +84 (0) 908 123 456 (24/7)</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-envelope text-warning fs-5"></i>
+                        <span>Email: consult@ieltsonlinetests.com</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-clock text-warning fs-5"></i>
+                        <span>Thời gian phản hồi cam kết: Dưới 30 phút</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="contact-card-box">
+                    <h4 class="fw-bold text-dark mb-3">Đăng Ký Tư Vấn & Nhận Đề Thi Thử</h4>
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form asp-controller="Home" asp-action="SubmitConsultation" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-dark">Họ và tên của bạn</label>
+                            <input asp-for="ConsultationForm.FullName" class="form-control" placeholder="Ví dụ: Hoàng Thu Hằng" required />
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-dark">Địa chỉ Email</label>
+                                <input asp-for="ConsultationForm.Email" type="email" class="form-control" placeholder="name@example.com" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-dark">Số điện thoại</label>
+                                <input asp-for="ConsultationForm.PhoneNumber" class="form-control" placeholder="0908xxxxxx" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-dark">Mục tiêu Band điểm mong muốn</label>
+                            <select asp-for="ConsultationForm.TargetBand" class="form-select">
+                                <option value="6.5+">Mục tiêu Band 6.5+</option>
+                                <option value="7.0+" selected>Mục tiêu Band 7.0+</option>
+                                <option value="7.5+">Mục tiêu Band 7.5+</option>
+                                <option value="8.0+">Mục tiêu Band 8.0+</option>
+                                <option value="8.5+">Mục tiêu Band 8.5+</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-dark">Nhu cầu cụ thể hoặc kỹ năng cần cải thiện</label>
+                            <textarea asp-for="ConsultationForm.Message" class="form-control" rows="3" placeholder="Ví dụ: Cần cải thiện kỹ năng Writing Task 2..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-cta-accent w-100 py-3">
+                            <i class="bi bi-send-fill me-1"></i> GỬI ĐĂNG KÝ TƯ VẤN NGAY
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+

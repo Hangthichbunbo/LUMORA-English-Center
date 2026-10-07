@@ -1,0 +1,299 @@
+﻿@* <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - LTW</title> 
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/LTW.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">LTW</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                        </li>
+                    </ul>
+                    <partial name="_LoginPartial" />
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2026 - LTW - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+     @await RenderSectionAsync("Scripts", required: false) 
+</body>
+</html> *@
+
+@* ============================================================================
+   Main Author: hoangthuhang
+   Project: LTW Project - IELTS Online Tests Landing Page System
+   Architecture: ASP.NET Core MVC (Shared Master Layout)
+   File: Views/Shared/_Layout.cshtml
+   Description: Khung giao diện chuẩn xác dựa trên design tokens của ieltsonlinetests.com:
+                - Phông chữ chính thức: Montserrat & Nunito
+                - Thanh Navbar cố định trên cùng (fixed-top), nền trắng sạch sẽ, bóng mờ nhẹ
+                - Logo bên trái (icon + chữ "IELTS Online Tests")
+                - Menu điều hướng bên phải: Home, Practice, Tests, Blog, Contact + Sign Up, Log In
+                - Footer nền tối đa cột thông tin: Representative Office, More Information,
+                  Legal, Useful Link, Center Addresses
+                - Dòng bản quyền: "© 2026 LTW Project - Designed by hoangthuhang"
+   ============================================================================ *@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="hoangthuhang" />
+    <meta name="description" content="LUMORA English Center - Khảo thí và luyện thi IELTS trực tuyến chuẩn quốc tế, Platinum Partner của British Council & IDP." />
+    <title>@ViewData["Title"] - LUMORA English Center</title>
+
+    <!-- 1. Google Fonts: Montserrat & Nunito chuẩn phong cách  -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Nunito:wght@400;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+
+    <!-- 2. Bootstrap 5 Framework CSS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <!-- 3. Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+    <!-- 4. Stylesheet tùy chỉnh dựa trên tokens gốc (site.css) -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <!-- ====================================================================
+         NAVBAR CỐ ĐỊNH TRÊN CÙNG (FIXED-TOP NAVBAR)
+         - Logo bên trái
+         - Menu bên phải: Home, Practice, Tests, Blog, Contact
+         - Nút hành động: Log In & Sign Up
+         ==================================================================== -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-iot-clean fixed-top py-2">
+            <div class="container-fluid px-lg-5">
+                <!-- Logo thương hiệu bên trái -->
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                    <span class="brand-symbol-box">
+                        <i class="bi bi-mortarboard-fill"></i>
+                    </span>
+                    <span class="brand-title-main">
+                        LUMORA <span class="brand-title-accent">English</span> Center
+                    </span>
+                </a>
+
+                <!-- Nút toggle mở menu trên di động -->
+                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarMainNavigation" aria-controls="navbarMainNavigation"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Menu điều hướng bên phải -->
+                <div class="collapse navbar-collapse" id="navbarMainNavigation">
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+                        <li class="nav-item">
+                            <a class="nav-link active" asp-controller="Home" asp-action="Index">
+                                Home
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#practice-section">
+                                Practice
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#steps-section">
+                                Tests
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#courses-section">
+                                Blog
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#contact-section">
+                                Contact
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!-- Các nút chức năng người dùng -->
+                    @*<div class="d-flex align-items-center gap-2 ms-lg-3 mt-3 mt-lg-0">
+                        <a href="#contact-section" class="btn btn-outline-subtle btn-sm px-3">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Log In
+                        </a>
+                        <a href="#contact-section" class="btn btn-cta-accent btn-sm px-3">
+                            <i class="bi bi-person-plus-fill me-1"></i> Sign Up
+                        </a>
+                    </div> *@
+                    <partial name="_LoginPartial" />
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- ====================================================================
+         MAIN BODY CONTENT (Wrapped in .home-page class for exact CSS scoping)
+         ==================================================================== -->
+    <main role="main" class="home-page">
+        @RenderBody()
+    </main>
+
+    <!-- ====================================================================
+         FOOTER ĐA CỘT THÔNG TIN NỀN TỐI (DARK BACKGROUND FOOTER)
+         - Representative Office
+         - More Information
+         - Legal
+         - Useful Link
+         - Center Addresses
+         - Bản quyền: © 2026 LTW Project - Designed by hoangthuhang
+         ==================================================================== -->
+    <footer class="site-footer-official">
+        <div class="container-fluid px-lg-5">
+            <div class="row g-4">
+                <!-- Cột 1: Thông tin thương hiệu & Representative Office -->
+                <div class="col-lg-3 col-md-6">
+                    <a class="navbar-brand text-white mb-3 d-inline-flex" asp-controller="Home" asp-action="Index">
+                        <span class="brand-symbol-box">
+                            <i class="bi bi-mortarboard-fill"></i>
+                        </span>
+                        <span class="ms-2 brand-title-main">IELTS <span class="brand-title-accent">Online</span> Tests</span>
+                    </a>
+                    <p class="small text-secondary mt-2 mb-3" style="line-height: 1.7;">
+                        Hệ thống luyện thi IELTS trực tuyến hàng đầu, đối tác Platinum nhiều năm liền của British Council và IDP.
+                    </p>
+                    <h6 class="footer-section-title">Representative Office</h6>
+                    <ul class="footer-nav-menu small">
+                        <li><i class="bi bi-geo-alt-fill text-warning me-2"></i><strong>UK HQ:</strong> 29 High Holborn, London, WC1V 6AZ</li>
+                        <li><i class="bi bi-geo-alt-fill text-warning me-2"></i><strong>Vietnam:</strong> 3 Cầu Giấy, Phường Láng, Quận Cầu Giấy, TP.Hà Nội</li>
+                        <li><i class="bi bi-geo-alt-fill text-warning me-2"></i><strong>Australia:</strong> Level 14, 309 Kent Street, Sydney</li>
+                    </ul>
+                </div>
+
+                <!-- Cột 2: More Information -->
+                <div class="col-lg-2 col-md-6 ps-lg-4">
+                    <h6 class="footer-section-title">More Information</h6>
+                    <ul class="footer-nav-menu">
+                        <li><a href="#hero-banner"><i class="bi bi-chevron-right text-muted me-1"></i> About Our Mission</a></li>
+                        <li><a href="#courses-section"><i class="bi bi-chevron-right text-muted me-1"></i> Teaching Methodology</a></li>
+                        <li><a href="#teachers-section"><i class="bi bi-chevron-right text-muted me-1"></i> Ex-Examiner Team</a></li>
+                        <li><a href="#partners-section"><i class="bi bi-chevron-right text-muted me-1"></i> Platinum Partners</a></li>
+                        <li><a href="#social-testimonials-section"><i class="bi bi-chevron-right text-muted me-1"></i> Success Stories</a></li>
+                        <li><a href="#live-lessons-section"><i class="bi bi-chevron-right text-muted me-1"></i> Free Webinars</a></li>
+                    </ul>
+                </div>
+
+                <!-- Cột 3: Legal -->
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="footer-section-title">Legal</h6>
+                    <ul class="footer-nav-menu">
+                        <li><a asp-controller="Home" asp-action="Privacy"><i class="bi bi-shield-lock me-1"></i> Privacy Policy</a></li>
+                        <li><a asp-controller="Home" asp-action="Privacy"><i class="bi bi-file-earmark-ruled me-1"></i> Terms of Service</a></li>
+                        <li><a asp-controller="Home" asp-action="Privacy"><i class="bi bi-cookie me-1"></i> Cookies Policy</a></li>
+                        <li><a asp-controller="Home" asp-action="Privacy"><i class="bi bi-patch-check me-1"></i> Security Standards</a></li>
+                        <li><a asp-controller="Home" asp-action="Privacy"><i class="bi bi-c-circle me-1"></i> Copyright Policy</a></li>
+                    </ul>
+                </div>
+
+                <!-- Cột 4: Useful Link -->
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="footer-section-title">Useful Link</h6>
+                    <ul class="footer-nav-menu">
+                        <li><a href="#practice-section"><i class="bi bi-arrow-right-short text-warning"></i> IELTS Test Library</a></li>
+                        <li><a href="#steps-section"><i class="bi bi-arrow-right-short text-warning"></i> Band Score Calculator</a></li>
+                        <li><a href="#courses-section"><i class="bi bi-arrow-right-short text-warning"></i> Cambridge Tests 1-19</a></li>
+                        <li><a href="#live-lessons-section"><i class="bi bi-arrow-right-short text-warning"></i> Speaking Tips & Tricks</a></li>
+                        <li><a href="#practice-section"><i class="bi bi-arrow-right-short text-warning"></i> Academic Reading</a></li>
+                        <li><a href="#contact-section"><i class="bi bi-arrow-right-short text-warning"></i> Placement Booking</a></li>
+                    </ul>
+                </div>
+
+                <!-- Cột 5: Center Addresses & Contact Info -->
+                <div class="col-lg-3 col-md-12">
+                    <h6 class="footer-section-title">Center Addresses</h6>
+                    <ul class="footer-nav-menu small">
+                        <li class="mb-2">
+                            <strong><i class="bi bi-building text-warning me-1"></i> Hà Nội Campus:</strong>
+                            <div class="ps-3 text-secondary">Tầng 5, Tòa nhà Landmark 72, Nam Từ Liêm, Hà Nội</div>
+                        </li>
+                        <li class="mb-2">
+                            <strong><i class="bi bi-building text-warning me-1"></i> TP.HCM Campus:</strong>
+                            <div class="ps-3 text-secondary">Tòa nhà Bitexco Financial, 2 Hải Triều, Quận 1, TP.HCM</div>
+                        </li>
+                        <li class="mb-2">
+                            <strong><i class="bi bi-telephone text-warning me-1"></i> Hotline:</strong>
+                            <div class="ps-3 text-secondary">+84 (0) 908 123 456 / +44 20 7946 0192</div>
+                        </li>
+                        <li class="mb-2">
+                            <strong><i class="bi bi-envelope text-warning me-1"></i> Email:</strong>
+                            <div class="ps-3 text-secondary">support@ieltsonlinetests.com</div>
+                        </li>
+                    </ul>
+
+                    <!-- Mạng xã hội -->
+                    <div class="d-flex gap-2 mt-3">
+                        <a href="https://facebook.com" class="btn btn-sm btn-outline-secondary text-white" target="_blank" aria-label="Facebook">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+                        <a href="https://youtube.com" class="btn btn-sm btn-outline-secondary text-white" target="_blank" aria-label="YouTube">
+                            <i class="bi bi-youtube"></i>
+                        </a>
+                        <a href="https://tiktok.com" class="btn btn-sm btn-outline-secondary text-white" target="_blank" aria-label="TikTok">
+                            <i class="bi bi-tiktok"></i>
+                        </a>
+                        <a href="https://telegram.org" class="btn btn-sm btn-outline-secondary text-white" target="_blank" aria-label="Telegram">
+                            <i class="bi bi-telegram"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dòng bản quyền bắt buộc theo yêu cầu -->
+            <div class="footer-bottom-statement">
+                <div class="container text-center">
+                    <p class="mb-0">
+                        &copy; 2026 LTW Project - Designed by <span class="author-name-mark">hoangthuhang</span>. All rights reserved.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JavaScript Bundle -->
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom Script -->
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+
