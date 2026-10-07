@@ -1,4 +1,4 @@
-// ============================================================================
+﻿// ============================================================================
 // Main Author: hoangthuhang
 // Project: LTW Project - IELTS Online Tests Landing Page System
 // Architecture: ASP.NET Core MVC - Object-Oriented Programming (OOP)
@@ -21,7 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace LTW_5.Models
+namespace LTW.Models
 {
     /// <summary>
     /// ViewModel đóng gói dữ liệu hoàn chỉnh
@@ -558,4 +558,3 @@ namespace LTW_5.Models
         public string Message { get; set; } = string.Empty;
     }
 }
-

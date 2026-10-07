@@ -1,4 +1,4 @@
-namespace LTW_5.Models
+namespace LTW.Models
 {
     public class ErrorViewModel
     {

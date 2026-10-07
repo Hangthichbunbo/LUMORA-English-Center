@@ -8,10 +8,10 @@
 // ============================================================================
 
 using System.Diagnostics;
-using LTW_5.Models;
+using LTW.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LTW_5.Controllers
+namespace LTW.Controllers
 {
     /// <summary>
     /// HomeController đảm nhiệm tiếp nhận yêu cầu từ client, kết nối với dữ liệu ViewModel

@@ -1,4 +1,4 @@
-// ============================================================================
+﻿// ============================================================================
 // Main Author: hoangthuhang
 // Project: LTW Project - IELTS Online Practice Landing Page
 // File: wwwroot/js/site.js

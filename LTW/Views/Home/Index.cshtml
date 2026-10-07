@@ -1,4 +1,4 @@
-@* ============================================================================
+﻿@* ============================================================================
    Main Author: hoangthuhang
    Project: LTW Project - IELTS Online Tests Landing Page System
    Architecture: ASP.NET Core MVC (Strongly Typed Razor View)
@@ -17,7 +17,7 @@
                 9. Section Get in touch / Contact Form: Form tư vấn ở chân trang
    ============================================================================ *@
 
-@model LTW_5.Models.LandingPageViewModel
+@model LTW.Models.LandingPageViewModel
 
 @{
     ViewData["Title"] = "LUMORA English Center - Official Style Platform";
@@ -504,13 +504,13 @@
 
                 <div class="accordion-item">
                     <h3 class="accordion-header" id="@headingId">
-                        <button class="accordion-button @(i == 0 ? "" : "collapsed")" type="button" 
-                                data-bs-toggle="collapse" data-bs-target="#@collapseId" 
+                        <button class="accordion-button @(i == 0 ? "" : "collapsed")" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#@collapseId"
                                 aria-expanded="@(i == 0 ? "true" : "false")" aria-controls="@collapseId">
                             <i class="bi bi-question-circle text-primary me-2"></i> @faq.Question
                         </button>
                     </h3>
-                    <div id="@collapseId" class="accordion-collapse collapse @(i == 0 ? "show" : "")" 
+                    <div id="@collapseId" class="accordion-collapse collapse @(i == 0 ? "show" : "")"
                          aria-labelledby="@headingId" data-bs-parent="#faqAccordionOfficial">
                         <div class="accordion-body text-secondary" style="line-height: 1.7;">
                             @faq.Answer

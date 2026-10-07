@@ -37,7 +37,6 @@
     --brand: #2b7bbb;
     --navy: #1e2b43;
     --navy-2: #14233b;
-
     /* Thước đo font size chuẩn */
     --font-size-xs: 14px;
     --font-size-sm: 16px;
@@ -45,20 +44,17 @@
     --font-size-lg: 24px;
     --font-size-xl: 36px;
     --font-size-xxl: 48px;
-
     /* Màu sắc và gradient 4 kỹ năng IELTS chính thức */
     --main-color: #294563;
     --speaking-color: #C76378;
     --listening-color: #32B4C8;
     --writing-color: #F9A95A;
     --reading-color: #37854D;
-
     --primary-gradient: linear-gradient(180deg, #294563 0%, #172636 100%);
     --reading-gradient: linear-gradient(180deg, #337845 0%, #265A35 100%);
     --listening-gradient: linear-gradient(180deg, #33B2C7 0%, #268695 100%);
     --writing-gradient: linear-gradient(180deg, #FAA859 0%, #BB7F44 100%);
     --speaking-gradient: linear-gradient(180deg, #C86478 0%, #954B5A 100%);
-
     --swiper-navigation-size: 44px;
     --swiper-theme-color: #007aff;
 }
@@ -83,11 +79,11 @@
     box-sizing: border-box;
 }
 
-*:before, *:after {
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-}
+    *:before, *:after {
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+    }
 
 ::selection {
     background: var(--main-color);
@@ -123,16 +119,19 @@ h1, h2, h3, h4, h5, h6 {
 ::-webkit-scrollbar {
     width: 8px;
 }
+
 ::-webkit-scrollbar-track {
     background: #f1f5f9;
 }
+
 ::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 99px;
 }
-::-webkit-scrollbar-thumb:hover {
-    background: var(--brand);
-}
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--brand);
+    }
 
 /* --------------------------------------------------------------------------
    4. BUTTONS VÀ HIỆU ỨNG TƯƠNG TÁC
@@ -158,13 +157,13 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 6px 18px rgba(43, 123, 187, 0.25);
 }
 
-.btn-brand:hover,
-.btn-brand:focus {
-    background-color: #2369a1;
-    border-color: #2369a1;
-    transform: translateY(-2px);
-    box-shadow: 0 10px 24px rgba(43, 123, 187, 0.35);
-}
+    .btn-brand:hover,
+    .btn-brand:focus {
+        background-color: #2369a1;
+        border-color: #2369a1;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(43, 123, 187, 0.35);
+    }
 
 /* Nút CTA Nổi bật (Speaking/Writing tone - Cam đất/Hổ phách) */
 .btn-cta-accent {
@@ -174,13 +173,13 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 6px 18px rgba(249, 169, 90, 0.35);
 }
 
-.btn-cta-accent:hover,
-.btn-cta-accent:focus {
-    background-color: #e59546;
-    border-color: #e59546;
-    transform: translateY(-2px);
-    box-shadow: 0 10px 24px rgba(249, 169, 90, 0.45);
-}
+    .btn-cta-accent:hover,
+    .btn-cta-accent:focus {
+        background-color: #e59546;
+        border-color: #e59546;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(249, 169, 90, 0.45);
+    }
 
 /* Nút Navy sang trọng */
 .btn-navy {
@@ -189,11 +188,11 @@ h1, h2, h3, h4, h5, h6 {
     color: #ffffff !important;
 }
 
-.btn-navy:hover {
-    background-color: var(--navy-2);
-    border-color: var(--navy-2);
-    transform: translateY(-2px);
-}
+    .btn-navy:hover {
+        background-color: var(--navy-2);
+        border-color: var(--navy-2);
+        transform: translateY(-2px);
+    }
 
 .btn-outline-brand {
     background: transparent;
@@ -201,11 +200,11 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--brand) !important;
 }
 
-.btn-outline-brand:hover {
-    background: var(--brand);
-    color: #ffffff !important;
-    transform: translateY(-2px);
-}
+    .btn-outline-brand:hover {
+        background: var(--brand);
+        color: #ffffff !important;
+        transform: translateY(-2px);
+    }
 
 .btn-outline-subtle {
     background: #ffffff;
@@ -213,11 +212,11 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--text);
 }
 
-.btn-outline-subtle:hover {
-    border-color: var(--brand);
-    color: var(--brand);
-    transform: translateY(-2px);
-}
+    .btn-outline-subtle:hover {
+        border-color: var(--brand);
+        color: var(--brand);
+        transform: translateY(-2px);
+    }
 
 /* --------------------------------------------------------------------------
    5. NAVBAR CỐ ĐỊNH TRÊN CÙNG (FIXED-TOP CLEAN NAVBAR)
@@ -271,11 +270,11 @@ h1, h2, h3, h4, h5, h6 {
     transition: all 0.2s ease;
 }
 
-.navbar-iot-clean .nav-link:hover,
-.navbar-iot-clean .nav-link.active {
-    color: var(--brand);
-    background-color: rgba(43, 123, 187, 0.08);
-}
+    .navbar-iot-clean .nav-link:hover,
+    .navbar-iot-clean .nav-link.active {
+        color: var(--brand);
+        background-color: rgba(43, 123, 187, 0.08);
+    }
 
 /* --------------------------------------------------------------------------
    6. HERO SECTION VỚI STYLES CHÍNH THỨC CỦA LUMORA ENGLISH CENTER
@@ -291,8 +290,7 @@ h1, h2, h3, h4, h5, h6 {
     justify-content: center;
     position: relative;
     overflow: initial;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(50, 179, 199, 0.12) 100%),
-                radial-gradient(ellipse 80% 50% at 50% 100%, rgba(50, 179, 199, 0.18) 0%, rgba(255, 255, 255, 0) 75%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(50, 179, 199, 0.12) 100%), radial-gradient(ellipse 80% 50% at 50% 100%, rgba(50, 179, 199, 0.18) 0%, rgba(255, 255, 255, 0) 75%);
     padding: 70px 0 60px 0;
     border-bottom: 1px solid var(--line);
 }
@@ -357,9 +355,9 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: 18px;
 }
 
-.hero-main-header .hero-accent {
-    color: var(--brand);
-}
+    .hero-main-header .hero-accent {
+        color: var(--brand);
+    }
 
 .hero-desc-lead {
     font-size: var(--font-size-md);
@@ -421,21 +419,21 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
-.skill-tab-pill.listening {
-    background: var(--listening-gradient);
-}
+    .skill-tab-pill.listening {
+        background: var(--listening-gradient);
+    }
 
-.skill-tab-pill.reading {
-    background: var(--reading-gradient);
-}
+    .skill-tab-pill.reading {
+        background: var(--reading-gradient);
+    }
 
-.skill-tab-pill.writing {
-    background: var(--writing-gradient);
-}
+    .skill-tab-pill.writing {
+        background: var(--writing-gradient);
+    }
 
-.skill-tab-pill.speaking {
-    background: var(--speaking-gradient);
-}
+    .skill-tab-pill.speaking {
+        background: var(--speaking-gradient);
+    }
 
 /* --------------------------------------------------------------------------
    7. SECTION 6 STEPS TO ACHIEVE YOUR IELTS GOALS
@@ -473,11 +471,11 @@ h1, h2, h3, h4, h5, h6 {
     transition: all 0.3s ease;
 }
 
-.step-card-box:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--shadow);
-    border-color: var(--brand);
-}
+    .step-card-box:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow);
+        border-color: var(--brand);
+    }
 
 .step-badge-number {
     width: 38px;
@@ -540,11 +538,11 @@ h1, h2, h3, h4, h5, h6 {
     transition: all 0.3s ease;
 }
 
-.material-test-card:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--shadow);
-    border-color: var(--brand);
-}
+    .material-test-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow);
+        border-color: var(--brand);
+    }
 
 .material-top-strip {
     padding: 14px 18px;
@@ -608,10 +606,10 @@ h1, h2, h3, h4, h5, h6 {
     transition: all 0.3s ease;
 }
 
-.course-box-card:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--shadow);
-}
+    .course-box-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow);
+    }
 
 .course-top-banner {
     background: var(--primary-gradient);
@@ -657,10 +655,10 @@ h1, h2, h3, h4, h5, h6 {
     transition: all 0.25s ease;
 }
 
-.roadmap-step-node:hover {
-    border-color: var(--brand);
-    transform: translateY(-4px);
-}
+    .roadmap-step-node:hover {
+        border-color: var(--brand);
+        transform: translateY(-4px);
+    }
 
 .roadmap-band-chip {
     background: var(--primary-gradient);
@@ -708,10 +706,10 @@ h1, h2, h3, h4, h5, h6 {
     transition: all 0.25s ease;
 }
 
-.testimonial-student-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow);
-}
+    .testimonial-student-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow);
+    }
 
 /* --------------------------------------------------------------------------
    11. SECTION TEACHING TEAM & VALUED PARTNERS
@@ -732,10 +730,10 @@ h1, h2, h3, h4, h5, h6 {
     transition: all 0.25s ease;
 }
 
-.teacher-profile-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow);
-}
+    .teacher-profile-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow);
+    }
 
 .teacher-avatar-circle {
     width: 95px;
@@ -756,10 +754,10 @@ h1, h2, h3, h4, h5, h6 {
     transition: all 0.2s ease;
 }
 
-.partner-logo-item:hover {
-    border-color: var(--brand);
-    transform: translateY(-3px);
-}
+    .partner-logo-item:hover {
+        border-color: var(--brand);
+        transform: translateY(-3px);
+    }
 
 /* --------------------------------------------------------------------------
    12. SECTION FAQ (BOOTSTRAP ACCORDION)
@@ -785,16 +783,16 @@ h1, h2, h3, h4, h5, h6 {
     padding: 18px 22px;
 }
 
-.accordion-iot-style .accordion-button:not(.collapsed) {
-    color: var(--brand);
-    background-color: rgba(43, 123, 187, 0.05);
-    box-shadow: none;
-}
+    .accordion-iot-style .accordion-button:not(.collapsed) {
+        color: var(--brand);
+        background-color: rgba(43, 123, 187, 0.05);
+        box-shadow: none;
+    }
 
-.accordion-iot-style .accordion-button:focus {
-    box-shadow: none;
-    border-color: var(--brand);
-}
+    .accordion-iot-style .accordion-button:focus {
+        box-shadow: none;
+        border-color: var(--brand);
+    }
 
 /* --------------------------------------------------------------------------
    13. SECTION GET IN TOUCH / CONTACT CONSULTATION FORM
@@ -834,15 +832,15 @@ h1, h2, h3, h4, h5, h6 {
     padding-bottom: 8px;
 }
 
-.footer-section-title::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 30px;
-    height: 2px;
-    background-color: var(--brand);
-}
+    .footer-section-title::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 30px;
+        height: 2px;
+        background-color: var(--brand);
+    }
 
 .footer-nav-menu {
     list-style: none;
@@ -850,20 +848,20 @@ h1, h2, h3, h4, h5, h6 {
     margin: 0;
 }
 
-.footer-nav-menu li {
-    margin-bottom: 10px;
-}
+    .footer-nav-menu li {
+        margin-bottom: 10px;
+    }
 
-.footer-nav-menu a {
-    color: #94a3b8;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
+    .footer-nav-menu a {
+        color: #94a3b8;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
 
-.footer-nav-menu a:hover {
-    color: #38bdf8;
-    padding-left: 4px;
-}
+        .footer-nav-menu a:hover {
+            color: #38bdf8;
+            padding-left: 4px;
+        }
 
 .footer-bottom-statement {
     border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -883,19 +881,36 @@ h1, h2, h3, h4, h5, h6 {
    15. RESPONSIVE OPTIMIZATIONS
    -------------------------------------------------------------------------- */
 @media (max-width: 991.98px) {
-    body { padding-top: 68px; }
-    .hero-main-header { font-size: 32px; }
-    .skills-grid-row { grid-template-columns: repeat(2, 1fr); }
+    body {
+        padding-top: 68px;
+    }
+
+    .hero-main-header {
+        font-size: 32px;
+    }
+
+    .skills-grid-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 @media (max-width: 767.98px) {
-    .hero-main-header { font-size: 26px; }
+    .hero-main-header {
+        font-size: 26px;
+    }
+
     .official-partner-capsule {
         flex-direction: column;
         align-items: flex-start;
         border-radius: var(--radius-md);
     }
-    .partner-mini-tags { border-left: none; padding-left: 0; }
-    .skills-grid-row { grid-template-columns: 1fr; }
-}
 
+    .partner-mini-tags {
+        border-left: none;
+        padding-left: 0;
+    }
+
+    .skills-grid-row {
+        grid-template-columns: 1fr;
+    }
+}
