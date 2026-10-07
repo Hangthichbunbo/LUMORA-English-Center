@@ -2,82 +2,225 @@
 @model LoginModel
 
 @{
-    ViewData["Title"] = "Log in";
+    ViewData["Title"] = "Đăng nhập tài khoản - LUMORA English Center";
 }
 
-<h1>@ViewData["Title"]</h1>
-<div class="row">
-    <div class="col-md-4">
-        <section>
-            <form id="account" method="post">
-                <h2>Use a local account to log in.</h2>
-                <hr />
-                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                    <label asp-for="Input.Email" class="form-label">Email</label>
-                    <span asp-validation-for="Input.Email" class="text-danger"></span>
-                </div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
-                    <label asp-for="Input.Password" class="form-label">Password</label>
-                    <span asp-validation-for="Input.Password" class="text-danger"></span>
-                </div>
-                <div class="checkbox mb-3">
-                    <label asp-for="Input.RememberMe" class="form-label">
-                        <input class="form-check-input" asp-for="Input.RememberMe" />
-                        @Html.DisplayNameFor(m => m.Input.RememberMe)
-                    </label>
-                </div>
-                <div>
-                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-                </div>
-                <div>
-                    <p>
-                        <a id="forgot-password" asp-page="./ForgotPassword">Forgot your password?</a>
-                    </p>
-                    <p>
-                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Register as a new user</a>
-                    </p>
-                    <p>
-                        <a id="resend-confirmation" asp-page="./ResendEmailConfirmation">Resend email confirmation</a>
-                    </p>
-                </div>
-            </form>
-        </section>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to log in.</h3>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
+<div class="auth-page-wrapper">
+    <div class="container" style="max-width: 1060px;">
+        <div class="auth-split-card">
+            <div class="row g-0">
+                <!-- Cột trái: Giới thiệu thương hiệu & Điểm nổi bật LUMORA -->
+                <div class="col-lg-5 d-none d-lg-flex auth-showcase-col">
                     <div>
-                        <p>
-                            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-                            about setting up this ASP.NET application to support logging in via external services</a>.
+                        <!-- Logo & Tên trung tâm -->
+                        <div class="auth-brand-badge mb-4">
+                            <span class="brand-symbol-box">
+                                <i class="bi bi-mortarboard-fill"></i>
+                            </span>
+                            <span class="brand-title">
+                                LUMORA <span class="text-info">English</span> Center
+                            </span>
+                        </div>
+
+                        <!-- Capsule đối tác chính thức British Council & IDP -->
+                        <div class="auth-partner-strip mb-4">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="bi bi-patch-check-fill text-warning"></i>
+                                <span class="small text-white-50 fw-semibold text-uppercase" style="letter-spacing: 0.5px; font-size: 11px;">
+                                    Platinum Partner
+                                </span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge-official-bc">BRITISH COUNCIL</span>
+                                <span class="badge-official-idp">IDP</span>
+                            </div>
+                        </div>
+
+                        <!-- Tiêu đề & Giới thiệu ngắn -->
+                        <h3 class="fw-bold text-white mb-2" style="font-size: 24px; line-height: 1.3;">
+                            Luyện Thi IELTS Chuẩn <span style="color: #38bdf8;">Đề Thi Thật</span>
+                        </h3>
+                        <p class="text-white-50 small mb-4" style="line-height: 1.6;">
+                            Hệ thống kiểm tra & luyện thi IELTS trực tuyến hàng đầu, mô phỏng bài thi trên máy tính với đáp án và giải thích chuyên sâu.
+                        </p>
+
+                        <!-- 4 Kỹ năng IELTS chính thức -->
+                        <div class="auth-skills-row mb-4">
+                            <span class="auth-skill-pill auth-skill-listening">
+                                <i class="bi bi-headphones me-1"></i> Listening
+                            </span>
+                            <span class="auth-skill-pill auth-skill-reading">
+                                <i class="bi bi-book me-1"></i> Reading
+                            </span>
+                            <span class="auth-skill-pill auth-skill-writing">
+                                <i class="bi bi-pencil-square me-1"></i> Writing
+                            </span>
+                            <span class="auth-skill-pill auth-skill-speaking">
+                                <i class="bi bi-mic me-1"></i> Speaking
+                            </span>
+                        </div>
+
+                        <!-- Danh sách điểm mạnh -->
+                        <div class="auth-feature-list">
+                            <div class="auth-feature-item">
+                                <i class="bi bi-shield-check text-success"></i>
+                                <span>500+ bộ đề bản quyền Cambridge & chuẩn format thi thật</span>
+                            </div>
+                            <div class="auth-feature-item">
+                                <i class="bi bi-journal-check text-info"></i>
+                                <span>Đáp án chuẩn xác kèm phân tích giải thích chi tiết từng câu hỏi</span>
+                            </div>
+                            <div class="auth-feature-item">
+                                <i class="bi bi-graph-up-arrow text-warning"></i>
+                                <span>Lộ trình cá nhân hóa hướng tới mục tiêu Band 7.5+</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer nhỏ cột trái -->
+                    <div class="auth-trust-strip d-flex align-items-center justify-content-between mt-4">
+                        <span><i class="bi bi-people-fill text-warning me-1"></i> 2.5M+ Học viên tin cậy</span>
+                        <span><i class="bi bi-star-fill text-warning me-1"></i> 4.9/5 Đánh giá</span>
+                    </div>
+                </div>
+
+                <!-- Cột phải: Form Đăng Nhập -->
+                <div class="col-lg-7 auth-form-col">
+                    <!-- Brand thu nhỏ trên màn hình Mobile -->
+                    <div class="d-lg-none text-center mb-4">
+                        <div class="d-inline-flex align-items-center gap-2">
+                            <span class="brand-symbol-box" style="width: 36px; height: 36px; font-size: 1rem;">
+                                <i class="bi bi-mortarboard-fill"></i>
+                            </span>
+                            <span class="fw-bold fs-5" style="color: var(--navy);">
+                                LUMORA <span style="color: var(--brand);">English</span> Center
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-center align-items-center gap-2 mt-2">
+                            <span class="badge-official-bc">BRITISH COUNCIL</span>
+                            <span class="badge-official-idp">IDP</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <span class="auth-section-badge mb-2">
+                            <i class="bi bi-shield-lock-fill me-1"></i> CỔNG ĐĂNG NHẬP HỌC VIÊN
+                        </span>
+                        <h2 class="auth-card-title mb-1">Chào mừng trở lại!</h2>
+                        <p class="text-muted small mb-0">
+                            Đăng nhập tài khoản để tiếp tục làm bài thi và theo dõi kết quả luyện tập.
                         </p>
                     </div>
-                }
-                else
-                {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
-                                }
-                            </p>
+
+                    <form id="account" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 px-3 small border-0 shadow-sm mb-3" role="alert"></div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label asp-for="Input.Email" class="form-label small fw-semibold text-dark">
+                                <i class="bi bi-envelope text-primary me-1"></i> Địa chỉ Email
+                            </label>
+                            <div class="input-group auth-input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-at"></i>
+                                </span>
+                                <input asp-for="Input.Email" class="form-control auth-control" autocomplete="username" aria-required="true" placeholder="vidu@gmail.com" />
+                            </div>
+                            <span asp-validation-for="Input.Email" class="text-danger small mt-1 d-block"></span>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label asp-for="Input.Password" class="form-label small fw-semibold text-dark mb-0">
+                                    <i class="bi bi-lock text-primary me-1"></i> Mật khẩu
+                                </label>
+                                <a id="forgot-password" asp-page="./ForgotPassword" class="auth-link-subtle small">
+                                    Quên mật khẩu?
+                                </a>
+                            </div>
+                            <div class="input-group auth-input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-key"></i>
+                                </span>
+                                <input asp-for="Input.Password" class="form-control auth-control border-end-0" id="loginPasswordInput" autocomplete="current-password" aria-required="true" placeholder="••••••••" />
+                                <button class="btn btn-pwd-toggle border border-start-0" type="button" id="togglePasswordBtn" title="Hiện/ẩn mật khẩu">
+                                    <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Input.Password" class="text-danger small mt-1 d-block"></span>
+                        </div>
+
+                        <!-- Remember Me -->
+                        <div class="form-check mb-4">
+                            <input class="form-check-input auth-checkbox" asp-for="Input.RememberMe" id="rememberMeInput" />
+                            <label class="form-check-label small text-muted user-select-none" for="rememberMeInput">
+                                Ghi nhớ đăng nhập trên thiết bị này
+                            </label>
+                        </div>
+
+                        <!-- Nút Đăng Nhập -->
+                        <button id="login-submit" type="submit" class="btn btn-brand w-100 auth-submit-btn">
+                            <i class="bi bi-box-arrow-in-right me-2"></i> ĐĂNG NHẬP NGAY
+                        </button>
+
+                        <!-- Đăng nhập dịch vụ ngoài nếu có -->
+                        @{
+                            if ((Model.ExternalLogins?.Count ?? 0) > 0)
+                            {
+                                <div class="auth-divider">
+                                    <span>hoặc tiếp tục với</span>
+                                </div>
+                                <div class="d-flex flex-column gap-2">
+                                    @foreach (var provider in Model.ExternalLogins!)
+                                    {
+                                        <button type="submit" form="external-account" class="btn auth-social-btn d-flex align-items-center justify-content-center gap-2" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
+                                            <i class="bi bi-box-arrow-up-right text-primary"></i>
+                                            <span>Đăng nhập qua @provider.DisplayName</span>
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        }
+
+                        <!-- Footer: Chuyển sang Đăng ký & Gửi lại xác nhận -->
+                        <div class="text-center mt-4 pt-3 border-top">
+                            <p class="small text-muted mb-2">Chưa có tài khoản luyện thi IELTS?</p>
+                            <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="btn btn-cta-accent btn-sm px-4 py-2">
+                                <i class="bi bi-person-plus-fill me-1"></i> Tạo tài khoản mới
+                            </a>
+                            <div class="mt-3">
+                                <a id="resend-confirmation" asp-page="./ResendEmailConfirmation" class="text-muted small auth-subtle-text">
+                                    <i class="bi bi-envelope-check me-1"></i> Gửi lại email xác nhận tài khoản
+                                </a>
+                            </div>
                         </div>
                     </form>
-                }
-            }
-        </section>
+
+                    @* Form hỗ trợ External Account nếu có cấu hình *@
+                    @if ((Model.ExternalLogins?.Count ?? 0) > 0)
+                    {
+                        <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="d-none"></form>
+                    }
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('togglePasswordBtn')?.addEventListener('click', function () {
+            const pwd = document.getElementById('loginPasswordInput');
+            const icon = document.getElementById('togglePasswordIcon');
+            if (pwd && icon) {
+                const isPassword = pwd.type === 'password';
+                pwd.type = isPassword ? 'text' : 'password';
+                icon.classList.toggle('bi-eye', !isPassword);
+                icon.classList.toggle('bi-eye-slash', isPassword);
+            }
+        });
+    </script>
 }
+

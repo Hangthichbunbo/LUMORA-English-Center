@@ -1,4 +1,4 @@
-﻿// ============================================================================
+// ============================================================================
 // Main Author: hoangthuhang
 // Project: LTW Project - IELTS Online Tests Landing Page System
 // Architecture: ASP.NET Core MVC - Object-Oriented Programming (OOP)
@@ -68,7 +68,7 @@ namespace LTW.Models
         {
             PartnerHeadline = "Proud to be PLATINUM PARTNER of the BRITISH COUNCIL and IDP for many years";
             HeroTitle = "Luyện Thi IELTS Online Chuẩn Quốc Tế Với Đề Thi Thật";
-            HeroSubtitle = "Nền tảng kiểm tra và rèn luyện kỹ năng IELTS của LUMORA English Center với hơn 500+ đề thi mô phỏng bài thi trên máy tính (Computer-delivered), chấm điểm tức tự động và phân tích chuyên sâu.";
+            HeroSubtitle = "Nền tảng kiểm tra và rèn luyện kỹ năng IELTS của LUMORA English Center với hơn 500+ đề thi mô phỏng bài thi trên máy tính (Computer-delivered), đáp án chuẩn xác và phân tích chuyên sâu.";
 
             InitSteps();
             InitLatestMaterials();
@@ -114,9 +114,9 @@ namespace LTW.Models
                 ),
                 new StudyStepItem(
                     stepNumber: 5,
-                    title: "Mock Exam with AI",
-                    description: "Hệ thống giả lập thi thật trên máy tính (CDI), được giáo viên trung tâm chấm điểm Writing & Speaking.",
-                    iconClass: "bi bi-cpu-fill",
+                    title: "Simulation Mock Exam",
+                    description: "Hệ thống giả lập thi thật trên máy tính (CDI), được giáo viên trung tâm chấm điểm Writing & Speaking chi tiết.",
+                    iconClass: "bi bi-laptop-fill",
                     tag: "Bước 5"
                 ),
                 new StudyStepItem(
@@ -262,7 +262,7 @@ namespace LTW.Models
                     platform: "Facebook",
                     platformIcon: "bi bi-facebook",
                     avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
-                    comment: "Review chân thực sau 3 tháng luyện đề trên IELTS Online Tests: Giao diện thi thử chuẩn 100% kỳ thi trên máy tính tại BC. Bài Speaking và Writing được chấm AI cực kỳ sát điểm!",
+                    comment: "Review chân thực sau 3 tháng luyện đề trên IELTS Online Tests: Giao diện thi thử chuẩn 100% kỳ thi trên máy tính tại BC. Bài Speaking và Writing được thầy cô chấm chữa cực kỳ sát và chi tiết!",
                     likesCount: 1420
                 ),
                 new SocialTestimonialItem(
