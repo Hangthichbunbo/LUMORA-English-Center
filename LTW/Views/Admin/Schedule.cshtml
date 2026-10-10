@@ -1,0 +1,121 @@
+@model IEnumerable<LTW.Models.LiveClass>
+
+@{
+    ViewData["Title"] = "Thời Khóa Biểu Tổng Thể - Admin LUMORA";
+}
+
+<div class="container-fluid px-lg-5 py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="fw-bold text-dark m-0"><i class="bi bi-calendar-week-fill me-2 text-primary"></i>Lịch Trình Giảng Dạy & Lớp Học Toàn Hệ Thống</h3>
+            <p class="text-muted small m-0">Tổng hợp tất cả các buổi học Live Class theo ngày, giờ và phòng học</p>
+        </div>
+        <div>
+            <a asp-action="CreateClass" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold shadow-sm" style="background-color: #00A896; border-color: #00A896;">
+                <i class="bi bi-plus-circle me-1"></i> Xếp Lịch Mới
+            </a>
+            <a asp-action="Dashboard" class="btn btn-outline-secondary btn-sm rounded-pill px-3 ms-2">
+                <i class="bi bi-arrow-left me-1"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Admin Navigation Toolbar -->
+    <div class="d-flex flex-wrap gap-2 mb-4 bg-light p-2 rounded-4 border">
+        <a asp-action="Dashboard" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+        </a>
+        <a asp-action="Users" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-people-fill me-1"></i> Users
+        </a>
+        <a asp-action="Courses" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-collection-play-fill me-1"></i> Courses
+        </a>
+        <a asp-action="Classes" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-camera-video-fill me-1"></i> Classes
+        </a>
+        <a asp-action="Schedule" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold" style="background-color: #00A896; border-color: #00A896;">
+            <i class="bi bi-calendar-week-fill me-1"></i> Schedule
+        </a>
+        <a asp-controller="Teacher" asp-action="Lessons" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-book-fill me-1"></i> Lessons
+        </a>
+        <a asp-controller="Teacher" asp-action="Exercises" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-pencil-square me-1"></i> Exercises
+        </a>
+        <a asp-action="Tests" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-patch-question-fill me-1"></i> Tests
+        </a>
+        <a asp-action="Tips" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-lightbulb-fill me-1"></i> IELTS Tips
+        </a>
+        <a asp-action="Notifications" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-bell-fill me-1"></i> Notifications
+        </a>
+    </div>
+
+    <div class="row g-4">
+        @if (Model != null && Model.Any())
+        {
+            var groupedByDate = Model.GroupBy(c => c.ScheduledDate.Date).OrderBy(g => g.Key);
+
+            foreach (var group in groupedByDate)
+            {
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-3">
+                        <div class="bg-light p-3 border-bottom d-flex align-items-center justify-content-between">
+                            <h6 class="fw-bold text-primary m-0">
+                                <i class="bi bi-calendar-check me-2"></i>Ngày @group.Key.ToString("dd/MM/yyyy (dddd)")
+                            </h6>
+                            <span class="badge bg-secondary rounded-pill">@group.Count() buổi học</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0 small">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-4">Khung Giờ</th>
+                                        <th>Lớp Học</th>
+                                        <th>Khóa Học</th>
+                                        <th>Giảng Viên</th>
+                                        <th>Phòng Trực Tuyến</th>
+                                        <th>Loại Lớp</th>
+                                        <th class="text-end pe-4">Hành Động</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var cls in group.OrderBy(c => c.StartTime))
+                                    {
+                                        <tr>
+                                            <td class="ps-4">
+                                                <strong class="text-dark">@cls.StartTime.ToString(@"hh\:mm") - @cls.EndTime.ToString(@"hh\:mm")</strong>
+                                            </td>
+                                            <td><div class="fw-bold">@cls.ClassName</div></td>
+                                            <td>@(cls.Course?.Title ?? "Lớp Mở")</td>
+                                            <td>@(cls.Teacher?.FullName ?? "--")</td>
+                                            <td><code class="text-primary">@cls.LiveRoomUrl</code></td>
+                                            <td>
+                                                <span class="badge @(cls.IsPublic ? "bg-success" : "bg-danger") rounded-pill">
+                                                    @(cls.IsPublic ? "Public" : "Private")
+                                                </span>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <a asp-controller="Class" asp-action="Join" asp-route-id="@cls.LiveClassId" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                                    Vào Phòng
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5 text-muted">Chưa có lịch giảng dạy nào.</div>
+        }
+    </div>
+</div>
+

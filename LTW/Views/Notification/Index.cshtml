@@ -1,0 +1,95 @@
+@model IEnumerable<LTW.Models.Notification>
+
+@{
+    ViewData["Title"] = "Trung Tâm Thông Báo (Notification Center) - LUMORA";
+}
+
+<div class="container py-5" style="max-width: 900px;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-3 border-bottom">
+        <div>
+            <h2 class="fw-bold text-dark m-0"><i class="bi bi-bell-fill me-2 text-primary"></i>Trung Tâm Thông Báo</h2>
+            <p class="text-muted small m-0">Nhận thông báo lớp học sắp diễn ra, hạn nộp bài tập và cập nhật khóa học</p>
+        </div>
+
+        @if (Model != null && Model.Any(n => !n.IsRead))
+        {
+            <form asp-action="MarkAllAsRead" method="post" class="m-0">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    <i class="bi bi-check2-all me-1"></i> Đánh dấu tất cả đã đọc
+                </button>
+            </form>
+        }
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="d-flex flex-column gap-3">
+            @foreach (var n in Model)
+            {
+                var iconClass = n.Type switch
+                {
+                    "UpcomingClass" => "bi-camera-video-fill text-danger",
+                    "ExerciseDue" => "bi-pencil-square text-warning",
+                    "CourseUpdate" => "bi-journal-check text-success",
+                    _ => "bi-info-circle-fill text-primary"
+                };
+
+                <div class="card border-0 shadow-sm rounded-4 p-4 @(!n.IsRead ? "bg-white border-start border-4 border-primary" : "bg-light")">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="p-2 bg-light rounded-circle shadow-sm">
+                            <i class="bi @iconClass fs-4"></i>
+                        </div>
+
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <h6 class="fw-bold text-dark m-0">@n.Title</h6>
+                                <span class="text-muted small" style="font-size: 11px;">
+                                    <i class="bi bi-clock me-1"></i>@n.CreatedAt.ToString("HH:mm - dd/MM/yyyy")
+                                </span>
+                            </div>
+
+                            <p class="text-secondary small mb-3">@n.Content</p>
+
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                @if (!string.IsNullOrEmpty(n.LinkUrl))
+                                {
+                                    <a href="@n.LinkUrl" class="btn btn-primary btn-sm rounded-pill px-3" style="background-color: #00A896; border-color: #00A896;">
+                                        Xem Chi Tiết <i class="bi bi-arrow-right ms-1"></i>
+                                    </a>
+                                }
+
+                                @if (!n.IsRead)
+                                {
+                                    <form asp-action="MarkAsRead" asp-route-id="@n.NotificationId" method="post" class="d-inline m-0">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                                            <i class="bi bi-check2 me-1"></i> Đã đọc
+                                        </button>
+                                    </form>
+                                }
+
+                                <!-- Email Reminder simulation button -->
+                                <form asp-action="SendEmailReminder" asp-route-id="@n.NotificationId" method="post" class="d-inline m-0">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-outline-info btn-sm rounded-pill px-3" title="Gửi một bản sao nhắc nhở tới email của bạn">
+                                        <i class="bi bi-envelope-at me-1"></i> Nhận Email Reminder
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-bell-slash fs-1 text-muted d-block mb-3"></i>
+            <h5 class="fw-bold text-secondary">Hộp thư thông báo trống</h5>
+            <p class="text-muted small">Bạn đã cập nhật tất cả thông tin mới nhất từ hệ thống.</p>
+        </div>
+    }
+</div>
+

@@ -1,0 +1,102 @@
+@model IEnumerable<LTW.Models.IeltsTip>
+
+@{
+    ViewData["Title"] = "IELTS Tips & Kiến Thức Miễn Phí - LUMORA";
+    var categories = new[] { "All", "Listening", "Reading", "Writing", "Speaking", "Vocabulary", "Grammar" };
+    var currentCat = ViewBag.CurrentCategory as string ?? "All";
+}
+
+<div class="py-5 bg-lumora-header text-white">
+    <div class="container text-center">
+        <span class="badge rounded-pill px-3 py-2 text-white mb-3" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);">
+            <i class="bi bi-lightbulb-fill me-1 text-info"></i> THƯ VIỆN BÀI VIẾT HỌC THUẬT MIỄN PHÍ
+        </span>
+        <h1 class="fw-bold mb-3">IELTS Tips & Kinh Nghiệm Luyện Thi</h1>
+        <p class="text-white-50 mx-auto" style="max-width: 650px;">
+            Tổng hợp các bí quyết, phương pháp làm bài thi thực chiến, từ vựng theo chủ đề và cấu trúc câu ăn điểm từ đội ngũ giảng viên chuyên môn cao.
+        </p>
+
+        <!-- Search Form -->
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-7 col-lg-6">
+                <form method="get" asp-action="Index" class="input-group shadow-sm rounded-pill overflow-hidden bg-white p-1">
+                    <input type="text" name="search" value="@ViewBag.CurrentSearch" class="form-control border-0 px-4 py-2" placeholder="Tìm kiếm bài viết mẹo thi..." />
+                    <input type="hidden" name="category" value="@currentCat" />
+                    <button class="btn btn-lumora-secondary text-white rounded-pill px-4" type="submit">
+                        <i class="bi bi-search me-1"></i> Tìm Kiếm
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <!-- Category Filter Pills -->
+    <div class="d-flex flex-wrap gap-2 justify-content-center mb-5">
+        @foreach (var cat in categories)
+        {
+            var isActive = (currentCat.ToLower() == cat.ToLower());
+            <a asp-action="Index" asp-route-category="@cat" asp-route-search="@ViewBag.CurrentSearch"
+               class="btn @(isActive ? "btn-lumora-primary text-white" : "btn-outline-secondary") rounded-pill px-4 py-2 fw-semibold small shadow-sm">
+                @if (cat == "All") { <span>Tất cả</span> } else { <span>@cat</span> }
+            </a>
+        }
+    </div>
+
+    <!-- Tip Cards Grid -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var tip in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden d-flex flex-column" style="transition: transform 0.2s;">
+                        <div class="position-relative">
+                            <img src="@tip.Thumbnail" alt="@tip.Title" class="card-img-top" style="height: 200px; object-fit: cover;" />
+                            <span class="position-absolute top-0 end-0 m-3 badge bg-lumora-secondary text-white px-3 py-2 rounded-pill fw-semibold shadow-sm">
+                                @tip.Category
+                            </span>
+                        </div>
+
+                        <div class="card-body p-4 d-flex flex-column">
+                            <div class="d-flex align-items-center gap-3 text-muted small mb-2">
+                                <span><i class="bi bi-calendar3 me-1"></i>@tip.CreatedAt.ToString("dd/MM/yyyy")</span>
+                                <span><i class="bi bi-eye me-1"></i>@tip.ViewsCount lượt xem</span>
+                            </div>
+
+                            <h5 class="fw-bold text-dark mb-2 line-clamp-2" style="min-height: 48px;">
+                                <a asp-action="Detail" asp-route-id="@tip.TipId" class="text-dark text-decoration-none">
+                                    @tip.Title
+                                </a>
+                            </h5>
+
+                            <p class="text-muted small mb-3 flex-grow-1 text-truncate-3" style="line-height: 1.6; min-height: 60px;">
+                                @tip.Summary
+                            </p>
+
+                            <div class="pt-3 border-top d-flex align-items-center justify-content-between mt-auto">
+                                <span class="small text-secondary fw-semibold">
+                                    <i class="bi bi-person-fill text-muted me-1"></i>@tip.AuthorName
+                                </span>
+                                <a asp-action="Detail" asp-route-id="@tip.TipId" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
+                                    Đọc Tiếp <i class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-journal-x fs-1 text-muted d-block mb-3"></i>
+            <h5 class="fw-bold text-secondary">Chưa tìm thấy bài viết mẹo thi trong danh mục này</h5>
+            <p class="text-muted small">Hãy thử tìm kiếm với từ khóa khác.</p>
+            <a asp-action="Index" class="btn btn-lumora-primary rounded-pill px-4 mt-2">Xem Tất Cả Bài Viết</a>
+        </div>
+    }
+</div>
+

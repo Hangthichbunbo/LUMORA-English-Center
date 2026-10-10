@@ -227,7 +227,7 @@ namespace LTW.Models
             {
                 new LiveLessonItem(
                     topic: "Academic Writing Task 2: Advanced Cohesion & Coherence for Band 8.0",
-                    speaker: "Dr. Ngo Dinh (Ex-Examiner, 15+ năm kinh nghiệm)",
+                    speaker: "Dr. David Miller (IELTS 9.0, Ex-Examiner)",
                     dateTimeText: "Thứ Năm, 20:00 - 21:30 (GMT+7)",
                     skill: "Writing",
                     status: "Sắp diễn ra",
@@ -235,15 +235,15 @@ namespace LTW.Models
                 ),
                 new LiveLessonItem(
                     topic: "Speaking Part 2 & 3: Master Idiomatic Expressions & Fluency",
-                    speaker: "Ms. Hoang Hang (IELTS 9.0, CELTA Cambridge)",
+                    speaker: "Ms. Emma Richardson (CELTA Cambridge, IELTS 8.5)",
                     dateTimeText: "Thứ Bảy, 15:00 - 16:30 (GMT+7)",
                     skill: "Speaking",
                     status: "Miễn phí",
                     registeredCount: 1250
                 ),
                 new LiveLessonItem(
-                    topic: "Listening Section 4: Tackling Complex Academic Lectures & Notes",
-                    speaker: "Mr. Thanh Nam (Head of Training, BC Partner)",
+                    topic: "Listening & Reading: Bẻ Khóa Bẫy Đề Thi & Quản Lý Thời Gian Chuẩn CDI",
+                    speaker: "Ms. Olivia Taylor (Listening & Reading 9.0)",
                     dateTimeText: "Chủ Nhật, 19:30 - 21:00 (GMT+7)",
                     skill: "Listening",
                     status: "Sắp mở",
@@ -291,32 +291,60 @@ namespace LTW.Models
             TeachingTeam = new List<TeacherExpertItem>
             {
                 new TeacherExpertItem(
-                    name: "Dr. Ngô Hoàng Đỉnh",
-                    role: "Former IELTS Examiner (IDP & BC)",
+                    name: "Ms. Sarah Jenkins",
+                    role: "Ex-British Council Examiner",
+                    score: "IELTS 8.5 (Writing & Speaking)",
+                    bio: "Cựu giám khảo chấm thi British Council, 8 năm kinh nghiệm giảng dạy Writing & Speaking chuyên sâu.",
+                    avatarUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=250&q=80",
+                    teacherId: "teacher.sarah@lumora.edu.vn"
+                ),
+                new TeacherExpertItem(
+                    name: "Mr. James Watson",
+                    role: "Senior Academic Coach",
+                    score: "Cambridge MA TESOL",
+                    bio: "Thạc sĩ Giảng dạy Ngôn ngữ Anh Đại học Cambridge, chuyên gia luyện phát âm và phản xạ giao tiếp tự nhiên.",
+                    avatarUrl: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=250&q=80",
+                    teacherId: "teacher.james@lumora.edu.vn"
+                ),
+                new TeacherExpertItem(
+                    name: "Dr. David Miller",
+                    role: "Senior IELTS Assessment Expert",
                     score: "IELTS 9.0 Overall",
-                    bio: "Hơn 18 năm kinh nghiệm khảo thí và huấn luyện hơn 25.000 học viên đạt band 7.0+ trên toàn cầu.",
-                    avatarUrl: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=250&q=80"
+                    bio: "Tiến sĩ Ngôn ngữ học ứng dụng với 12 năm kinh nghiệm đào tạo học viên đạt chuẩn học thuật và du học quốc tế.",
+                    avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=250&q=80",
+                    teacherId: "teacher.david@lumora.edu.vn"
                 ),
                 new TeacherExpertItem(
-                    name: "Ms. Hoàng Thu Hằng",
-                    role: "Senior Academic Director",
-                    score: "IELTS 9.0 Speaking & Writing",
-                    bio: "Chuyên gia đào tạo sư phạm Cambridge, tác giả các bộ sách giải đề IELTS Actual Tests bán chạy nhất.",
-                    avatarUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=250&q=80"
+                    name: "Ms. Emma Richardson",
+                    role: "Head of Speaking & Phonetics",
+                    score: "CELTA Cambridge & IELTS 8.5",
+                    bio: "Chuyên gia huấn luyện phát âm IPA chuẩn Anh - Mỹ và chiến thuật phản xạ giao tiếp trôi chảy tự nhiên.",
+                    avatarUrl: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=250&q=80",
+                    teacherId: "teacher.emma@lumora.edu.vn"
                 ),
                 new TeacherExpertItem(
-                    name: "Dr. Nguyễn Thành Nam",
-                    role: "Head of English Assessment",
-                    score: "IELTS 9.0 Overall",
-                    bio: "Tiến sĩ Ngôn ngữ ứng dụng ĐH Southampton, cựu giám khảo chấm thi phần thi Nói và Viết tại London.",
-                    avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=250&q=80"
+                    name: "Mr. Daniel Evans",
+                    role: "Academic Writing Coach",
+                    score: "IELTS 8.5 (Writing 8.5)",
+                    bio: "Chuyên sâu phân tích cấu trúc bài viết Task 1 & Task 2, phát triển tư duy mạch lạc và vốn từ vựng học thuật C1-C2.",
+                    avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=250&q=80",
+                    teacherId: "teacher.daniel@lumora.edu.vn"
                 ),
                 new TeacherExpertItem(
-                    name: "Ms. Lê Hoàng Yến",
-                    role: "Lead Speaking Coach",
-                    score: "IELTS 8.5 Overall (Speaking 9.0)",
-                    bio: "Thạc sĩ TESOL ĐH Sydney, người truyền cảm hứng cho hàng ngàn học viên tự tin bắn tiếng Anh lưu loát.",
-                    avatarUrl: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=250&q=80"
+                    name: "Ms. Olivia Taylor",
+                    role: "Listening & Reading Specialist",
+                    score: "IELTS 8.5 (Listening & Reading 9.0)",
+                    bio: "Kỹ thuật Skimming & Scanning đột phá, bẻ khóa các bẫy đề thi Cambridge và cải thiện tốc độ xử lý bài đọc.",
+                    avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=250&q=80",
+                    teacherId: "teacher.olivia@lumora.edu.vn"
+                ),
+                new TeacherExpertItem(
+                    name: "Mr. Robert Clark",
+                    role: "Academic Director",
+                    score: "Oxford MA & IELTS 9.0",
+                    bio: "Giám đốc học thuật LUMORA, cố vấn phương pháp học tích hợp cá nhân hóa và chuẩn hóa đề thi mô phỏng CDI.",
+                    avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=250&q=80",
+                    teacherId: "teacher.robert@lumora.edu.vn"
                 )
             };
         }
@@ -495,14 +523,16 @@ namespace LTW.Models
         public string Score { get; set; }
         public string Bio { get; set; }
         public string AvatarUrl { get; set; }
+        public string TeacherId { get; set; } = string.Empty;
 
-        public TeacherExpertItem(string name, string role, string score, string bio, string avatarUrl)
+        public TeacherExpertItem(string name, string role, string score, string bio, string avatarUrl, string teacherId = "")
         {
             Name = name;
             Role = role;
             Score = score;
             Bio = bio;
             AvatarUrl = avatarUrl;
+            TeacherId = teacherId;
         }
     }
 

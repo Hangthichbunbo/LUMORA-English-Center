@@ -1,0 +1,281 @@
+@model LTW.Models.Course
+
+@{
+    ViewData["Title"] = Model.Title + " - LUMORA English Center";
+    bool isEnrolled = ViewBag.IsEnrolled == true;
+}
+
+<!-- Course Hero Banner -->
+<div class="course-detail-hero py-5 text-white bg-lumora-header">
+    <div class="container py-3">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-8">
+                <nav aria-label="breadcrumb" class="mb-3">
+                    <ol class="breadcrumb small text-white-50 m-0">
+                        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-white-50 text-decoration-none">Home</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="Course" asp-action="Index" class="text-white-50 text-decoration-none">Courses</a></li>
+                        <li class="breadcrumb-item active text-white" aria-current="page">@Model.Category</li>
+                    </ol>
+                </nav>
+
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-semibold">
+                        <i class="bi bi-bar-chart-fill me-1"></i> Trình độ: @Model.Level
+                    </span>
+                    <span class="badge bg-info text-dark px-3 py-2 rounded-pill fw-semibold">
+                        <i class="bi bi-tag-fill me-1"></i> @Model.Category
+                    </span>
+                    <span class="badge bg-light text-dark px-3 py-2 rounded-pill fw-semibold">
+                        <i class="bi bi-clock-history me-1"></i> @Model.Duration
+                    </span>
+                </div>
+
+                <h1 class="fw-bold mb-3">@Model.Title</h1>
+                <p class="lead text-white-50 fs-6 mb-4" style="line-height: 1.8;">
+                    @Model.ShortDescription
+                </p>
+
+                <!-- Instructor Meta -->
+                <div class="d-flex align-items-center gap-3 pt-3 border-top border-white border-opacity-25">
+                    @if (Model.Teacher != null)
+                    {
+                        <a asp-controller="Teacher" asp-action="Detail" asp-route-id="@Model.Teacher.Id" class="text-decoration-none d-flex align-items-center gap-3 text-white">
+                            <img src="@(string.IsNullOrEmpty(Model.Teacher.AvatarUrl) ? "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&q=80" : Model.Teacher.AvatarUrl)" 
+                                 alt="@Model.Teacher.FullName" class="rounded-circle shadow-sm" style="width: 50px; height: 50px; object-fit: cover; border: 2px solid #fff;" />
+                            <div>
+                                <div class="small text-white-50">Giảng viên phụ trách</div>
+                                <div class="fw-bold fs-6 text-white text-decoration-underline">@Model.Teacher.FullName</div>
+                            </div>
+                        </a>
+                    }
+                    else
+                    {
+                        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&q=80" 
+                             alt="Giảng viên" class="rounded-circle shadow-sm" style="width: 50px; height: 50px; object-fit: cover; border: 2px solid #fff;" />
+                        <div>
+                            <div class="small text-white-50">Giảng viên phụ trách</div>
+                            <div class="fw-bold fs-6">Hội đồng học thuật Lumora</div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Sticky Pricing / Purchase Card (Desktop) -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white text-dark p-4">
+                    <img src="@Model.Thumbnail" alt="@Model.Title" class="rounded-3 w-100 mb-3 shadow-sm" style="height: 200px; object-fit: cover;" />
+                    
+                    <div class="mb-3">
+                        @if (Model.Price > 0)
+                        {
+                            <div class="d-flex align-items-baseline gap-2">
+                                <span class="fs-2 fw-bold text-danger">@Model.Price.ToString("N0") đ</span>
+                                @if (Model.OriginalPrice > Model.Price)
+                                {
+                                    <span class="text-decoration-line-through text-muted small">@Model.OriginalPrice.ToString("N0") đ</span>
+                                    <span class="badge bg-danger bg-opacity-10 text-danger small">Tiết kiệm 30%</span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="fs-2 fw-bold text-success">Miễn Phí</span>
+                        }
+                    </div>
+
+                    <div class="d-grid gap-2 mb-3">
+                        @if (isEnrolled)
+                        {
+                            <div class="alert alert-success py-2 small text-center mb-2">
+                                <i class="bi bi-check-circle-fill me-1"></i> Bạn đã sở hữu khóa học này
+                            </div>
+                            <a asp-controller="Student" asp-action="MyCourses" class="btn btn-success py-3 fw-bold rounded-3 shadow-sm">
+                                <i class="bi bi-play-circle-fill me-2 fs-5"></i> Tiếp Tục Vào Học Ngay
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-action="Purchase" asp-route-id="@Model.CourseId" class="btn btn-lumora-secondary text-white py-3 fw-bold rounded-3 shadow-sm">
+                                <i class="bi bi-cart-check-fill me-2 fs-5"></i> Mua Khóa Học Ngay
+                            </a>
+                        }
+                    </div>
+
+                    <div class="small text-secondary mb-3">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-check2 text-success fs-6"></i>
+                            <span>Truy cập trọn đời tất cả bài giảng và tài liệu</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-check2 text-success fs-6"></i>
+                            <span>Tham gia toàn bộ các buổi Private Live Class</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-check2 text-success fs-6"></i>
+                            <span>Chấm điểm và nhận xét chi tiết Speaking & Writing</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-check2 text-success fs-6"></i>
+                            <span>Cấp chứng nhận hoàn thành khóa học từ Lumora</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Curriculum & Course Content -->
+<div class="container py-5">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <!-- About Course -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h4 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle me-2 text-primary"></i>Tổng Quan Khóa Học</h4>
+                <div class="text-secondary" style="line-height: 1.8;">
+                    @Model.Description
+                </div>
+            </div>
+
+            <!-- Curriculum Chapters & Lessons -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold text-dark m-0"><i class="bi bi-diagram-3 me-2 text-primary"></i>Lộ Trình Học Chi Tiết (Curriculum)</h4>
+                    <span class="text-muted small">@Model.Chapters.Count Chương • @Model.TotalLessons Bài học • @Model.TotalExercises Bài tập</span>
+                </div>
+
+                <div class="accordion curriculum-accordion" id="accordionCurriculum">
+                    @if (Model.Chapters != null && Model.Chapters.Any())
+                    {
+                        var chapterIndex = 0;
+                        foreach (var chapter in Model.Chapters.OrderBy(c => c.OrderIndex))
+                        {
+                            chapterIndex++;
+                            var collapseId = "chapterCollapse" + chapter.ChapterId;
+                            <div class="accordion-item border rounded-3 mb-3 overflow-hidden shadow-none">
+                                <h2 class="accordion-header" id="heading_@chapter.ChapterId">
+                                    <button class="accordion-button @(chapterIndex > 1 ? "collapsed" : "") bg-light fw-bold text-dark py-3" type="button" 
+                                            data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="@(chapterIndex == 1 ? "true" : "false")">
+                                        <span class="badge bg-primary me-2" style="background-color: #00A896 !important;">Chương @chapter.OrderIndex</span>
+                                        <span>@chapter.Title</span>
+                                        <span class="ms-auto me-3 badge bg-white text-secondary border small">@chapter.Lessons.Count bài học</span>
+                                    </button>
+                                </h2>
+                                <div id="@collapseId" class="accordion-collapse collapse @(chapterIndex == 1 ? "show" : "")" data-bs-parent="#accordionCurriculum">
+                                    <div class="accordion-body p-0">
+                                        <ul class="list-group list-group-flush">
+                                            @foreach (var lesson in chapter.Lessons.OrderBy(l => l.OrderIndex))
+                                            {
+                                                <li class="list-group-item d-flex align-items-center justify-content-between p-3 border-bottom">
+                                                    <div class="d-flex align-items-center gap-3">
+                                                        <span class="text-muted"><i class="bi bi-play-circle-fill fs-5 text-primary"></i></span>
+                                                        <div>
+                                                            <div class="fw-semibold text-dark">@lesson.Title</div>
+                                                            <div class="text-muted small">
+                                                                @if (!string.IsNullOrEmpty(lesson.VideoUrl)) { <span class="me-2"><i class="bi bi-camera-video me-1"></i>Video</span> }
+                                                                @if (!string.IsNullOrEmpty(lesson.AudioUrl)) { <span class="me-2"><i class="bi bi-headphones me-1"></i>Audio</span> }
+                                                                @if (lesson.Exercises.Any()) { <span class="badge bg-warning bg-opacity-25 text-dark"><i class="bi bi-pencil me-1"></i>@lesson.Exercises.Count Bài tập</span> }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        @if (isEnrolled)
+                                                        {
+                                                            <a asp-controller="Student" asp-action="Lesson" asp-route-id="@lesson.LessonId" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                                                Học bài <i class="bi bi-chevron-right ms-1"></i>
+                                                            </a>
+                                                        }
+                                                        else if (lesson.IsFreePreview)
+                                                        {
+                                                            <a asp-controller="Student" asp-action="Lesson" asp-route-id="@lesson.LessonId" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                                                <i class="bi bi-eye me-1"></i> Học thử miễn phí
+                                                            </a>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-light text-muted border px-3 py-2 rounded-pill">
+                                                                <i class="bi bi-lock-fill me-1"></i> Khóa
+                                                            </span>
+                                                        }
+                                                    </div>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted small">Nội dung chương trình đang được cập nhật.</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Live Classes Belonging to this Course -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h4 class="fw-bold text-dark mb-3"><i class="bi bi-camera-video-fill me-2 text-danger"></i>Lớp Học Trực Tuyến Thuộc Khóa Học (Live Classes)</h4>
+                @if (Model.LiveClasses != null && Model.LiveClasses.Any())
+                {
+                    <div class="row g-3">
+                        @foreach (var live in Model.LiveClasses.OrderBy(l => l.ScheduledDate))
+                        {
+                            <div class="col-12">
+                                <div class="p-3 border rounded-3 bg-light d-flex flex-wrap align-items-center justify-content-between gap-3">
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <span class="badge bg-danger rounded-pill"><i class="bi bi-broadcast me-1"></i> PRIVATE LIVE</span>
+                                            <span class="text-secondary small fw-semibold">
+                                                <i class="bi bi-calendar3 me-1"></i> @live.ScheduledDate.ToString("dd/MM/yyyy") | @live.StartTime.ToString(@"hh\:mm") - @live.EndTime.ToString(@"hh\:mm")
+                                            </span>
+                                        </div>
+                                        <h6 class="fw-bold text-dark mb-1">@live.ClassName</h6>
+                                        <div class="text-muted small">@live.Description</div>
+                                    </div>
+
+                                    <div>
+                                        @if (isEnrolled)
+                                        {
+                                            <a asp-controller="Class" asp-action="Join" asp-route-id="@live.LiveClassId" class="btn btn-danger btn-sm px-4 rounded-pill fw-semibold">
+                                                <i class="bi bi-camera-video me-1"></i> Tham Gia Lớp
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-outline-secondary btn-sm px-3 rounded-pill" disabled title="Cần mua khóa học để mở khóa lớp học này">
+                                                <i class="bi bi-lock me-1"></i> Dành cho học viên khóa học
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted small m-0">Hiện chưa có lịch Live Class mới được xếp cho khóa này.</p>
+                }
+            </div>
+        </div>
+
+        <!-- Instructor Profile Details (Right) -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-person-badge-fill me-2 text-primary"></i>Thông Tin Giảng Viên</h5>
+                <div class="text-center mb-3">
+                    <img src="@(string.IsNullOrEmpty(Model.Teacher?.AvatarUrl) ? "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80" : Model.Teacher.AvatarUrl)" 
+                         alt="Giảng viên" class="rounded-circle shadow-sm mb-2" style="width: 90px; height: 90px; object-fit: cover;" />
+                    <h6 class="fw-bold text-dark mb-0">@(Model.Teacher?.FullName ?? "Giảng Viên Lumora")</h6>
+                    <small class="text-muted">Chuyên gia đào tạo Anh ngữ cao cấp</small>
+                </div>
+                <p class="text-secondary small" style="line-height: 1.7;">
+                    @(string.IsNullOrEmpty(Model.Teacher?.Bio) ? "Giảng viên có chứng chỉ sư phạm quốc tế và nhiều năm kinh nghiệm luyện thi IELTS chuẩn khảo thí." : Model.Teacher.Bio)
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+

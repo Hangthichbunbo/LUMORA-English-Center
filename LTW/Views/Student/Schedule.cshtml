@@ -1,0 +1,72 @@
+@model IEnumerable<LTW.Models.LiveClass>
+
+@{
+    ViewData["Title"] = "Lịch Học Của Tôi - LUMORA";
+}
+
+<div class="py-5 bg-lumora-header text-white">
+    <div class="container text-center">
+        <span class="badge rounded-pill px-3 py-2 text-white mb-3" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);">
+            <i class="bi bi-calendar3-week-fill me-1 text-info"></i> THỜI KHÓA BIỂU CÁ NHÂN
+        </span>
+        <h1 class="fw-bold mb-3">Lịch Lớp Trực Tuyến Của Tôi</h1>
+        <p class="text-white-50 mx-auto" style="max-width: 650px;">
+            Danh sách các buổi học Live tương tác theo khóa học bạn đã mua hoặc các buổi Workshop/Webinar công khai.
+        </p>
+    </div>
+</div>
+
+<div class="container py-5">
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var cls in Model)
+            {
+                <div class="col-md-6">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-4 bg-white d-flex flex-column">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="badge @(cls.IsPublic ? "bg-success" : "bg-danger") px-3 py-2 rounded-pill small">
+                                @(cls.IsPublic ? "PUBLIC CLASS" : "PRIVATE CLASS")
+                            </span>
+                            <span class="text-muted small">
+                                <i class="bi bi-clock me-1"></i> @cls.StartTime.ToString(@"hh\:mm") - @cls.EndTime.ToString(@"hh\:mm")
+                            </span>
+                        </div>
+
+                        <h5 class="fw-bold text-dark mb-2">@cls.ClassName</h5>
+                        <p class="text-muted small mb-3 flex-grow-1">@cls.Description</p>
+
+                        <div class="p-3 bg-light rounded-3 mb-3 small text-secondary">
+                            <div><i class="bi bi-calendar-event me-2 text-primary"></i><strong>Ngày học:</strong> @cls.ScheduledDate.ToString("dd/MM/yyyy")</div>
+                            <div class="mt-1"><i class="bi bi-person me-2 text-primary"></i><strong>Giảng viên:</strong> @(cls.Teacher?.FullName ?? "Lumora Teacher")</div>
+                            @if (cls.Course != null)
+                            {
+                                <div class="mt-1"><i class="bi bi-journal-bookmark me-2 text-primary"></i><strong>Khóa học:</strong> @cls.Course.Title</div>
+                            }
+                        </div>
+
+                        <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
+                            <a asp-controller="Class" asp-action="Detail" asp-route-id="@cls.LiveClassId" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                                Chi Tiết
+                            </a>
+                            <a asp-controller="Class" asp-action="Join" asp-route-id="@cls.LiveClassId" class="btn btn-lumora-secondary text-white btn-sm rounded-pill px-4 fw-semibold shadow-sm">
+                                <i class="bi bi-broadcast me-1"></i> Vào Lớp Ngay
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-calendar-x fs-1 text-muted d-block mb-3"></i>
+            <h5 class="fw-bold text-secondary">Bạn chưa có lịch học nào trong thời gian tới</h5>
+            <a asp-controller="Class" asp-action="Index" class="btn btn-lumora-primary rounded-pill px-4 mt-2">
+                Xem Danh Sách Tất Cả Lớp
+            </a>
+        </div>
+    }
+</div>
+

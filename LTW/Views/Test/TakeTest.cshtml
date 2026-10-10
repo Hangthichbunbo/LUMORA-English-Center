@@ -1,0 +1,300 @@
+@model LTW.Models.Test
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = Model.Title + " - LUMORA Examination Room";
+    var questionsList = Model.Questions?.ToList() ?? new List<LTW.Models.TestQuestion>();
+}
+
+<!-- Test Navigation & Status Header (Fixed on exam screen) -->
+<div class="bg-dark text-white py-3 shadow-sm sticky-top" style="z-index: 1020;">
+    <div class="container-fluid px-lg-5 d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-warning text-dark fw-bold px-3 py-2">
+                @(Model.Type == LTW.Models.ExamType.ExampleTest ? "EXAMPLE TEST" : "PLACEMENT TEST")
+            </span>
+            <div class="fw-bold d-none d-md-block fs-6">@Model.Title</div>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+            <!-- Timer countdown chip -->
+            <div class="d-flex align-items-center gap-2 bg-secondary bg-opacity-50 px-3 py-1 rounded-pill border border-secondary text-warning fw-bold fs-6">
+                <i class="bi bi-clock-history"></i>
+                <span id="countdownTimer">@Model.TimeLimitMinutes:00</span>
+            </div>
+
+            <!-- Submit Button Trigger -->
+            <button type="button" class="btn btn-danger fw-bold px-4 py-2 rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#confirmSubmitModal">
+                <i class="bi bi-send-check-fill me-1"></i> Submit Test
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-lg-5 py-4">
+    <form asp-action="SubmitTest" method="post" id="examForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="testId" value="@Model.TestId" />
+
+        <div class="row g-4">
+            <!-- Left column: Questions across 4 skills -->
+            <div class="col-lg-9">
+                <!-- Candidate details if guest -->
+                @if (User.Identity?.IsAuthenticated != true)
+                {
+                    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-light border-start border-4 border-primary">
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-person-badge me-2 text-primary"></i>Candidate Information</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-secondary">Full Name</label>
+                                <input type="text" name="fullName" class="form-control" placeholder="e.g. John Doe" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-secondary">Email Address for Report</label>
+                                <input type="email" name="email" class="form-control" placeholder="john.doe@example.com" required />
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Question Items Container -->
+                @{
+                    int qIndex = 0;
+                }
+                @foreach (var q in questionsList)
+                {
+                    qIndex++;
+                    var skillBadgeClass = q.Skill switch
+                    {
+                        LTW.Models.SkillType.Listening => "bg-primary",
+                        LTW.Models.SkillType.Reading => "bg-success",
+                        LTW.Models.SkillType.Writing => "bg-warning text-dark",
+                        LTW.Models.SkillType.Speaking => "bg-danger",
+                        _ => "bg-secondary"
+                    };
+
+                    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 question-card" id="question_section_@qIndex">
+                        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge @skillBadgeClass px-3 py-2 rounded-pill fw-bold">
+                                    <i class="bi bi-bookmark-fill me-1"></i> @q.Skill
+                                </span>
+                                <span class="fw-bold fs-6 text-dark">Question @qIndex of @questionsList.Count</span>
+                            </div>
+                            <span class="badge bg-light text-secondary border small">@q.Points Marks</span>
+                        </div>
+
+                        <!-- Audio player for Listening -->
+                        @if (!string.IsNullOrEmpty(q.AudioUrl))
+                        {
+                            <div class="p-3 bg-light rounded-3 mb-3 border">
+                                <div class="small fw-semibold text-primary mb-2"><i class="bi bi-headphones me-1"></i> Play audio recording:</div>
+                                <audio controls class="w-100">
+                                    <source src="@q.AudioUrl" type="audio/mpeg" />
+                                    Your browser does not support audio playback.
+                                </audio>
+                            </div>
+                        }
+
+                        <!-- Reading Passage for Reading -->
+                        @if (!string.IsNullOrEmpty(q.Passage))
+                        {
+                            <div class="p-4 bg-light rounded-3 mb-3 border" style="max-height: 280px; overflow-y: auto; line-height: 1.8;">
+                                <div class="badge bg-secondary mb-2">READING PASSAGE</div>
+                                <p class="text-secondary small mb-0 font-monospace">@q.Passage</p>
+                            </div>
+                        }
+
+                        <!-- Question Prompt / Content -->
+                        <h6 class="fw-bold text-dark mb-3" style="line-height: 1.6;">@q.Content</h6>
+
+                        <!-- Answer Options or Input -->
+                        @if (q.Skill == LTW.Models.SkillType.Listening || q.Skill == LTW.Models.SkillType.Reading || q.Format == LTW.Models.QuestionFormat.MultipleChoice || q.Format == LTW.Models.QuestionFormat.TrueFalse)
+                        {
+                            string[]? options = null;
+                            if (!string.IsNullOrEmpty(q.OptionsJson))
+                            {
+                                try { options = JsonSerializer.Deserialize<string[]>(q.OptionsJson); } catch { }
+                            }
+
+                            if (options != null && options.Length > 0)
+                            {
+                                <div class="d-flex flex-column gap-2">
+                                    @foreach (var opt in options)
+                                    {
+                                        <div class="form-check p-3 border rounded-3 bg-light-subtle option-item">
+                                            <input class="form-check-input ms-0 me-3 exam-option-input" type="radio" 
+                                                   name="q_@q.TestQuestionId" id="opt_@(q.TestQuestionId)_@opt.GetHashCode()" 
+                                                   value="@opt" onchange="markAnswered(@qIndex)" />
+                                            <label class="form-check-label w-100 cursor-pointer text-dark" for="opt_@(q.TestQuestionId)_@opt.GetHashCode()">
+                                                @opt
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        }
+                        else if (q.Skill == LTW.Models.SkillType.Writing)
+                        {
+                            <div class="mb-2">
+                                <textarea name="q_writing" class="form-control rounded-3 p-3 font-monospace" rows="6" 
+                                          placeholder="Type your essay response here (Word count updates automatically)..." 
+                                          oninput="updateWordCount(this); markAnswered(@qIndex)"></textarea>
+                                <div class="text-end small text-muted mt-1">Word count: <span id="wordCount">0</span> words</div>
+                            </div>
+                        }
+                        else if (q.Skill == LTW.Models.SkillType.Speaking)
+                        {
+                            <div class="p-3 bg-light rounded-3 border">
+                                <div class="d-flex align-items-center gap-2 mb-2 text-danger fw-semibold small">
+                                    <i class="bi bi-mic-fill fs-5"></i> Speaking Response Recorder (Simulation):
+                                </div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="simulateRecord(this, @qIndex)">
+                                        <i class="bi bi-record-circle me-1"></i> Start Recording
+                                    </button>
+                                    <span class="small text-muted" id="speakingStatus">Recording not started</span>
+                                </div>
+                                <input type="hidden" name="q_speaking" id="speakingInput" value="" />
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- Previous & Next Controls -->
+                <div class="d-flex justify-content-between align-items-center py-3">
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-semibold" onclick="scrollPrev()">
+                        <i class="bi bi-arrow-left me-1"></i> Previous
+                    </button>
+                    <button type="button" class="btn btn-lumora-secondary text-white px-4 py-2 rounded-pill fw-semibold" onclick="scrollNext()">
+                        Next <i class="bi bi-arrow-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column: Question Navigation Palette -->
+            <div class="col-lg-3">
+                <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 90px;">
+                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-grid-3x3-gap-fill me-2 text-primary"></i>Question Palette</h6>
+                    
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        @for (int i = 1; i <= questionsList.Count; i++)
+                        {
+                            <a href="#question_section_@i" class="btn btn-outline-secondary rounded-3 fw-bold q-nav-btn text-center" 
+                               id="q_nav_@i" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
+                                @i
+                            </a>
+                        }
+                    </div>
+
+                    <div class="border-top pt-3 small text-secondary">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-success" style="width: 14px; height: 14px; border-radius: 4px;">&nbsp;</span>
+                            <span>Answered</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="badge bg-light border text-secondary" style="width: 14px; height: 14px; border-radius: 4px;">&nbsp;</span>
+                            <span>Unanswered</span>
+                        </div>
+                    </div>
+
+                    <div class="d-grid mt-2">
+                        <button type="button" class="btn btn-danger py-3 fw-bold rounded-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#confirmSubmitModal">
+                            <i class="bi bi-check2-circle me-1"></i> Submit Test
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation Submit Modal -->
+        <div class="modal fade" id="confirmSubmitModal" tabindex="-1" aria-labelledby="confirmSubmitModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg rounded-4 p-3">
+                    <div class="modal-body text-center p-4">
+                        <span class="p-3 bg-warning bg-opacity-10 text-warning rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 72px; height: 72px;">
+                            <i class="bi bi-exclamation-triangle-fill fs-2"></i>
+                        </span>
+                        <h4 class="fw-bold text-dark mb-2">Submit Examination?</h4>
+                        <p class="text-muted small mb-4">
+                            Are you sure you want to finish and submit your test? Your responses will be evaluated and your performance report will be generated immediately.
+                        </p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <button type="button" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-semibold" data-bs-dismiss="modal">
+                                Return to Test
+                            </button>
+                            <button type="submit" class="btn btn-danger px-4 py-2 rounded-pill fw-semibold shadow-sm">
+                                Confirm & Submit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // Countdown timer
+        var totalSeconds = @Model.TimeLimitMinutes * 60;
+        var timerDisplay = document.getElementById("countdownTimer");
+
+        var timerInterval = setInterval(function () {
+            totalSeconds--;
+            if (totalSeconds <= 0) {
+                clearInterval(timerInterval);
+                alert("Time is up! The system is automatically submitting your examination.");
+                document.getElementById("examForm").submit();
+            }
+            var minutes = Math.floor(totalSeconds / 60);
+            var seconds = totalSeconds % 60;
+            timerDisplay.innerText = (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+        }, 1000);
+
+        function markAnswered(index) {
+            var btn = document.getElementById("q_nav_" + index);
+            if (btn) {
+                btn.classList.remove("btn-outline-secondary");
+                btn.classList.add("btn-success", "text-white");
+            }
+        }
+
+        function updateWordCount(textarea) {
+            var text = textarea.value.trim();
+            var count = text === "" ? 0 : text.split(/\s+/).length;
+            document.getElementById("wordCount").innerText = count;
+        }
+
+        function simulateRecord(btn, index) {
+            var status = document.getElementById("speakingStatus");
+            var input = document.getElementById("speakingInput");
+            btn.innerHTML = '<span class="spinner-grow spinner-grow-sm me-1"></span> Recording in progress...';
+            status.innerText = "Microphone active (15 seconds simulation)...";
+            setTimeout(function() {
+                btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Recording Completed';
+                btn.classList.remove("btn-outline-danger");
+                btn.classList.add("btn-success", "text-white");
+                status.innerText = "Audio recorded: response_voice_test.mp3 (Ready for assessment)";
+                input.value = "response_voice_test.mp3";
+                markAnswered(index);
+            }, 3000);
+        }
+
+        var currentQ = 1;
+        var totalQ = @questionsList.Count;
+
+        function scrollNext() {
+            if (currentQ < totalQ) currentQ++;
+            var el = document.getElementById("question_section_" + currentQ);
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function scrollPrev() {
+            if (currentQ > 1) currentQ--;
+            var el = document.getElementById("question_section_" + currentQ);
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+}
+

@@ -1,0 +1,92 @@
+@model LTW.Models.IeltsTip
+
+@{
+    ViewData["Title"] = Model.Title + " - LUMORA IELTS Tips";
+    var relatedTips = ViewBag.RelatedTips as IEnumerable<LTW.Models.IeltsTip> ?? new List<LTW.Models.IeltsTip>();
+}
+
+<div class="container py-5" style="max-width: 980px;">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none">Home</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Tip" asp-action="Index" class="text-decoration-none">IELTS Tips</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Category</li>
+        </ol>
+    </nav>
+
+    <!-- Article Header -->
+    <div class="mb-4">
+        <span class="badge bg-primary px-3 py-2 rounded-pill fw-semibold mb-3" style="background-color: #00A896 !important;">
+            <i class="bi bi-tag-fill me-1"></i> @Model.Category
+        </span>
+        <h1 class="fw-bold text-dark display-6 mb-3">@Model.Title</h1>
+
+        <div class="d-flex flex-wrap align-items-center gap-3 text-muted small pb-3 border-bottom">
+            <span><i class="bi bi-person-circle text-primary me-1"></i> Tác giả: <strong>@Model.AuthorName</strong></span>
+            <span><i class="bi bi-calendar3 me-1"></i> Ngày đăng: @Model.CreatedAt.ToString("dd/MM/yyyy")</span>
+            <span><i class="bi bi-eye me-1"></i> @Model.ViewsCount lượt đọc</span>
+        </div>
+    </div>
+
+    <!-- Featured Image -->
+    <div class="mb-4 rounded-4 overflow-hidden shadow-sm">
+        <img src="@Model.Thumbnail" alt="@Model.Title" class="w-100" style="max-height: 420px; object-fit: cover;" />
+    </div>
+
+    <!-- Lead Summary -->
+    <div class="p-3 bg-light rounded-3 border-start border-4 border-primary mb-4">
+        <p class="lead fs-6 text-dark fw-semibold m-0" style="line-height: 1.7;">
+            @Model.Summary
+        </p>
+    </div>
+
+    <!-- Article Body -->
+    <article class="article-content fs-6 text-secondary mb-5" style="line-height: 1.9;">
+        @Html.Raw(Model.Content)
+    </article>
+
+    <!-- Social Share & Tags -->
+    <div class="p-4 bg-light rounded-4 d-flex flex-wrap align-items-center justify-content-between gap-3 mb-5 border">
+        <div class="d-flex align-items-center gap-2">
+            <span class="fw-bold text-dark small"><i class="bi bi-share-fill me-1"></i> Chia sẻ bài viết:</span>
+            <a href="#" class="btn btn-outline-primary btn-sm rounded-circle"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="btn btn-outline-info btn-sm rounded-circle"><i class="bi bi-twitter-x"></i></a>
+            <a href="#" class="btn btn-outline-danger btn-sm rounded-circle"><i class="bi bi-link-45deg"></i></a>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách Tips
+        </a>
+    </div>
+
+    <!-- Related Articles -->
+    @if (relatedTips.Any())
+    {
+        <div class="border-top pt-5">
+            <h4 class="fw-bold text-dark mb-4"><i class="bi bi-bookmark-check-fill me-2 text-primary"></i>Bài Viết Liên Quan Cùng Chủ Đề</h4>
+            <div class="row g-4">
+                @foreach (var item in relatedTips)
+                {
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden d-flex flex-column">
+                            <img src="@item.Thumbnail" alt="@item.Title" style="height: 140px; object-fit: cover;" />
+                            <div class="card-body p-3 d-flex flex-column">
+                                <span class="badge bg-light text-secondary border small align-self-start mb-2">@item.Category</span>
+                                <h6 class="fw-bold text-dark mb-2 line-clamp-2">
+                                    <a asp-action="Detail" asp-route-id="@item.TipId" class="text-dark text-decoration-none">
+                                        @item.Title
+                                    </a>
+                                </h6>
+                                <p class="text-muted small text-truncate-2 flex-grow-1" style="font-size: 12px;">@item.Summary</p>
+                                <a asp-action="Detail" asp-route-id="@item.TipId" class="small text-primary fw-semibold text-decoration-none mt-2">
+                                    Đọc ngay &rarr;
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+

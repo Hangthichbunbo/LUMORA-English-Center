@@ -1,0 +1,233 @@
+@model LTW.Models.Lesson
+@using System.Text.Json
+@using LTW.Models
+
+@{
+    ViewData["Title"] = Model.Title + " - LUMORA Learning Platform";
+    var prevLesson = ViewBag.PrevLesson as Lesson;
+    var nextLesson = ViewBag.NextLesson as Lesson;
+    var isCompleted = ViewBag.IsCompleted == true;
+    var completedLessonIds = ViewBag.CompletedLessonIds as List<int> ?? new List<int>();
+    var course = Model.Chapter?.Course;
+}
+
+<div class="container-fluid px-lg-4 py-4" style="margin-top: -10px;">
+    <div class="row g-4">
+        <!-- Sidebar Bên Trái: Curriculum Navigation -->
+        <div class="col-lg-4 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white sticky-top" style="top: 85px; max-height: calc(100vh - 100px); overflow-y: auto;">
+                <div class="mb-3 pb-3 border-bottom">
+                    <a asp-action="MyCourses" class="text-muted small text-decoration-none d-block mb-1">
+                        <i class="bi bi-chevron-left me-1"></i> Khóa học của tôi
+                    </a>
+                    <h6 class="fw-bold text-dark m-0">@(course?.Title ?? "Khóa học")</h6>
+                </div>
+
+                <div class="accordion curriculum-nav" id="sidebarChapters">
+                    @if (course?.Chapters != null)
+                    {
+                        foreach (var ch in course.Chapters.OrderBy(c => c.OrderIndex))
+                        {
+                            var collapseId = "sideCh_" + ch.ChapterId;
+                            var isCurrentChapter = ch.ChapterId == Model.ChapterId;
+
+                            <div class="accordion-item border-0 mb-2">
+                                <h2 class="accordion-header" id="heading_@ch.ChapterId">
+                                    <button class="accordion-button @(isCurrentChapter ? "" : "collapsed") p-2 bg-light rounded-3 fw-bold small text-dark" 
+                                            type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="@(isCurrentChapter ? "true" : "false")">
+                                        <span class="me-auto">Chương @ch.OrderIndex: @ch.Title</span>
+                                    </button>
+                                </h2>
+                                <div id="@collapseId" class="accordion-collapse collapse @(isCurrentChapter ? "show" : "")" data-bs-parent="#sidebarChapters">
+                                    <div class="accordion-body p-0 pt-2">
+                                        <div class="d-flex flex-column gap-1">
+                                            @foreach (var l in ch.Lessons.OrderBy(ls => ls.OrderIndex))
+                                            {
+                                                var isThisLesson = l.LessonId == Model.LessonId;
+                                                var hasCompleted = completedLessonIds.Contains(l.LessonId);
+
+                                                <a asp-action="Lesson" asp-route-id="@l.LessonId" 
+                                                   class="p-2 rounded-3 text-decoration-none small d-flex align-items-center justify-content-between @(isThisLesson ? "bg-primary text-white fw-bold" : "text-secondary hover-bg-light")">
+                                                    <div class="d-flex align-items-center gap-2 text-truncate">
+                                                        <i class="bi @(isThisLesson ? "bi-play-circle-fill text-white" : "bi-journal-text text-muted")"></i>
+                                                        <span class="text-truncate">@l.Title</span>
+                                                    </div>
+                                                    @if (hasCompleted)
+                                                    {
+                                                        <i class="bi bi-check-circle-fill @(isThisLesson ? "text-white" : "text-success") fs-6 ms-1"></i>
+                                                    }
+                                                </a>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Bên Phải: Video / Audio / Theory / Vocabulary / Grammar -->
+        <div class="col-lg-8 col-xl-9">
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white mb-4">
+                <!-- Lesson Header -->
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-3 border-bottom">
+                    <div>
+                        <span class="badge bg-light text-secondary border small mb-2">Chương @Model.Chapter?.OrderIndex: @Model.Chapter?.Title</span>
+                        <h2 class="fw-bold text-dark m-0">@Model.Title</h2>
+                    </div>
+
+                    <!-- Mark as completed toggle button -->
+                    <form asp-action="ToggleCompleteLesson" method="post" class="m-0">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="lessonId" value="@Model.LessonId" />
+                        <button type="submit" class="btn @(isCompleted ? "btn-success" : "btn-outline-success") rounded-pill px-4 py-2 fw-semibold shadow-sm">
+                            <i class="bi @(isCompleted ? "bi-check2-circle" : "bi-circle") me-2"></i>
+                            @(isCompleted ? "Đã Hoàn Thành" : "Đánh Dấu Hoàn Thành")
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Video Player Embed (if present) -->
+                @if (!string.IsNullOrEmpty(Model.VideoUrl))
+                {
+                    <div class="ratio ratio-16x9 rounded-4 overflow-hidden mb-4 shadow-sm bg-black">
+                        <iframe src="@Model.VideoUrl" title="@Model.Title" allowfullscreen></iframe>
+                    </div>
+                }
+
+                <!-- Audio Player (if present) -->
+                @if (!string.IsNullOrEmpty(Model.AudioUrl))
+                {
+                    <div class="p-3 bg-light rounded-4 mb-4 border d-flex align-items-center gap-3">
+                        <div class="p-2 bg-primary text-white rounded-circle"><i class="bi bi-headphones fs-5"></i></div>
+                        <div class="flex-grow-1">
+                            <span class="small fw-bold text-dark d-block mb-1">File Nghe Bài Giảng:</span>
+                            <audio controls class="w-100">
+                                <source src="@Model.AudioUrl" type="audio/mpeg" />
+                                Trình duyệt không hỗ trợ audio player.
+                            </audio>
+                        </div>
+                    </div>
+                }
+
+                <!-- Learning Content Text / Theory -->
+                <div class="learning-text-content mb-5" style="line-height: 1.8;">
+                    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-book-half me-2 text-primary"></i>Nội Dung Lý Thuyết & Hướng Dẫn</h5>
+                    @Html.Raw(Model.Content)
+                </div>
+
+                <!-- Vocabulary Focus Cards -->
+                @if (!string.IsNullOrEmpty(Model.Vocabulary))
+                {
+                    <div class="mb-5">
+                        <h5 class="fw-bold text-dark mb-3"><i class="bi bi-alphabet-uppercase me-2 text-primary"></i>Từ Vựng Trọng Tâm (Vocabulary)</h5>
+                        <div class="row g-3">
+                            @{
+                                List<Dictionary<string, string>>? vocabList = null;
+                                try { vocabList = JsonSerializer.Deserialize<List<Dictionary<string, string>>>(Model.Vocabulary); } catch { }
+                            }
+                            @if (vocabList != null)
+                            {
+                                foreach (var v in vocabList)
+                                {
+                                    <div class="col-md-6">
+                                        <div class="p-3 border rounded-3 bg-light h-100">
+                                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                                <h6 class="fw-bold text-primary m-0 fs-5">@(v.GetValueOrDefault("word", ""))</h6>
+                                                <span class="badge bg-secondary small">@(v.GetValueOrDefault("type", ""))</span>
+                                            </div>
+                                            <div class="text-muted small font-monospace mb-2">@(v.GetValueOrDefault("phonetic", ""))</div>
+                                            <p class="small text-dark fw-semibold mb-2">@(v.GetValueOrDefault("meaning", ""))</p>
+                                            <p class="small text-secondary fst-italic m-0">"@(v.GetValueOrDefault("example", ""))"</p>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="col-12"><div class="p-3 bg-light rounded-3">@Model.Vocabulary</div></div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Grammar Breakdown -->
+                @if (!string.IsNullOrEmpty(Model.Grammar))
+                {
+                    <div class="mb-5">
+                        <h5 class="fw-bold text-dark mb-3"><i class="bi bi-diagram-2 me-2 text-primary"></i>Ngữ Pháp Cốt Lõi (Grammar Notes)</h5>
+                        <div class="p-4 bg-info bg-opacity-10 rounded-4 border border-info border-opacity-25 text-dark" style="line-height: 1.8;">
+                            <i class="bi bi-lightbulb-fill text-warning me-2 fs-5"></i>
+                            @Model.Grammar
+                        </div>
+                    </div>
+                }
+
+                <!-- Downloadable Document Material -->
+                @if (!string.IsNullOrEmpty(Model.DocumentUrl))
+                {
+                    <div class="mb-5 p-3 bg-light rounded-4 border d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="bi bi-file-earmark-pdf-fill fs-2 text-danger"></i>
+                            <div>
+                                <h6 class="fw-bold text-dark m-0">Tài liệu học tập đính kèm bài giảng</h6>
+                                <small class="text-muted">Định dạng PDF / Tải về để ôn tập</small>
+                            </div>
+                        </div>
+                        <a href="@Model.DocumentUrl" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-4">
+                            <i class="bi bi-download me-1"></i> Tải Về
+                        </a>
+                    </div>
+                }
+
+                <!-- Lesson Exercises Callout -->
+                @if (Model.Exercises != null && Model.Exercises.Any())
+                {
+                    <div class="p-4 bg-warning bg-opacity-10 rounded-4 border border-warning border-opacity-25 mb-5 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                        <div>
+                            <span class="badge bg-warning text-dark fw-bold mb-2">BÀI TẬP BẮT BUỘC</span>
+                            <h5 class="fw-bold text-dark mb-1">Thực Hành Củng Cố Kiến Thức</h5>
+                            <small class="text-secondary">Hoàn thành bài tập để hệ thống ghi nhận kết quả và mở khóa bài học kế tiếp.</small>
+                        </div>
+                        <div>
+                            @foreach (var ex in Model.Exercises)
+                            {
+                                <a asp-action="Exercise" asp-route-id="@ex.ExerciseId" class="btn btn-warning py-2 px-4 rounded-pill fw-bold text-dark shadow-sm">
+                                    <i class="bi bi-pencil-square me-1"></i> Làm Bài Tập Ngay
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Bottom Navigation: Prev / Next Lesson -->
+                <div class="d-flex justify-content-between align-items-center pt-4 border-top">
+                    <div>
+                        @if (prevLesson != null)
+                        {
+                            <a asp-action="Lesson" asp-route-id="@prevLesson.LessonId" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-semibold">
+                                <i class="bi bi-chevron-left me-1"></i> Bài Trước: @prevLesson.Title
+                            </a>
+                        }
+                    </div>
+
+                    <div>
+                        @if (nextLesson != null)
+                        {
+                            <a asp-action="Lesson" asp-route-id="@nextLesson.LessonId" class="btn btn-primary px-4 py-2 rounded-pill fw-semibold shadow-sm" style="background-color: #00A896; border-color: #00A896;">
+                                Bài Tiếp Theo: @nextLesson.Title <i class="bi bi-chevron-right ms-1"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success p-2 px-3 rounded-pill">Đã hoàn thành toàn bộ khóa học!</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

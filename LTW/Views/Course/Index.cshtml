@@ -1,0 +1,143 @@
+@model IEnumerable<LTW.Models.Course>
+
+@{
+    ViewData["Title"] = "Danh Sách Khóa Học - LUMORA English Center";
+    var categories = new[] { "All", "IELTS", "Communication", "Grammar", "Listening", "Reading", "Writing", "Speaking" };
+    var currentCat = ViewBag.CurrentCategory as string ?? "All";
+}
+
+<div class="courses-page-header py-5 text-white bg-lumora-header">
+    <div class="container text-center">
+        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-semibold mb-3">
+            <i class="bi bi-mortarboard-fill me-1"></i> LỘ TRÌNH ĐÀO TẠO CHUẨN QUỐC TẾ
+        </span>
+        <h1 class="fw-bold mb-3">Khám Phá Các Khóa Học Tiếng Anh</h1>
+        <p class="text-white-50 mx-auto" style="max-width: 650px;">
+            Học cùng các chuyên gia hàng đầu và cựu giám khảo chấm thi. Lộ trình cá nhân hóa, bài giảng tương tác và chấm bài 1-1 chuyên sâu.
+        </p>
+
+        <!-- Search Bar -->
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-7 col-lg-6">
+                <form method="get" asp-action="Index" class="input-group shadow-sm rounded-pill overflow-hidden bg-white p-1">
+                    <input type="text" name="search" value="@ViewBag.CurrentSearch" class="form-control border-0 px-4 py-2" placeholder="Tìm kiếm khóa học (IELTS, Speaking, Grammar...)" />
+                    <input type="hidden" name="category" value="@currentCat" />
+                    <button class="btn btn-lumora-secondary text-white rounded-pill px-4" type="submit">
+                        <i class="bi bi-search me-1"></i> Tìm Kiếm
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <!-- Filter Pills -->
+    <div class="d-flex flex-wrap gap-2 justify-content-center mb-5">
+        @foreach (var cat in categories)
+        {
+            var isActive = (currentCat.ToLower() == cat.ToLower());
+            <a asp-action="Index" asp-route-category="@cat" asp-route-search="@ViewBag.CurrentSearch"
+               class="btn @(isActive ? "btn-lumora-primary text-white" : "btn-outline-secondary") rounded-pill px-4 py-2 fw-semibold small shadow-sm">
+                @if (cat == "All") { <span>Tất cả</span> } else { <span>@cat</span> }
+            </a>
+        }
+    </div>
+
+    <!-- Course Cards Grid -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var course in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden transition-hover d-flex flex-column" style="transition: transform 0.2s, box-shadow 0.2s;">
+                        <!-- Thumbnail -->
+                        <div class="position-relative">
+                            <img src="@course.Thumbnail" class="card-img-top" alt="@course.Title" style="height: 220px; object-fit: cover;" />
+                            <span class="position-absolute top-0 end-0 m-3 badge bg-dark bg-opacity-75 rounded-pill px-3 py-2 small fw-semibold">
+                                <i class="bi bi-bar-chart-line me-1"></i> @course.Level
+                            </span>
+                            <span class="position-absolute bottom-0 start-0 m-3 badge bg-lumora-secondary px-3 py-2 rounded-pill fw-semibold text-white">
+                                @course.Category
+                            </span>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="card-body p-4 d-flex flex-column">
+                            <h5 class="fw-bold text-dark mb-2 line-clamp-2" style="min-height: 48px;">
+                                <a asp-action="Detail" asp-route-id="@course.CourseId" class="text-dark text-decoration-none">
+                                    @course.Title
+                                </a>
+                            </h5>
+                            <p class="text-muted small mb-3 text-truncate-3" style="min-height: 60px; line-height: 1.6;">
+                                @course.ShortDescription
+                            </p>
+
+                            <!-- Teacher Info -->
+                            <div class="d-flex align-items-center gap-2 mb-3 pb-3 border-bottom">
+                                <img src="@(string.IsNullOrEmpty(course.Teacher?.AvatarUrl) ? "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80" : course.Teacher.AvatarUrl)" 
+                                     alt="Giảng viên" class="rounded-circle" style="width: 36px; height: 36px; object-fit: cover;" />
+                                <div class="small">
+                                    <div class="fw-semibold text-dark">@(course.Teacher?.FullName ?? "Giảng viên chuyên môn")</div>
+                                    <div class="text-muted" style="font-size: 11px;">Giảng viên Lumora</div>
+                                </div>
+                            </div>
+
+                            <!-- Course Metrics Meta -->
+                            <div class="row g-2 text-center small text-secondary mb-3">
+                                <div class="col-3 p-1 bg-light rounded-2">
+                                    <i class="bi bi-clock d-block text-primary"></i>
+                                    <span style="font-size: 11px;">@course.Duration</span>
+                                </div>
+                                <div class="col-3 p-1 bg-light rounded-2">
+                                    <i class="bi bi-journal-text d-block text-success"></i>
+                                    <span style="font-size: 11px;">@course.TotalLessons Bài</span>
+                                </div>
+                                <div class="col-3 p-1 bg-light rounded-2">
+                                    <i class="bi bi-pencil-square d-block text-warning"></i>
+                                    <span style="font-size: 11px;">@course.TotalExercises B.tập</span>
+                                </div>
+                                <div class="col-3 p-1 bg-light rounded-2">
+                                    <i class="bi bi-camera-video d-block text-danger"></i>
+                                    <span style="font-size: 11px;">@(course.LiveClasses?.Count ?? 0) Live</span>
+                                </div>
+                            </div>
+
+                            <!-- Price & CTA -->
+                            <div class="mt-auto pt-2 d-flex align-items-center justify-content-between">
+                                <div>
+                                    @if (course.Price > 0)
+                                    {
+                                        <div class="fw-bold fs-5 text-danger">@course.Price.ToString("N0") đ</div>
+                                        @if (course.OriginalPrice > course.Price)
+                                        {
+                                            <small class="text-decoration-line-through text-muted" style="font-size: 12px;">@course.OriginalPrice.ToString("N0") đ</small>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="fw-bold fs-5 text-success">Miễn Phí</div>
+                                    }
+                                </div>
+                                <a asp-action="Detail" asp-route-id="@course.CourseId" class="btn btn-outline-lumora-secondary btn-sm px-3 py-2 rounded-pill fw-semibold">
+                                    Xem Chi Tiết <i class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-journal-x fs-1 text-muted d-block mb-3"></i>
+            <h5 class="fw-bold text-secondary">Không tìm thấy khóa học phù hợp</h5>
+            <p class="text-muted small">Vui lòng thử chọn danh mục khác hoặc nhập từ khóa tìm kiếm mới.</p>
+            <a asp-action="Index" class="btn btn-primary rounded-pill px-4 mt-2" style="background-color: #00A896; border-color: #00A896;">Xem Tất Cả Khóa Học</a>
+        </div>
+    }
+</div>
+

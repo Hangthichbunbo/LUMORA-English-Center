@@ -1,29 +1,129 @@
 @using Microsoft.AspNetCore.Identity
 @using LTW.Data
+@using Microsoft.EntityFrameworkCore
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
+@inject ApplicationDbContext DbContext
 
 <div class="d-flex align-items-center gap-2 ms-lg-3 mt-3 mt-lg-0">
     @if (SignInManager.IsSignedIn(User))
     {
-        <a class="btn btn-outline-subtle btn-sm px-3" asp-area="Identity" asp-page="/Account/Manage/Index" title="Quản lý tài khoản">
-            <i class="bi bi-person-circle text-primary me-1"></i>
-            <span>@UserManager.GetUserName(User)</span>
-        </a>
-        <form class="d-inline m-0 p-0" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
-            <button type="submit" class="btn btn-outline-danger btn-sm px-3">
-                <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
+        var currentUser = await UserManager.GetUserAsync(User);
+        var unreadNotifications = currentUser != null 
+            ? await DbContext.Notifications.Where(n => n.UserId == currentUser.Id && !n.IsRead).OrderByDescending(n => n.CreatedAt).Take(4).ToListAsync()
+            : new List<LTW.Models.Notification>();
+        var unreadCount = currentUser != null 
+            ? await DbContext.Notifications.CountAsync(n => n.UserId == currentUser.Id && !n.IsRead)
+            : 0;
+
+        <!-- Notification Bell Dropdown -->
+        <div class="dropdown me-1">
+            <button class="btn btn-light position-relative rounded-circle p-2 shadow-sm border" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Thông báo">
+                <i class="bi bi-bell-fill text-secondary"></i>
+                @if (unreadCount > 0)
+                {
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">
+                        @unreadCount
+                    </span>
+                }
             </button>
-        </form>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 p-2" style="width: 320px;">
+                <li class="d-flex justify-content-between align-items-center px-2 py-1 mb-2 border-bottom">
+                    <span class="fw-bold small text-dark"><i class="bi bi-bell me-1"></i> Thông Báo</span>
+                    <a asp-controller="Notification" asp-action="Index" class="small text-primary text-decoration-none">Xem tất cả</a>
+                </li>
+                @if (unreadNotifications.Any())
+                {
+                    foreach (var notif in unreadNotifications)
+                    {
+                        <li>
+                            <a class="dropdown-item rounded-2 py-2 px-2 small mb-1 bg-light text-wrap" href="@(string.IsNullOrEmpty(notif.LinkUrl) ? "/Notification" : notif.LinkUrl)">
+                                <div class="fw-semibold text-dark">@notif.Title</div>
+                                <div class="text-muted text-truncate" style="font-size: 11px;">@notif.Content</div>
+                                <div class="text-secondary" style="font-size: 10px;"><i class="bi bi-clock me-1"></i>@notif.CreatedAt.ToString("HH:mm dd/MM")</div>
+                            </a>
+                        </li>
+                    }
+                }
+                else
+                {
+                    <li class="text-center py-3 text-muted small">
+                        <i class="bi bi-check-circle text-success fs-5 d-block mb-1"></i>
+                        Không có thông báo mới
+                    </li>
+                }
+            </ul>
+        </div>
+
+        <!-- User Profile Dropdown -->
+        <div class="dropdown">
+            <button class="btn btn-outline-light border text-dark bg-white d-flex align-items-center gap-2 rounded-pill px-3 py-1 shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="@(string.IsNullOrEmpty(currentUser?.AvatarUrl) ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" : currentUser.AvatarUrl)" 
+                     alt="Avatar" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover;" />
+                <span class="fw-semibold small d-none d-md-inline">@(currentUser?.FullName ?? UserManager.GetUserName(User))</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 p-2" style="min-width: 200px;">
+                <li class="px-3 py-2 border-bottom mb-1">
+                    <div class="fw-bold small text-dark">@(currentUser?.FullName ?? "Học viên")</div>
+                    <div class="text-muted" style="font-size: 11px;">&#64;@UserManager.GetUserName(User)</div>
+                    <span class="badge bg-primary bg-opacity-10 text-primary mt-1" style="font-size: 10px;">@currentUser?.RoleName</span>
+                </li>
+
+                <!-- Role-based Dashboard Links -->
+                @if (User.IsInRole("Admin"))
+                {
+                    <li>
+                        <a class="dropdown-item rounded-2 py-2 small fw-semibold text-primary" asp-controller="Admin" asp-action="Dashboard">
+                            <i class="bi bi-speedometer2 me-2"></i> Admin Dashboard
+                        </a>
+                    </li>
+                }
+                else if (User.IsInRole("Teacher"))
+                {
+                    <li>
+                        <a class="dropdown-item rounded-2 py-2 small fw-semibold text-primary" asp-controller="Teacher" asp-action="Dashboard">
+                            <i class="bi bi-mortarboard me-2"></i> Teacher Dashboard
+                        </a>
+                    </li>
+                }
+                else
+                {
+                    <li>
+                        <a class="dropdown-item rounded-2 py-2 small fw-semibold text-primary" asp-controller="Student" asp-action="Dashboard">
+                            <i class="bi bi-grid-fill me-2"></i> Student Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item rounded-2 py-2 small" asp-controller="Student" asp-action="MyCourses">
+                            <i class="bi bi-journal-check me-2 text-success"></i> Khóa học của tôi
+                        </a>
+                    </li>
+                }
+
+                <li>
+                    <a class="dropdown-item rounded-2 py-2 small" asp-controller="Account" asp-action="Profile">
+                        <i class="bi bi-person-gear me-2 text-secondary"></i> Cài đặt hồ sơ
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li>
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="m-0 p-0">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="dropdown-item rounded-2 py-2 small text-danger">
+                            <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
     }
     else
     {
-        <a class="btn btn-brand btn-sm px-3" asp-area="Identity" asp-page="/Account/Login">
-            <i class="bi bi-box-arrow-in-right me-1"></i> Log In
+        <a class="btn btn-outline-secondary btn-sm px-3 rounded-pill fw-semibold" asp-controller="Account" asp-action="Login">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Đăng Nhập
         </a>
-        <a class="btn btn-cta-accent btn-sm px-3" asp-area="Identity" asp-page="/Account/Register">
-            <i class="bi bi-person-plus-fill me-1"></i> Sign Up
+        <a class="btn btn-lumora-secondary btn-sm px-3 rounded-pill fw-semibold shadow-sm text-white" asp-controller="Account" asp-action="Register">
+            <i class="bi bi-person-plus-fill me-1"></i> Đăng Ký
         </a>
     }
 </div>
-</ul>

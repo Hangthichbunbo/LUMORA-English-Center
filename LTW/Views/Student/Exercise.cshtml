@@ -1,0 +1,165 @@
+@model LTW.Models.Exercise
+@using System.Text.Json
+@using LTW.Models
+
+@{
+    ViewData["Title"] = Model.Title + " - Làm Bài Tập";
+    var submission = ViewBag.Submission as ExerciseSubmission;
+    Dictionary<string, string>? submittedAnswers = null;
+    if (submission != null && !string.IsNullOrEmpty(submission.AnswersJson))
+    {
+        try { submittedAnswers = JsonSerializer.Deserialize<Dictionary<string, string>>(submission.AnswersJson); } catch { }
+    }
+}
+
+<div class="container py-5" style="max-width: 960px;">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-action="Dashboard" class="text-decoration-none">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-action="Lesson" asp-route-id="@Model.LessonId" class="text-decoration-none">@Model.Lesson?.Title</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Title</li>
+        </ol>
+    </nav>
+
+    <!-- Header Box -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-4 bg-white">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+            <div>
+                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold mb-2">BÀI TẬP BẮT BUỘC</span>
+                <h2 class="fw-bold text-dark m-0">@Model.Title</h2>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-light text-secondary border px-3 py-2 small"><i class="bi bi-clock me-1"></i>@Model.TimeLimitMinutes phút</span>
+                <span class="badge bg-light text-secondary border px-3 py-2 small"><i class="bi bi-check-circle me-1"></i>Điểm đạt: @Model.PassingScore/100</span>
+            </div>
+        </div>
+
+        <p class="text-secondary small m-0" style="line-height: 1.6;">
+            @(string.IsNullOrEmpty(Model.Description) ? "Đọc kỹ các câu hỏi và chọn đáp án chính xác nhất." : Model.Description)
+        </p>
+
+        <!-- Previous Submission Alert -->
+        @if (submission != null)
+        {
+            <div class="alert alert-success mt-4 p-3 rounded-3 d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-award-fill fs-1 text-success"></i>
+                    <div>
+                        <div class="fw-bold fs-5 text-dark">Điểm số của bạn: @submission.TotalScore.ToString("F1") / 10</div>
+                        <small class="text-muted">Nộp lúc: @submission.SubmittedAt.ToString("HH:mm - dd/MM/yyyy")</small>
+                    </div>
+                </div>
+                <div>
+                    @if (!string.IsNullOrEmpty(submission.TeacherComment))
+                    {
+                        <div class="small text-secondary"><strong>Nhận xét:</strong> @submission.TeacherComment</div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Questions Form -->
+    <form asp-action="SubmitExercise" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="exerciseId" value="@Model.ExerciseId" />
+
+        @{ int qCount = 0; }
+        @foreach (var q in Model.Questions)
+        {
+            qCount++;
+            var userAns = submittedAnswers != null ? submittedAnswers.GetValueOrDefault($"q_{q.QuestionId}") : null;
+            var isAnswerCorrect = submission != null && !string.IsNullOrEmpty(userAns) && q.CorrectAnswer.Trim().StartsWith(userAns.Substring(0, Math.Min(2, userAns.Length)));
+
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white @(submission != null ? (isAnswerCorrect ? "border-start border-4 border-success" : "border-start border-4 border-danger") : "")">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-primary px-3 py-2 rounded-pill fw-semibold" style="background-color: #00A896 !important;">
+                            @q.Skill
+                        </span>
+                        <span class="fw-bold text-dark">Câu @qCount: @q.Format</span>
+                    </div>
+
+                    @if (submission != null)
+                    {
+                        if (isAnswerCorrect)
+                        {
+                            <span class="badge bg-success px-3 py-2 rounded-pill"><i class="bi bi-check-circle me-1"></i> Chính xác (+@q.Points đ)</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger px-3 py-2 rounded-pill"><i class="bi bi-x-circle me-1"></i> Chưa chính xác</span>
+                        }
+                    }
+                    else
+                    {
+                        <span class="badge bg-light text-secondary border small">@q.Points Điểm</span>
+                    }
+                </div>
+
+                <h6 class="fw-bold text-dark mb-3">@q.Content</h6>
+
+                <!-- Options -->
+                @{
+                    string[]? options = null;
+                    if (!string.IsNullOrEmpty(q.OptionsJson))
+                    {
+                        try { options = JsonSerializer.Deserialize<string[]>(q.OptionsJson); } catch { }
+                    }
+                }
+
+                @if (options != null && options.Length > 0)
+                {
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        @foreach (var opt in options)
+                        {
+                            var isChecked = userAns == opt;
+                            <div class="form-check p-3 border rounded-3 bg-light-subtle @(submission != null && isChecked ? (isAnswerCorrect ? "border-success bg-success bg-opacity-10" : "border-danger bg-danger bg-opacity-10") : "")">
+                                <input class="form-check-input ms-0 me-3" type="radio" 
+                                       name="q_@q.QuestionId" id="opt_@(q.QuestionId)_@opt.GetHashCode()" 
+                                       value="@opt" @(isChecked ? "checked" : "") @(submission != null ? "disabled" : "") />
+                                <label class="form-check-label w-100 cursor-pointer text-dark" for="opt_@(q.QuestionId)_@opt.GetHashCode()">
+                                    @opt
+                                </label>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- Review Breakdown after submission -->
+                @if (submission != null)
+                {
+                    <div class="p-3 bg-light rounded-3 mt-2 border small">
+                        <div class="mb-1"><strong class="text-success"><i class="bi bi-check-circle-fill me-1"></i> Đáp án đúng:</strong> @q.CorrectAnswer</div>
+                        @if (!string.IsNullOrEmpty(q.Explanation))
+                        {
+                            <div class="text-secondary"><strong class="text-primary"><i class="bi bi-info-circle-fill me-1"></i> Giải thích chi tiết:</strong> @q.Explanation</div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Submit or Return buttons -->
+        <div class="d-flex justify-content-between align-items-center pt-3">
+            <a asp-action="Lesson" asp-route-id="@Model.LessonId" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-semibold">
+                <i class="bi bi-arrow-left me-1"></i> Quay Lại Bài Học
+            </a>
+
+            @if (submission == null)
+            {
+                <button type="submit" class="btn btn-primary px-5 py-3 rounded-pill fw-bold shadow-sm fs-6" style="background-color: #00A896; border-color: #00A896;">
+                    <i class="bi bi-send-check-fill me-2"></i> Nộp Bài Chấm Điểm
+                </button>
+            }
+            else
+            {
+                <button type="submit" class="btn btn-outline-primary px-4 py-2 rounded-pill fw-semibold">
+                    <i class="bi bi-arrow-repeat me-1"></i> Làm Lại Bài Tập
+                </button>
+            }
+        </div>
+    </form>
+</div>
+

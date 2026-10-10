@@ -1,0 +1,112 @@
+@model IEnumerable<LTW.Models.Enrollment>
+@using LTW.Models
+
+@{
+    ViewData["Title"] = "Khóa Học Của Tôi - LUMORA English Center";
+    var progressList = ViewBag.ProgressList as List<LessonProgress> ?? new List<LessonProgress>();
+}
+
+<div class="py-5 bg-lumora-header text-white">
+    <div class="container text-center">
+        <span class="badge rounded-pill px-3 py-2 text-white mb-3" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);">
+            <i class="bi bi-journal-check me-1 text-info"></i> KHÔNG GIAN HỌC TẬP CÁ NHÂN
+        </span>
+        <h1 class="fw-bold mb-3">Khóa Học Đã Đăng Ký Của Tôi</h1>
+        <p class="text-white-50 mx-auto" style="max-width: 650px;">
+            Theo dõi tiến trình bài học, hoàn thành bài tập và tham gia các buổi học tương tác trực tuyến cùng giảng viên.
+        </p>
+    </div>
+</div>
+
+<div class="container py-5">
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var enrollment in Model)
+            {
+                var course = enrollment.Course;
+                if (course == null) continue;
+
+                var totalLessons = course.TotalLessons;
+                var courseLessonIds = course.Chapters?.SelectMany(ch => ch.Lessons).Select(l => l.LessonId).ToList() ?? new List<int>();
+                var completedCount = progressList.Count(p => courseLessonIds.Contains(p.LessonId) && p.IsCompleted);
+                var percent = totalLessons > 0 ? (int)((double)completedCount / totalLessons * 100) : 0;
+                var lastProgress = progressList.Where(p => courseLessonIds.Contains(p.LessonId)).OrderByDescending(p => p.LastAccessedAt).FirstOrDefault();
+
+                var nextLesson = course.Chapters?.OrderBy(c => c.OrderIndex)
+                    .SelectMany(c => c.Lessons.OrderBy(l => l.OrderIndex))
+                    .FirstOrDefault(l => !progressList.Any(p => p.LessonId == l.LessonId && p.IsCompleted))
+                    ?? course.Chapters?.OrderBy(c => c.OrderIndex).FirstOrDefault()?.Lessons.OrderBy(l => l.OrderIndex).FirstOrDefault();
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden d-flex flex-column bg-white">
+                        <div class="position-relative">
+                            <img src="@course.Thumbnail" alt="@course.Title" class="card-img-top" style="height: 200px; object-fit: cover;" />
+                            <span class="position-absolute top-0 end-0 m-3 badge bg-success px-3 py-2 rounded-pill fw-bold">
+                                <i class="bi bi-check-circle me-1"></i> Đã sở hữu
+                            </span>
+                            <span class="position-absolute bottom-0 start-0 m-3 badge bg-dark bg-opacity-75 rounded-pill px-3 py-2 small">
+                                @course.Level
+                            </span>
+                        </div>
+
+                        <div class="card-body p-4 d-flex flex-column">
+                            <h5 class="fw-bold text-dark mb-2 line-clamp-2" style="min-height: 48px;">
+                                @course.Title
+                            </h5>
+                            <div class="text-muted small mb-3">
+                                <i class="bi bi-person me-1"></i>@(course.Teacher?.FullName ?? "Lumora Academic")
+                            </div>
+
+                            <!-- Progress Bar -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between small text-secondary mb-1">
+                                    <span>Tiến độ học tập:</span>
+                                    <strong class="text-success">@percent%</strong>
+                                </div>
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: @percent%;" aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <div class="text-muted small mt-1" style="font-size: 11px;">
+                                    Hoàn thành: @completedCount / @totalLessons bài học
+                                </div>
+                            </div>
+
+                            <div class="text-muted small mb-4 pt-2 border-top" style="font-size: 12px;">
+                                <i class="bi bi-clock-history me-1"></i>
+                                Truy cập gần nhất: @(lastProgress != null ? lastProgress.LastAccessedAt.ToString("HH:mm - dd/MM/yyyy") : enrollment.EnrolledAt.ToString("dd/MM/yyyy"))
+                            </div>
+
+                            <div class="mt-auto">
+                                @if (nextLesson != null)
+                                {
+                                    <a asp-action="Lesson" asp-route-id="@nextLesson.LessonId" class="btn btn-lumora-secondary text-white w-100 py-2 rounded-pill fw-bold shadow-sm">
+                                        <i class="bi bi-play-circle-fill me-1"></i> Tiếp Tục Vào Học
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a asp-controller="Course" asp-action="Detail" asp-route-id="@course.CourseId" class="btn btn-outline-primary w-100 py-2 rounded-pill fw-semibold">
+                                        Xem Chi Tiết Khóa
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-journal-x fs-1 text-muted d-block mb-3"></i>
+            <h5 class="fw-bold text-secondary">Bạn chưa mua khóa học nào</h5>
+            <p class="text-muted small">Hãy khám phá danh mục khóa học của chúng tôi để bắt đầu học tập ngay hôm nay.</p>
+            <a asp-controller="Course" asp-action="Index" class="btn btn-lumora-primary rounded-pill px-4 mt-2">
+                Xem Danh Sách Khóa Học
+            </a>
+        </div>
+    }
+</div>
+

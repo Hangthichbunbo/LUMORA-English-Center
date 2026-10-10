@@ -1,0 +1,100 @@
+@model LTW.Models.LiveClass
+
+@{
+    ViewData["Title"] = "Chỉnh Sửa Lớp Trực Tuyến - Admin LUMORA";
+}
+
+<div class="container py-4" style="max-width: 850px;">
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+        <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+            <div>
+                <h3 class="fw-bold text-dark m-0"><i class="bi bi-pencil-square me-2 text-primary"></i>Chỉnh Sửa Lớp Học Trực Tuyến</h3>
+                <p class="text-muted small m-0">Cập nhật lịch học, giảng viên và trạng thái lớp</p>
+            </div>
+            <a asp-action="Classes" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i> Quay Lại
+            </a>
+        </div>
+
+        <form asp-action="EditClass" asp-route-id="@Model.LiveClassId" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="LiveClassId" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger small mb-3"></div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <label asp-for="ClassName" class="form-label small fw-semibold text-secondary"></label>
+                    <input asp-for="ClassName" class="form-control" required />
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="TeacherId" class="form-label small fw-semibold text-secondary">Giảng Viên Phụ Trách</label>
+                    <select asp-for="TeacherId" asp-items="ViewBag.Teachers" class="form-select" required>
+                        <option value="">-- Chọn giảng viên --</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="CourseId" class="form-label small fw-semibold text-secondary">Khóa Học Liên Kết</label>
+                    <select asp-for="CourseId" asp-items="ViewBag.Courses" class="form-select">
+                        <option value="">-- Lớp mở không thuộc khóa --</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="ScheduledDate" class="form-label small fw-semibold text-secondary"></label>
+                    <input asp-for="ScheduledDate" class="form-control" type="date" required />
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="StartTime" class="form-label small fw-semibold text-secondary"></label>
+                    <input asp-for="StartTime" class="form-control" type="time" required />
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="EndTime" class="form-label small fw-semibold text-secondary"></label>
+                    <input asp-for="EndTime" class="form-control" type="time" required />
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="Status" class="form-label small fw-semibold text-secondary"></label>
+                    <select asp-for="Status" class="form-select">
+                        <option value="@LTW.Models.ClassStatus.Upcoming">Sắp Diễn Ra</option>
+                        <option value="@LTW.Models.ClassStatus.Open">Đang Mở (Open)</option>
+                        <option value="@LTW.Models.ClassStatus.Ongoing">Đang Học (Ongoing)</option>
+                        <option value="@LTW.Models.ClassStatus.Closed">Đã Đóng (Closed)</option>
+                    </select>
+                </div>
+
+                <div class="col-md-5">
+                    <label asp-for="LiveRoomUrl" class="form-label small fw-semibold text-secondary"></label>
+                    <input asp-for="LiveRoomUrl" class="form-control" required />
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="Capacity" class="form-label small fw-semibold text-secondary"></label>
+                    <input asp-for="Capacity" class="form-control" type="number" min="5" max="500" />
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="Description" class="form-label small fw-semibold text-secondary"></label>
+                    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+
+            <div class="form-check mb-4">
+                <input asp-for="IsPublic" class="form-check-input" />
+                <label asp-for="IsPublic" class="form-check-label small fw-semibold text-dark">
+                    Lớp công khai (Public Class - cho phép tất cả tài khoản tham gia học thử)
+                </label>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold rounded-pill shadow-sm" style="background-color: #00A896; border-color: #00A896;">
+                    <i class="bi bi-check-circle me-1"></i> Lưu Cập Nhật
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+

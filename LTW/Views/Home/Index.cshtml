@@ -46,23 +46,23 @@
 
                 <!-- Tiêu đề lớn của Hero -->
                 <h1 class="hero-main-header">
-                    Luyện Thi IELTS Chuẩn <span class="hero-accent">Format Đề Thi Thật</span> Trên Máy Tính
+                    Học Tiếng Anh Thông Minh – <span class="hero-accent">Tiến Bộ Từng Ngày</span>
                 </h1>
 
                 <!-- Mô tả ngắn gọn -->
                 <p class="hero-desc-lead">
-                    @Model.HeroSubtitle
+                    Kiểm tra trình độ, học theo lộ trình phù hợp, luyện tập 4 kỹ năng và tham gia lớp học trực tuyến cùng giảng viên.
                 </p>
 
                 <!-- Nút CTA chính và nút phụ -->
                 <div class="d-flex flex-wrap gap-3 align-items-center mb-4">
-                    <a href="#practice-section" class="btn btn-cta-accent px-4 py-3">
-                        <i class="bi bi-play-circle-fill fs-5"></i>
-                        <span>Start Practice</span>
+                    <a asp-controller="Test" asp-action="PlacementTest" class="btn btn-cta-accent px-4 py-3">
+                        <i class="bi bi-patch-question-fill fs-5"></i>
+                        <span>Kiểm tra trình độ miễn phí</span>
                     </a>
-                    <a href="#courses-section" class="btn btn-outline-brand px-4 py-3">
+                    <a asp-controller="Course" asp-action="Index" class="btn btn-outline-brand px-4 py-3">
                         <i class="bi bi-compass"></i>
-                        <span>Explore Courses</span>
+                        <span>Khám phá khóa học</span>
                     </a>
                 </div>
 
@@ -232,9 +232,9 @@
                                 <span class="text-warning fw-bold"><i class="bi bi-star-fill me-1"></i>@material.Rating</span>
                             </div>
 
-                            <button type="button" class="btn btn-navy w-100 mt-auto" onclick="alert('Bắt đầu làm bài thi: @material.Title');">
-                                <i class="bi bi-pencil-square me-1"></i> Take Test
-                            </button>
+                            <a asp-controller="Test" asp-action="ExampleTest" class="btn btn-navy w-100 mt-auto">
+                                <i class="bi bi-pencil-square me-1"></i> Take Test (Miễn phí)
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -286,8 +286,8 @@
                                 <li><i class="bi bi-check2 text-success me-1"></i> Kho đề độc quyền cập nhật 2026</li>
                             </ul>
 
-                            <a href="#contact-section" class="btn btn-cta-accent w-100 mt-auto">
-                                <i class="bi bi-cart-check me-1"></i> Đăng Ký Khóa Học
+                            <a asp-controller="Course" asp-action="Index" class="btn btn-cta-accent w-100 mt-auto">
+                                <i class="bi bi-cart-check me-1"></i> Khám Phá & Đăng Ký Khóa Học
                             </a>
                         </div>
                     </div>
@@ -440,25 +440,69 @@
      ============================================================================ -->
 <section class="team-official-section" id="teachers-section">
     <div class="container-fluid px-lg-5">
-        <div class="text-center mb-5">
-            <span class="section-label-tag">Đội ngũ giảng viên</span>
-            <h2 class="section-headline-title">Expert Teaching Team</h2>
-            <p class="text-muted mx-auto" style="max-width: 600px;">Được hướng dẫn trực tiếp bởi cựu giám khảo khảo thí quốc tế đạt Band 9.0.</p>
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4">
+            <div>
+                <span class="section-label-tag">Đội ngũ giảng viên</span>
+                <h2 class="section-headline-title mb-1">Expert Teaching Team</h2>
+                <p class="text-muted mb-0" style="max-width: 600px;">Được hướng dẫn trực tiếp bởi cựu giám khảo khảo thí quốc tế đạt Band 8.5 - 9.0.</p>
+            </div>
+            <!-- Slider Navigation controls & Count -->
+            <div class="d-flex align-items-center gap-3 mt-3 mt-md-0">
+                <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill shadow-sm d-none d-sm-inline-flex align-items-center">
+                    <i class="bi bi-people-fill text-primary me-1"></i> @Model.TeachingTeam.Count Giảng viên chuyên gia
+                </span>
+                <div class="slider-nav-btn-group d-flex gap-2">
+                    <button type="button" class="btn btn-slider-ctrl shadow-sm" id="teacherSliderPrev" aria-label="Cuộn sang trái" title="Xem giảng viên trước">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <button type="button" class="btn btn-slider-ctrl shadow-sm" id="teacherSliderNext" aria-label="Cuộn sang phải" title="Xem giảng viên tiếp theo">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <div class="row g-4 mb-5">
-            @foreach (var teacher in Model.TeachingTeam)
-            {
-                <div class="col-12 col-md-6 col-lg-3">
-                    <div class="teacher-profile-card">
-                        <img src="@teacher.AvatarUrl" alt="@teacher.Name" class="teacher-avatar-circle shadow-sm" />
-                        <h5 class="fw-bold text-dark mb-1">@teacher.Name</h5>
-                        <small class="text-muted d-block mb-2">@teacher.Role</small>
-                        <span class="badge bg-primary-subtle text-primary fw-bold mb-2">@teacher.Score</span>
-                        <p class="text-secondary small mb-0 px-2">@teacher.Bio</p>
+        <!-- Horizontal Slider Container (Thanh trượt ngang) -->
+        <div class="teacher-slider-container position-relative mb-4">
+            <div class="teacher-slider-track" id="teacherSliderTrack">
+                @foreach (var teacher in Model.TeachingTeam)
+                {
+                    <div class="teacher-slider-card-wrapper">
+                        <div class="teacher-profile-card w-100 p-4 text-center d-flex flex-column justify-content-between">
+                            <div>
+                                <img src="@teacher.AvatarUrl" alt="@teacher.Name" class="teacher-avatar-circle shadow-sm mb-3" />
+                                <h5 class="fw-bold text-dark mb-1">@teacher.Name</h5>
+                                <small class="text-muted d-block mb-2">@teacher.Role</small>
+                                <span class="badge bg-primary-subtle text-primary fw-bold mb-2">@teacher.Score</span>
+                                <p class="text-secondary small mb-0 px-2 line-clamp-3">@teacher.Bio</p>
+                            </div>
+                            <div class="pt-3 mt-3 border-top">
+                                <a asp-controller="Teacher" asp-action="Detail" asp-route-id="@teacher.TeacherId" class="btn btn-sm btn-outline-primary px-3 py-2 rounded-3 w-100">
+                                    <span>Xem hồ sơ & khóa học</span>
+                                    <i class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
                     </div>
+                }
+            </div>
+
+            <!-- Thanh trượt ngang trực quan (Scroll progress indicator) -->
+            <div class="teacher-slider-progress-wrap mt-3 d-flex align-items-center justify-content-between">
+                <small class="text-muted d-flex align-items-center gap-1" style="font-size: 12px;">
+                    <i class="bi bi-arrows-expand-vertical" style="transform: rotate(90deg);"></i>
+                    <span>Kéo chuột, vuốt chạm hoặc bấm mũi tên để xem tất cả @Model.TeachingTeam.Count giảng viên</span>
+                </small>
+                <div class="teacher-slider-scrollbar-wrap">
+                    <div class="teacher-slider-scrollbar-bar" id="teacherSliderScrollbar"></div>
                 </div>
-            }
+            </div>
+        </div>
+
+        <div class="text-center mb-5">
+            <a asp-controller="Teacher" asp-action="Index" class="btn btn-outline-brand px-4 py-2 rounded-pill shadow-sm">
+                <i class="bi bi-people me-2"></i>Xem toàn bộ @Model.TeachingTeam.Count giảng viên
+            </a>
         </div>
 
         <!-- Các trường đại học đối tác -->
@@ -542,7 +586,7 @@
                     </div>
                     <div class="d-flex align-items-center gap-3">
                         <i class="bi bi-envelope text-warning fs-5"></i>
-                        <span>Email: consult@ieltsonlinetests.com</span>
+                        <span>Email: consult@lumora_english_center.com</span>
                     </div>
                     <div class="d-flex align-items-center gap-3">
                         <i class="bi bi-clock text-warning fs-5"></i>
@@ -615,4 +659,82 @@
         </div>
     </div>
 </section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const track = document.getElementById('teacherSliderTrack');
+            const prevBtn = document.getElementById('teacherSliderPrev');
+            const nextBtn = document.getElementById('teacherSliderNext');
+            const scrollBar = document.getElementById('teacherSliderScrollbar');
+
+            if (track) {
+                const scrollStep = 344; // card width (320px) + gap (24px)
+
+                function updateScrollBar() {
+                    if (!scrollBar) return;
+                    const maxScrollLeft = track.scrollWidth - track.clientWidth;
+                    if (maxScrollLeft <= 0) {
+                        scrollBar.style.width = '100%';
+                        scrollBar.style.transform = 'translateX(0)';
+                        return;
+                    }
+                    const scrollRatio = track.scrollLeft / maxScrollLeft;
+                    const barWidthPercent = Math.max(20, Math.round((track.clientWidth / track.scrollWidth) * 100));
+                    scrollBar.style.width = barWidthPercent + '%';
+                    const maxTranslate = 100 - barWidthPercent;
+                    scrollBar.style.transform = `translateX(${scrollRatio * maxTranslate * (100 / barWidthPercent)}%)`;
+                }
+
+                if (prevBtn) {
+                    prevBtn.addEventListener('click', function () {
+                        track.scrollBy({ left: -scrollStep, behavior: 'smooth' });
+                    });
+                }
+
+                if (nextBtn) {
+                    nextBtn.addEventListener('click', function () {
+                        track.scrollBy({ left: scrollStep, behavior: 'smooth' });
+                    });
+                }
+
+                track.addEventListener('scroll', updateScrollBar, { passive: true });
+                window.addEventListener('resize', updateScrollBar, { passive: true });
+                updateScrollBar();
+
+                // Mouse drag-and-swipe support
+                let isDown = false;
+                let startX;
+                let scrollLeft;
+
+                track.addEventListener('mousedown', (e) => {
+                    if (e.target.closest('a') || e.target.closest('button')) return;
+                    isDown = true;
+                    track.classList.add('active-dragging');
+                    startX = e.pageX - track.offsetLeft;
+                    scrollLeft = track.scrollLeft;
+                });
+
+                track.addEventListener('mouseleave', () => {
+                    isDown = false;
+                    track.classList.remove('active-dragging');
+                });
+
+                track.addEventListener('mouseup', () => {
+                    isDown = false;
+                    track.classList.remove('active-dragging');
+                });
+
+                track.addEventListener('mousemove', (e) => {
+                    if (!isDown) return;
+                    e.preventDefault();
+                    const x = e.pageX - track.offsetLeft;
+                    const walk = (x - startX) * 1.5;
+                    track.scrollLeft = scrollLeft - walk;
+                });
+            }
+        });
+    </script>
+}
 

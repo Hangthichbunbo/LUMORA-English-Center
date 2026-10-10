@@ -1,0 +1,188 @@
+@model LTW.Models.LiveClass
+
+@{
+    ViewData["Title"] = "Phòng Học Trực Tuyến: " + Model.ClassName;
+}
+
+<div class="live-room-container bg-dark text-white min-vh-100 d-flex flex-column" style="margin-top: -72px; padding-top: 15px;">
+    <!-- Top Bar -->
+    <div class="px-4 py-2 border-bottom border-secondary d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-danger d-flex align-items-center gap-1 px-3 py-2 rounded-pill">
+                <span class="spinner-grow spinner-grow-sm" role="status" style="width: 8px; height: 8px;"></span>
+                <span>LIVE REC</span>
+            </span>
+            <div class="fw-bold fs-6">@Model.ClassName</div>
+            <span class="badge bg-secondary d-none d-md-inline">Giảng viên: @(Model.Teacher?.FullName ?? "Lumora Teacher")</span>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-dark border border-secondary px-3 py-2 text-white-50">
+                <i class="bi bi-people-fill text-info me-1"></i> <span id="onlineCount">@(Math.Max(5, (Model.ClassStudents?.Count ?? 0) + 1))</span> Đang online
+            </span>
+            <a asp-action="Index" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                <i class="bi bi-box-arrow-right me-1"></i> Rời Phòng Học
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="flex-grow-1 p-3 d-flex flex-column flex-lg-row gap-3 overflow-hidden" style="height: calc(100vh - 140px);">
+        <!-- Cột trái: Video Stage & Giảng viên -->
+        <div class="flex-grow-1 d-flex flex-column gap-3">
+            <!-- Main Presentation Screen -->
+            <div class="flex-grow-1 position-relative bg-black rounded-4 overflow-hidden d-flex align-items-center justify-content-center border border-secondary shadow">
+                <!-- Simulated Slide / Video Stream -->
+                <div class="text-center p-4">
+                    <div class="mb-3">
+                        <img src="@(string.IsNullOrEmpty(Model.Teacher?.AvatarUrl) ? "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80" : Model.Teacher.AvatarUrl)" 
+                             class="rounded-circle shadow border border-3 border-info" style="width: 140px; height: 140px; object-fit: cover;" alt="Teacher Cam" />
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">@(Model.Teacher?.FullName ?? "Giảng Viên Trực Tiếp")</h5>
+                    <p class="text-info small mb-3">Đang chia sẻ màn hình bài giảng: <em>"Chiến lược giải đề chuyên sâu & Tương tác 1-1"</em></p>
+                    <span class="badge bg-secondary bg-opacity-75 px-3 py-2 rounded-pill font-monospace small">
+                        <i class="bi bi-broadcast me-1 text-success"></i> 1080p 60fps • Kết nối ổn định
+                    </span>
+                </div>
+
+                <!-- Teacher Cam Picture-in-Picture Mini Tag -->
+                <div class="position-absolute bottom-0 start-0 m-3 p-2 bg-dark bg-opacity-75 rounded-3 border border-secondary small d-flex align-items-center gap-2">
+                    <span class="badge bg-success rounded-circle p-1"><i class="bi bi-mic-fill" style="font-size: 10px;"></i></span>
+                    <span>@(Model.Teacher?.FullName ?? "Giảng viên") (Host)</span>
+                </div>
+            </div>
+
+            <!-- Virtual Controls Bar -->
+            <div class="p-3 bg-secondary bg-opacity-25 rounded-4 d-flex align-items-center justify-content-center gap-3 border border-secondary">
+                <button type="button" class="btn btn-outline-light rounded-circle p-3" id="micBtn" onclick="toggleBtn(this, 'bi-mic-fill', 'bi-mic-mute-fill')" title="Bật/Tắt Mic">
+                    <i class="bi bi-mic-fill fs-5"></i>
+                </button>
+                <button type="button" class="btn btn-outline-light rounded-circle p-3" id="camBtn" onclick="toggleBtn(this, 'bi-camera-video-fill', 'bi-camera-video-off-fill')" title="Bật/Tắt Camera">
+                    <i class="bi bi-camera-video-fill fs-5"></i>
+                </button>
+                <button type="button" class="btn btn-outline-warning rounded-circle p-3" id="handBtn" onclick="raiseHand(this)" title="Giơ tay phát biểu">
+                    <i class="bi bi-hand-index-thumb fs-5"></i>
+                </button>
+                <button type="button" class="btn btn-outline-info rounded-circle p-3" onclick="alert('Tính năng chia sẻ màn hình của học viên cần sự cho phép của Giảng viên chủ phòng.')" title="Chia sẻ màn hình">
+                    <i class="bi bi-display fs-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Cột phải: Live Chat & Danh sách học viên -->
+        <div class="rounded-4 bg-black bg-opacity-50 border border-secondary d-flex flex-column overflow-hidden" style="width: 360px; min-width: 320px;">
+            <ul class="nav nav-tabs nav-fill border-secondary bg-dark" id="liveTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active text-white small fw-bold py-3" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chatTabPane" type="button" role="tab">
+                        <i class="bi bi-chat-dots-fill me-1"></i> Trò Chuyện
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link text-white small fw-bold py-3" id="members-tab" data-bs-toggle="tab" data-bs-target="#membersTabPane" type="button" role="tab">
+                        <i class="bi bi-people-fill me-1"></i> Thành Viên
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content flex-grow-1 d-flex flex-column overflow-hidden p-3" id="liveTabsContent">
+                <!-- Tab Chat -->
+                <div class="tab-pane fade show active flex-grow-1 d-flex flex-column overflow-hidden" id="chatTabPane" role="tabpanel">
+                    <div class="flex-grow-1 overflow-auto d-flex flex-column gap-2 pe-1" id="chatMessages" style="max-height: 400px;">
+                        <div class="p-2 rounded-3 bg-secondary bg-opacity-25 small">
+                            <span class="text-info fw-bold">Hệ thống:</span>
+                            <span class="text-white-50">Chào mừng bạn đã tham gia phòng học trực tuyến LUMORA. Hãy đặt câu hỏi khi có thắc mắc!</span>
+                        </div>
+                        <div class="p-2 rounded-3 bg-secondary bg-opacity-25 small">
+                            <span class="text-warning fw-bold">@(Model.Teacher?.FullName ?? "Giảng viên"):</span>
+                            <span class="text-white">Chào cả lớp! Các bạn nghe rõ âm thanh và thấy rõ slide bài giảng không?</span>
+                        </div>
+                        <div class="p-2 rounded-3 bg-secondary bg-opacity-25 small">
+                            <span class="text-success fw-bold">Nguyễn Hoàng Minh:</span>
+                            <span class="text-white">Em nghe rất rõ ạ, slide hiển thị nét lắm thầy/cô ơi.</span>
+                        </div>
+                    </div>
+
+                    <form onsubmit="sendChatMessage(event)" class="mt-3">
+                        <div class="input-group">
+                            <input type="text" id="chatInput" class="form-control bg-dark text-white border-secondary small" placeholder="Nhập tin nhắn..." autocomplete="off" />
+                            <button class="btn btn-primary" type="submit" style="background-color: #00A896; border-color: #00A896;">
+                                <i class="bi bi-send-fill"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Tab Members -->
+                <div class="tab-pane fade flex-grow-1 overflow-auto" id="membersTabPane" role="tabpanel">
+                    <div class="d-flex flex-column gap-2 small">
+                        <div class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-secondary bg-opacity-25">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-primary">Host</span>
+                                <span>@(Model.Teacher?.FullName ?? "Giảng viên")</span>
+                            </div>
+                            <i class="bi bi-mic-fill text-success"></i>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-secondary bg-opacity-25">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-secondary">Bạn</span>
+                                <span>@(User.Identity?.Name ?? "Học viên")</span>
+                            </div>
+                            <i class="bi bi-mic-fill text-muted"></i>
+                        </div>
+                        @if (Model.ClassStudents != null)
+                        {
+                            foreach (var cs in Model.ClassStudents)
+                            {
+                                <div class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-secondary bg-opacity-25">
+                                    <span>@(cs.Student?.FullName ?? "Học viên")</span>
+                                    <i class="bi bi-mic-mute-fill text-danger"></i>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleBtn(btn, onIcon, offIcon) {
+            var icon = btn.querySelector("i");
+            if (icon.classList.contains(onIcon)) {
+                icon.classList.remove(onIcon);
+                icon.classList.add(offIcon);
+                btn.classList.add("btn-danger");
+                btn.classList.remove("btn-outline-light");
+            } else {
+                icon.classList.remove(offIcon);
+                icon.classList.add(onIcon);
+                btn.classList.remove("btn-danger");
+                btn.classList.add("btn-outline-light");
+            }
+        }
+
+        function raiseHand(btn) {
+            btn.classList.toggle("btn-warning");
+            btn.classList.toggle("text-dark");
+            alert("Bạn đã giơ tay phát biểu. Giảng viên đã nhận được thông báo!");
+        }
+
+        function sendChatMessage(e) {
+            e.preventDefault();
+            var input = document.getElementById("chatInput");
+            var text = input.value.trim();
+            if (!text) return;
+
+            var box = document.getElementById("chatMessages");
+            var newMsg = document.createElement("div");
+            newMsg.className = "p-2 rounded-3 bg-primary bg-opacity-25 small border border-primary border-opacity-25";
+            newMsg.innerHTML = '<span class="text-info fw-bold">Bạn:</span> <span class="text-white">' + text + '</span>';
+            box.appendChild(newMsg);
+            box.scrollTop = box.scrollHeight;
+            input.value = "";
+        }
+    </script>
+}
+

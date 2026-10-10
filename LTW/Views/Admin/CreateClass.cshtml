@@ -1,0 +1,89 @@
+@model LTW.Models.LiveClass
+
+@{
+    ViewData["Title"] = "Tạo Lớp Trực Tuyến - Admin LUMORA";
+}
+
+<div class="container py-4" style="max-width: 850px;">
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+        <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+            <div>
+                <h3 class="fw-bold text-dark m-0"><i class="bi bi-camera-video me-2 text-primary"></i>Tạo Lớp Học Trực Tuyến</h3>
+                <p class="text-muted small m-0">Xếp lịch giảng dạy, gán giảng viên và phòng học</p>
+            </div>
+            <a asp-action="Classes" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i> Quay Lại
+            </a>
+        </div>
+
+        <form asp-action="CreateClass" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger small mb-3"></div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <label asp-for="ClassName" class="form-label small fw-semibold text-secondary"></label>
+                    <input asp-for="ClassName" class="form-control" placeholder="Ví dụ: Chữa đề Speaking Part 2 Chủ đề Technology" required />
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="TeacherId" class="form-label small fw-semibold text-secondary">Giảng Viên Phụ Trách</label>
+                    <select asp-for="TeacherId" asp-items="ViewBag.Teachers" class="form-select" required>
+                        <option value="">-- Chọn giảng viên --</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="CourseId" class="form-label small fw-semibold text-secondary">Khóa Học Liên Kết (Để trống nếu là lớp Public tự do)</label>
+                    <select asp-for="CourseId" asp-items="ViewBag.Courses" class="form-select">
+                        <option value="">-- Lớp mở không thuộc khóa --</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="ScheduledDate" class="form-label small fw-semibold text-secondary"></label>
+                    <input asp-for="ScheduledDate" class="form-control" type="date" required />
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="StartTime" class="form-label small fw-semibold text-secondary"></label>
+                    <input asp-for="StartTime" class="form-control" type="time" required />
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="EndTime" class="form-label small fw-semibold text-secondary"></label>
+                    <input asp-for="EndTime" class="form-control" type="time" required />
+                </div>
+
+                <div class="col-md-8">
+                    <label asp-for="LiveRoomUrl" class="form-label small fw-semibold text-secondary"></label>
+                    <input asp-for="LiveRoomUrl" class="form-control" placeholder="https://meet.lumora.edu.vn/room-..." required />
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="Capacity" class="form-label small fw-semibold text-secondary"></label>
+                    <input asp-for="Capacity" class="form-control" type="number" min="5" max="500" value="30" />
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="Description" class="form-label small fw-semibold text-secondary"></label>
+                    <textarea asp-for="Description" class="form-control" rows="3" placeholder="Mô tả nội dung chương trình học của buổi live..."></textarea>
+                </div>
+            </div>
+
+            <div class="form-check mb-4">
+                <input asp-for="IsPublic" class="form-check-input" />
+                <label asp-for="IsPublic" class="form-check-label small fw-semibold text-dark">
+                    Lớp công khai (Public Class - cho phép tất cả tài khoản tham gia học thử)
+                </label>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold rounded-pill shadow-sm" style="background-color: #00A896; border-color: #00A896;">
+                    <i class="bi bi-save me-1"></i> Lưu Lớp Học
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+

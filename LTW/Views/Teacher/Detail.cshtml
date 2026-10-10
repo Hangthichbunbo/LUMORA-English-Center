@@ -1,0 +1,189 @@
+@model LTW.Data.ApplicationUser
+@{
+    ViewData["Title"] = $"{Model.FullName} - Giảng viên LUMORA";
+    var courses = ViewBag.Courses as List<LTW.Models.Course> ?? new List<LTW.Models.Course>();
+    var upcomingClasses = ViewBag.UpcomingClasses as List<LTW.Models.LiveClass> ?? new List<LTW.Models.LiveClass>();
+}
+
+<!-- Breadcrumbs -->
+<div class="bg-white border-bottom py-3">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 small">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted">Trang chủ</a></li>
+                <li class="breadcrumb-item"><a asp-controller="Teacher" asp-action="Index" class="text-decoration-none text-muted">Giảng viên</a></li>
+                <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">@Model.FullName</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Teacher Profile Hero -->
+<section class="bg-lumora-header text-white py-5">
+    <div class="container py-3">
+        <div class="row align-items-center g-4">
+            <div class="col-md-auto text-center text-md-start">
+                <img src="@(string.IsNullOrEmpty(Model.AvatarUrl) ? "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=250&q=80" : Model.AvatarUrl)" 
+                     alt="@Model.FullName" 
+                     class="rounded-circle shadow-lg" 
+                     style="width: 140px; height: 140px; object-fit: cover; border: 4px solid rgba(255,255,255,0.25);" />
+            </div>
+            <div class="col-md">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                    <span class="badge bg-info bg-opacity-25 text-info border border-info border-opacity-25 px-3 py-1 rounded-pill">
+                        <i class="bi bi-patch-check-fill me-1"></i> Giảng viên chính thức
+                    </span>
+                    <span class="badge bg-white bg-opacity-10 text-white px-3 py-1 rounded-pill">
+                        LUMORA Academic Board
+                    </span>
+                </div>
+                <h1 class="display-6 fw-bold mb-2">@Model.FullName</h1>
+                <p class="lead text-white-50 mb-3" style="max-width: 750px;">
+                    @(string.IsNullOrEmpty(Model.Bio) ? "Chuyên gia đào tạo Anh ngữ quốc tế với bề dày kinh nghiệm rèn luyện học viên đạt điểm cao." : Model.Bio)
+                </p>
+                <div class="d-flex flex-wrap gap-4 text-white-50 small">
+                    <div><i class="bi bi-envelope-fill me-2 text-info"></i>@Model.Email</div>
+                    <div><i class="bi bi-journal-richtext me-2 text-info"></i>@courses.Count Khóa học phụ trách</div>
+                    <div><i class="bi bi-camera-video me-2 text-info"></i>@upcomingClasses.Count Lớp Live sắp tới</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Details -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row g-4">
+            <!-- Left: Courses Taught -->
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-book-half me-2 text-primary"></i> Khóa học do giảng viên phụ trách
+                    </h4>
+                    <span class="badge bg-white border text-secondary px-3 py-2 rounded-pill">@courses.Count khóa học</span>
+                </div>
+
+                @if (courses.Any())
+                {
+                    <div class="row g-4">
+                        @foreach (var course in courses)
+                        {
+                            <div class="col-md-6">
+                                <div class="card h-100 border-0 rounded-4 shadow-sm hover-elevate overflow-hidden bg-white">
+                                    <div class="position-relative">
+                                        <img src="@course.Thumbnail" class="card-img-top" alt="@course.Title" style="height: 180px; object-fit: cover;" />
+                                        <span class="position-absolute top-0 end-0 m-2 badge bg-dark bg-opacity-75">
+                                            @course.Level
+                                        </span>
+                                    </div>
+                                    <div class="card-body p-4 d-flex flex-column justify-content-between">
+                                        <div>
+                                            <span class="badge bg-primary bg-opacity-10 text-primary mb-2">@course.Category</span>
+                                            <h5 class="fw-bold text-dark mb-2">
+                                                <a asp-controller="Course" asp-action="Detail" asp-route-id="@course.CourseId" class="text-decoration-none text-dark hover-primary">
+                                                    @course.Title
+                                                </a>
+                                            </h5>
+                                            <p class="text-secondary small mb-3 line-clamp-2">@course.ShortDescription</p>
+                                        </div>
+                                        <div class="pt-3 border-top d-flex justify-content-between align-items-center">
+                                            <div>
+                                                @if (course.Price > 0)
+                                                {
+                                                    <span class="fw-bold text-danger">@course.Price.ToString("N0") đ</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="fw-bold text-success">Miễn phí</span>
+                                                }
+                                            </div>
+                                            <a asp-controller="Course" asp-action="Detail" asp-route-id="@course.CourseId" class="btn btn-sm btn-lumora-primary px-3 py-1 rounded-3">
+                                                Chi tiết
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="card border-0 rounded-4 shadow-sm p-5 text-center bg-white">
+                        <i class="bi bi-inbox display-4 text-muted mb-3"></i>
+                        <h5 class="text-dark fw-bold">Hiện chưa có khóa học công khai</h5>
+                        <p class="text-muted small">Các chương trình đào tạo của giảng viên đang được chuẩn bị và sẽ sớm mở đăng ký.</p>
+                    </div>
+                }
+
+                @if (upcomingClasses.Any())
+                {
+                    <div class="mt-5">
+                        <h4 class="fw-bold text-dark mb-3">
+                            <i class="bi bi-broadcast me-2 text-danger"></i> Lớp học trực tuyến sắp diễn ra
+                        </h4>
+                        <div class="list-group rounded-4 shadow-sm border-0">
+                            @foreach (var liveClass in upcomingClasses)
+                            {
+                                <div class="list-group-item p-3 border-bottom d-flex justify-content-between align-items-center bg-white">
+                                    <div>
+                                        <div class="fw-bold text-dark mb-1">@liveClass.ClassName</div>
+                                        <div class="text-muted small">
+                                            <i class="bi bi-calendar3 me-1"></i> @liveClass.ScheduledDate.ToString("dd/MM/yyyy")
+                                            <span class="mx-2">•</span>
+                                            <i class="bi bi-clock me-1"></i> @liveClass.StartTime.ToString(@"hh\:mm") - @liveClass.EndTime.ToString(@"hh\:mm")
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary py-2 px-3 rounded-pill">
+                                        Lớp học tương tác
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Right Sidebar: Academic Info -->
+            <div class="col-lg-4">
+                <div class="card border-0 rounded-4 shadow-sm p-4 bg-white mb-4">
+                    <h5 class="fw-bold text-dark mb-3">Thông tin xác thực</h5>
+                    <ul class="list-unstyled mb-4 small text-secondary">
+                        <li class="mb-3 d-flex align-items-start gap-2">
+                            <i class="bi bi-check-circle-fill text-success fs-6 mt-1"></i>
+                            <span>Giảng viên đạt chuẩn giảng dạy quốc tế được thẩm định bởi Hội đồng học thuật LUMORA.</span>
+                        </li>
+                        <li class="mb-3 d-flex align-items-start gap-2">
+                            <i class="bi bi-check-circle-fill text-success fs-6 mt-1"></i>
+                            <span>Phương pháp đào tạo chuẩn khảo thí British Council & IDP với tiêu chí chấm bài chi tiết.</span>
+                        </li>
+                        <li class="mb-3 d-flex align-items-start gap-2">
+                            <i class="bi bi-check-circle-fill text-success fs-6 mt-1"></i>
+                            <span>Hỗ trợ giải đáp thắc mắc và chấm bài tập tương tác trực tiếp qua hệ thống học viên.</span>
+                        </li>
+                    </ul>
+
+                    <div class="d-grid gap-2">
+                        <a asp-controller="Course" asp-action="Index" class="btn btn-lumora-primary py-2 rounded-3">
+                            <i class="bi bi-compass me-2"></i> Khám phá tất cả khóa học
+                        </a>
+                        <a asp-controller="Teacher" asp-action="Index" class="btn btn-outline-secondary py-2 rounded-3">
+                            <i class="bi bi-people me-2"></i> Xem toàn bộ giảng viên
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card border-0 rounded-4 shadow-sm p-4 bg-lumora-header text-white">
+                    <h5 class="fw-bold mb-2">Tư vấn lộ trình học</h5>
+                    <p class="small text-white-50 mb-3">
+                        Bạn chưa biết nên chọn khóa học nào với giảng viên? Hãy để chuyên viên học vụ LUMORA hỗ trợ bạn.
+                    </p>
+                    <a asp-controller="Test" asp-action="PlacementTest" class="btn btn-lumora-secondary text-white py-2 rounded-3 fw-bold">
+                        Kiểm tra trình độ đầu vào
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

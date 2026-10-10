@@ -1,0 +1,198 @@
+@using LTW.Data
+@using LTW.Models
+@{
+    ViewData["Title"] = "Quản Trị Hệ Thống (Admin Dashboard) - LUMORA LMS";
+    var totalStudents = ViewBag.TotalStudents != null ? (int)ViewBag.TotalStudents : 0;
+    var totalTeachers = ViewBag.TotalTeachers != null ? (int)ViewBag.TotalTeachers : 0;
+    var totalCourses = ViewBag.TotalCourses != null ? (int)ViewBag.TotalCourses : 0;
+    var totalClasses = ViewBag.TotalClasses != null ? (int)ViewBag.TotalClasses : 0;
+    var activeClasses = ViewBag.ActiveClasses != null ? (int)ViewBag.ActiveClasses : 0;
+    var totalRevenue = ViewBag.TotalRevenue != null ? (decimal)ViewBag.TotalRevenue : 0;
+    var recentEnrollments = ViewBag.RecentEnrollments as List<Enrollment> ?? new List<Enrollment>();
+    var recentUsers = ViewBag.RecentUsers as List<ApplicationUser> ?? new List<ApplicationUser>();
+}
+
+<div class="py-4 bg-dark text-white border-bottom">
+    <div class="container-fluid px-lg-5">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-1">ADMINISTRATOR</span>
+                <h3 class="fw-bold m-0">Trung Tâm Điều Hành LUMORA LMS</h3>
+            </div>
+            <div>
+                <a asp-action="Users" class="btn btn-outline-light btn-sm rounded-pill px-3 me-2">
+                    <i class="bi bi-people me-1"></i> Quản Lý Người Dùng
+                </a>
+                <a asp-action="CreateCourse" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" style="background-color: #00A896; border-color: #00A896;">
+                    <i class="bi bi-plus-circle me-1"></i> Tạo Khóa Học Mới
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-lg-5 py-4">
+    <!-- Admin Navigation Toolbar -->
+    <div class="d-flex flex-wrap gap-2 mb-4 bg-light p-2 rounded-4 border">
+        <a asp-action="Dashboard" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold" style="background-color: #00A896; border-color: #00A896;">
+            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+        </a>
+        <a asp-action="Users" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-people-fill me-1"></i> Users
+        </a>
+        <a asp-action="Courses" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-collection-play-fill me-1"></i> Courses
+        </a>
+        <a asp-action="Classes" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-camera-video-fill me-1"></i> Classes
+        </a>
+        <a asp-action="Schedule" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-calendar-week-fill me-1"></i> Schedule
+        </a>
+        <a asp-controller="Teacher" asp-action="Lessons" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-book-fill me-1"></i> Lessons
+        </a>
+        <a asp-controller="Teacher" asp-action="Exercises" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-pencil-square me-1"></i> Exercises
+        </a>
+        <a asp-action="Tests" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-patch-question-fill me-1"></i> Tests
+        </a>
+        <a asp-action="Tips" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-lightbulb-fill me-1"></i> IELTS Tips
+        </a>
+        <a asp-action="Notifications" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-bell-fill me-1"></i> Notifications
+        </a>
+    </div>
+
+    <!-- KPI Stats Counters -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-2">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white text-center">
+                <i class="bi bi-person-workspace fs-2 text-primary d-block mb-1"></i>
+                <div class="fs-4 fw-bold text-dark">@totalStudents</div>
+                <small class="text-muted">Total Students</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-2">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white text-center">
+                <i class="bi bi-mortarboard-fill fs-2 text-info d-block mb-1"></i>
+                <div class="fs-4 fw-bold text-dark">@totalTeachers</div>
+                <small class="text-muted">Total Teachers</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-2">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white text-center">
+                <i class="bi bi-journal-album fs-2 text-success d-block mb-1"></i>
+                <div class="fs-4 fw-bold text-dark">@totalCourses</div>
+                <small class="text-muted">Total Courses</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-2">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white text-center">
+                <i class="bi bi-camera-video-fill fs-2 text-warning d-block mb-1"></i>
+                <div class="fs-4 fw-bold text-dark">@totalClasses</div>
+                <small class="text-muted">Total Classes</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-2">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white text-center">
+                <i class="bi bi-broadcast fs-2 text-danger d-block mb-1"></i>
+                <div class="fs-4 fw-bold text-dark">@activeClasses</div>
+                <small class="text-muted">Active Classes</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-2">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white text-center">
+                <i class="bi bi-cash-stack fs-2 text-success d-block mb-1"></i>
+                <div class="fs-5 fw-bold text-danger">@totalRevenue.ToString("N0") đ</div>
+                <small class="text-muted">Total Revenue</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities Grid -->
+    <div class="row g-4">
+        <!-- Recent Purchases / Enrollments -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold text-dark m-0"><i class="bi bi-cart-check me-2 text-success"></i>Giao Dịch Mua Khóa Học Gần Đây</h5>
+                    <a asp-action="Courses" class="small text-primary text-decoration-none">Quản lý khóa</a>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 small">
+                        <thead class="bg-light text-secondary">
+                            <tr>
+                                <th>Học Viên</th>
+                                <th>Khóa Học</th>
+                                <th>Học Phí</th>
+                                <th>Thời Gian</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (recentEnrollments.Any())
+                            {
+                                foreach (var en in recentEnrollments)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold text-dark">@en.Student?.FullName</div>
+                                            <div class="text-muted" style="font-size: 11px;">@en.Student?.Email</div>
+                                        </td>
+                                        <td>@en.Course?.Title</td>
+                                        <td><strong class="text-danger">@en.PricePaid.ToString("N0") đ</strong></td>
+                                        <td class="text-muted">@en.EnrolledAt.ToString("dd/MM HH:mm")</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center py-3 text-muted">Chưa có giao dịch nào.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Registered Users -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold text-dark m-0"><i class="bi bi-person-plus me-2 text-primary"></i>Tài Khoản Mới Đăng Ký</h5>
+                    <a asp-action="Users" class="small text-primary text-decoration-none">Xem tất cả</a>
+                </div>
+
+                <div class="d-flex flex-column gap-2">
+                    @foreach (var u in recentUsers)
+                    {
+                        var roleBadge = u.RoleName switch
+                        {
+                            "Admin" => "bg-danger",
+                            "Teacher" => "bg-primary",
+                            _ => "bg-success"
+                        };
+
+                        <div class="p-2 border rounded-3 bg-light d-flex align-items-center justify-content-between small">
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="@(string.IsNullOrEmpty(u.AvatarUrl) ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" : u.AvatarUrl)" 
+                                     class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;" alt="Avatar" />
+                                <div>
+                                    <div class="fw-bold text-dark">@u.FullName</div>
+                                    <div class="text-muted" style="font-size: 11px;">@u.Email</div>
+                                </div>
+                            </div>
+                            <span class="badge @roleBadge rounded-pill">@u.RoleName</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

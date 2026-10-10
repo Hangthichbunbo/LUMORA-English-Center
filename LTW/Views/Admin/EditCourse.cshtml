@@ -1,0 +1,100 @@
+@model LTW.Models.Course
+
+@{
+    ViewData["Title"] = "Chỉnh Sửa Khóa Học - Admin LUMORA";
+}
+
+<div class="container py-4" style="max-width: 900px;">
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+        <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+            <div>
+                <h3 class="fw-bold text-dark m-0"><i class="bi bi-pencil-square me-2 text-primary"></i>Chỉnh Sửa Khóa Học</h3>
+                <p class="text-muted small m-0">Cập nhật thông tin giáo trình, học phí và giảng viên</p>
+            </div>
+            <a asp-action="Courses" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i> Quay Lại
+            </a>
+        </div>
+
+        <form asp-action="EditCourse" asp-route-id="@Model.CourseId" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="CourseId" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger small mb-3"></div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-8">
+                    <label asp-for="Title" class="form-label small fw-semibold text-secondary"></label>
+                    <input asp-for="Title" class="form-control" required />
+                    <span asp-validation-for="Title" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Category" class="form-label small fw-semibold text-secondary"></label>
+                    <select asp-for="Category" class="form-select" required>
+                        <option value="IELTS">IELTS</option>
+                        <option value="Communication">Communication</option>
+                        <option value="Grammar">Grammar</option>
+                        <option value="Listening">Listening</option>
+                        <option value="Reading">Reading</option>
+                        <option value="Writing">Writing</option>
+                        <option value="Speaking">Speaking</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="Level" class="form-label small fw-semibold text-secondary"></label>
+                    <input asp-for="Level" class="form-control" required />
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Duration" class="form-label small fw-semibold text-secondary"></label>
+                    <input asp-for="Duration" class="form-control" required />
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="TeacherId" class="form-label small fw-semibold text-secondary">Giảng Viên Phụ Trách</label>
+                    <select asp-for="TeacherId" asp-items="ViewBag.Teachers" class="form-select">
+                        <option value="">-- Chọn giảng viên --</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Price" class="form-label small fw-semibold text-secondary">Học Phí Ưu Đãi (VNĐ)</label>
+                    <input asp-for="Price" class="form-control" type="number" step="10000" required />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="OriginalPrice" class="form-label small fw-semibold text-secondary">Học Phí Gốc Niêm Yết (VNĐ)</label>
+                    <input asp-for="OriginalPrice" class="form-control" type="number" step="10000" />
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="Thumbnail" class="form-label small fw-semibold text-secondary">Đường dẫn ảnh bìa (Thumbnail URL)</label>
+                    <input asp-for="Thumbnail" class="form-control" />
+                </div>
+                <div class="col-12">
+                    <label asp-for="ShortDescription" class="form-label small fw-semibold text-secondary"></label>
+                    <textarea asp-for="ShortDescription" class="form-control" rows="2"></textarea>
+                </div>
+                <div class="col-12">
+                    <label asp-for="Description" class="form-label small fw-semibold text-secondary"></label>
+                    <textarea asp-for="Description" class="form-control" rows="5"></textarea>
+                </div>
+            </div>
+
+            <div class="d-flex gap-3 mb-4">
+                <div class="form-check">
+                    <input asp-for="IsPublished" class="form-check-input" />
+                    <label asp-for="IsPublished" class="form-check-label small fw-semibold text-dark">Xuất bản khóa học</label>
+                </div>
+                <div class="form-check">
+                    <input asp-for="IsFeatured" class="form-check-input" />
+                    <label asp-for="IsFeatured" class="form-check-label small fw-semibold text-dark">Đặt làm khóa học nổi bật</label>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold rounded-pill shadow-sm" style="background-color: #00A896; border-color: #00A896;">
+                    <i class="bi bi-check-circle me-1"></i> Lưu Cập Nhật
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+

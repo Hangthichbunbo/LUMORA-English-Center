@@ -1,0 +1,59 @@
+@model LTW.Models.Enrollment
+
+@{
+    ViewData["Title"] = "Thanh Toán Thành Công - LUMORA English Center";
+}
+
+<div class="container py-5" style="max-width: 680px;">
+    <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5 text-center bg-white">
+        <div class="mb-4">
+            <span class="p-3 bg-success bg-opacity-10 text-success rounded-circle d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 80px; height: 80px;">
+                <i class="bi bi-check-circle-fill fs-1"></i>
+            </span>
+        </div>
+
+        <h3 class="fw-bold text-dark mb-2">Thanh Toán Khóa Học Thành Công!</h3>
+        <p class="text-muted small mb-4">
+            Chúc mừng bạn đã gia nhập lớp học tại LUMORA English Center. Toàn bộ tài liệu, video bài giảng và quyền tham gia Live Class đã được kích hoạt.
+        </p>
+
+        <!-- Receipt Box -->
+        <div class="p-3 bg-light rounded-3 text-start small mb-4 border">
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Mã giao dịch:</span>
+                <strong class="text-dark">@Model.TransactionId</strong>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Khóa học:</span>
+                <strong class="text-dark">@Model.Course?.Title</strong>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Giảng viên:</span>
+                <span class="text-dark">@(Model.Course?.Teacher?.FullName ?? "Lumora Academic")</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Phương thức:</span>
+                <span class="badge bg-secondary">@Model.PaymentMethod</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Thời gian thanh toán:</span>
+                <span class="text-dark">@Model.EnrolledAt.ToString("HH:mm - dd/MM/yyyy")</span>
+            </div>
+            <hr class="my-2" />
+            <div class="d-flex justify-content-between">
+                <span class="fw-bold text-dark">Số tiền đã trả:</span>
+                <strong class="text-danger fs-6">@Model.PricePaid.ToString("N0") đ</strong>
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+            <a asp-controller="Student" asp-action="MyCourses" class="btn btn-primary px-4 py-2 rounded-pill fw-semibold shadow-sm" style="background-color: #00A896; border-color: #00A896;">
+                <i class="bi bi-journal-check me-2"></i> Khóa Học Của Tôi
+            </a>
+            <a asp-controller="Course" asp-action="Detail" asp-route-id="@Model.CourseId" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-semibold">
+                <i class="bi bi-play-circle me-1"></i> Bắt Đầu Bài Học Đầu Tiên
+            </a>
+        </div>
+    </div>
+</div>
+

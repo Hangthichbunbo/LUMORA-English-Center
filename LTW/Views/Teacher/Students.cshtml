@@ -1,0 +1,85 @@
+@model IEnumerable<LTW.Models.Enrollment>
+@using LTW.Models
+
+@{
+    ViewData["Title"] = "Quản Lý Học Viên - Giảng Viên LUMORA";
+    var submissions = ViewBag.Submissions as List<ExerciseSubmission> ?? new List<ExerciseSubmission>();
+}
+
+<div class="container-fluid px-lg-5 py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="fw-bold text-dark m-0"><i class="bi bi-people me-2 text-primary"></i>Danh Sách Học Viên Thuộc Khóa</h3>
+            <p class="text-muted small m-0">Theo dõi tiến độ, số bài tập đã nộp và điểm trung bình của từng học viên</p>
+        </div>
+        <a asp-action="Dashboard" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-arrow-left me-1"></i> Dashboard
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-secondary small">
+                    <tr>
+                        <th class="ps-4">Học Viên</th>
+                        <th>Email / Liên Hệ</th>
+                        <th>Khóa Học</th>
+                        <th>Ngày Tham Gia</th>
+                        <th>Số Bài Đã Nộp</th>
+                        <th>Điểm Trung Bình</th>
+                    </tr>
+                </thead>
+                <tbody class="small">
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var en in Model)
+                        {
+                            var studentSubs = submissions.Where(s => s.StudentId == en.StudentId).ToList();
+                            var avgScore = studentSubs.Any() ? studentSubs.Average(s => s.TotalScore) : 0;
+
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="@(string.IsNullOrEmpty(en.Student?.AvatarUrl) ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" : en.Student.AvatarUrl)" 
+                                             class="rounded-circle" style="width: 36px; height: 36px; object-fit: cover;" alt="Avatar" />
+                                        <div>
+                                            <div class="fw-bold text-dark">@(en.Student?.FullName ?? "Học viên")</div>
+                                            <div class="text-muted" style="font-size: 11px;">&#64;@en.Student?.UserName</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>@en.Student?.Email</div>
+                                    <div class="text-muted" style="font-size: 11px;">@(en.Student?.PhoneNumber ?? "Chưa có SĐT")</div>
+                                </td>
+                                <td><span class="badge bg-light text-dark border">@en.Course?.Title</span></td>
+                                <td>@en.EnrolledAt.ToString("dd/MM/yyyy")</td>
+                                <td><strong>@studentSubs.Count</strong> bài</td>
+                                <td>
+                                    @if (studentSubs.Any())
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success fw-bold px-3 py-1 rounded-pill">
+                                            @avgScore.ToString("F1") / 10
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa làm bài</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">Chưa có học viên nào đăng ký khóa học của bạn.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+

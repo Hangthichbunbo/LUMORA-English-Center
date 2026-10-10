@@ -1,0 +1,133 @@
+@model LTW.Models.LiveClass
+
+@{
+    ViewData["Title"] = Model.ClassName + " - Chi Tiết Lớp Học Trực Tuyến";
+    bool canJoin = ViewBag.CanJoin == true;
+}
+
+<div class="container py-5" style="max-width: 960px;">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none">Home</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Class" asp-action="Index" class="text-decoration-none">Classes</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.ClassName</li>
+        </ol>
+    </nav>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="p-4 p-md-5 text-white" style="background: linear-gradient(135deg, #0A2540 0%, #00A896 100%);">
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                @if (Model.IsPublic)
+                {
+                    <span class="badge bg-success px-3 py-2 rounded-pill fw-bold">
+                        <i class="bi bi-globe me-1"></i> PUBLIC LIVE CLASS (MIỄN PHÍ)
+                    </span>
+                }
+                else
+                {
+                    <span class="badge bg-danger px-3 py-2 rounded-pill fw-bold">
+                        <i class="bi bi-lock-fill me-1"></i> PRIVATE CLASS (THEO KHÓA HỌC)
+                    </span>
+                }
+                <span class="badge bg-light text-dark px-3 py-2 rounded-pill fw-bold">
+                    Trạng thái: @Model.Status
+                </span>
+            </div>
+
+            <h2 class="fw-bold mb-3">@Model.ClassName</h2>
+            <p class="text-white-50 lead fs-6 m-0" style="line-height: 1.8;">
+                @Model.Description
+            </p>
+        </div>
+
+        <div class="card-body p-4 p-md-5 bg-white">
+            <div class="row g-4">
+                <!-- Thông tin buổi học -->
+                <div class="col-md-7">
+                    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle me-2 text-primary"></i>Thông Số Lớp Học</h5>
+
+                    <ul class="list-group list-group-flush mb-4 small">
+                        <li class="list-group-item d-flex justify-content-between py-3">
+                            <span class="text-muted"><i class="bi bi-calendar3 me-2"></i>Ngày diễn ra:</span>
+                            <strong class="text-dark">@Model.ScheduledDate.ToString("dd/MM/yyyy")</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between py-3">
+                            <span class="text-muted"><i class="bi bi-clock me-2"></i>Khung giờ:</span>
+                            <strong class="text-dark">@Model.StartTime.ToString(@"hh\:mm") - @Model.EndTime.ToString(@"hh\:mm")</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between py-3">
+                            <span class="text-muted"><i class="bi bi-person-video3 me-2"></i>Giảng viên phụ trách:</span>
+                            <strong class="text-dark">@(Model.Teacher?.FullName ?? "Ban chuyên môn Lumora")</strong>
+                        </li>
+                        @if (Model.Course != null)
+                        {
+                            <li class="list-group-item d-flex justify-content-between py-3">
+                                <span class="text-muted"><i class="bi bi-journal-bookmark me-2"></i>Thuộc khóa học:</span>
+                                <strong><a asp-controller="Course" asp-action="Detail" asp-route-id="@Model.CourseId" class="text-primary text-decoration-none">@Model.Course.Title</a></strong>
+                            </li>
+                        }
+                        <li class="list-group-item d-flex justify-content-between py-3">
+                            <span class="text-muted"><i class="bi bi-people me-2"></i>Sĩ số đăng ký:</span>
+                            <strong class="text-dark">@(Model.ClassStudents?.Count ?? 0) / @Model.Capacity học viên</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between py-3">
+                            <span class="text-muted"><i class="bi bi-link-45deg me-2"></i>Phòng học trực tuyến:</span>
+                            <code class="text-primary">@Model.LiveRoomUrl</code>
+                        </li>
+                    </ul>
+
+                    <div>
+                        @if (canJoin)
+                        {
+                            <a asp-action="Join" asp-route-id="@Model.LiveClassId" class="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow-sm" style="background-color: #00A896; border-color: #00A896;">
+                                <i class="bi bi-broadcast me-2 fs-5"></i> Tham Gia Phòng Học Trực Tuyến Ngay
+                            </a>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning py-3 small mb-3">
+                                <i class="bi bi-lock-fill me-2 fs-5 text-danger"></i>
+                                Lớp học này là <strong>Private Class</strong> dành riêng cho học viên đã đăng ký khóa học <strong>@(Model.Course?.Title)</strong>.
+                            </div>
+                            @if (Model.CourseId != null)
+                            {
+                                <a asp-controller="Course" asp-action="Detail" asp-route-id="@Model.CourseId" class="btn btn-danger w-100 py-3 fw-bold rounded-3 shadow-sm">
+                                    <i class="bi bi-cart-check me-2 fs-5"></i> Mua Khóa Học Để Mở Khóa Lớp
+                                </a>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <!-- Danh sách học viên tham gia (Student List) -->
+                <div class="col-md-5">
+                    <div class="p-4 bg-light rounded-4 border h-100">
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-people-fill me-2 text-primary"></i>Danh Sách Học Viên (@(Model.ClassStudents?.Count ?? 0))</h6>
+                        @if (Model.ClassStudents != null && Model.ClassStudents.Any())
+                        {
+                            <div class="d-flex flex-column gap-2" style="max-height: 320px; overflow-y: auto;">
+                                @foreach (var cs in Model.ClassStudents)
+                                {
+                                    <div class="d-flex align-items-center gap-2 p-2 bg-white rounded-3 border">
+                                        <img src="@(string.IsNullOrEmpty(cs.Student?.AvatarUrl) ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" : cs.Student.AvatarUrl)" 
+                                             class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;" alt="Avatar" />
+                                        <div class="small">
+                                            <div class="fw-semibold text-dark">@(cs.Student?.FullName ?? "Học viên")</div>
+                                            <div class="text-muted" style="font-size: 11px;">Vào lúc @cs.RegisteredAt.ToString("HH:mm - dd/MM")</div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted small m-0">Chưa có học viên nào điểm danh vào phòng.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

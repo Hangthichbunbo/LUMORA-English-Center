@@ -1,0 +1,147 @@
+@model IEnumerable<LTW.Models.Notification>
+
+@{
+    ViewData["Title"] = "Quản Lý Thông Báo & Phát Sóng - Admin LUMORA";
+}
+
+<div class="container-fluid px-lg-5 py-4">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="fw-bold text-dark m-0"><i class="bi bi-bell-fill me-2 text-primary"></i>Quản Lý Thông Báo & Phát Sóng</h3>
+            <p class="text-muted small m-0">Gửi thông báo toàn hệ thống hoặc theo nhóm đối tượng học viên, giảng viên</p>
+        </div>
+        <a asp-action="Dashboard" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-arrow-left me-1"></i> Dashboard
+        </a>
+    </div>
+
+    <!-- Admin Navigation Toolbar -->
+    <div class="d-flex flex-wrap gap-2 mb-4 bg-light p-2 rounded-4 border">
+        <a asp-action="Dashboard" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+        </a>
+        <a asp-action="Users" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-people-fill me-1"></i> Users
+        </a>
+        <a asp-action="Courses" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-collection-play-fill me-1"></i> Courses
+        </a>
+        <a asp-action="Classes" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-camera-video-fill me-1"></i> Classes
+        </a>
+        <a asp-action="Schedule" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-calendar-week-fill me-1"></i> Schedule
+        </a>
+        <a asp-controller="Teacher" asp-action="Lessons" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-book-fill me-1"></i> Lessons
+        </a>
+        <a asp-controller="Teacher" asp-action="Exercises" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-pencil-square me-1"></i> Exercises
+        </a>
+        <a asp-action="Tests" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-patch-question-fill me-1"></i> Tests
+        </a>
+        <a asp-action="Tips" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-lightbulb-fill me-1"></i> IELTS Tips
+        </a>
+        <a asp-action="Notifications" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold" style="background-color: #00A896; border-color: #00A896;">
+            <i class="bi bi-bell-fill me-1"></i> Notifications
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Cột trái: Form phát sóng thông báo mới -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-broadcast me-2 text-warning"></i>Phát Sóng Thông Báo</h5>
+                <p class="text-muted small mb-3">Tạo và gửi thông báo trực tiếp đến hộp thư của người dùng.</p>
+
+                <form asp-action="BroadcastNotification" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Đối tượng nhận <span class="text-danger">*</span></label>
+                        <select name="role" class="form-select small">
+                            <option value="All">Tất cả người dùng (All Users)</option>
+                            <option value="Student">Chỉ Học Viên (Students)</option>
+                            <option value="Teacher">Chỉ Giảng Viên (Teachers)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Tiêu đề thông báo <span class="text-danger">*</span></label>
+                        <input type="text" name="title" class="form-control" placeholder="Ví dụ: Lịch khai giảng khóa IELTS Master mới..." required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Nội dung chi tiết <span class="text-danger">*</span></label>
+                        <textarea name="content" class="form-control" rows="4" placeholder="Nhập nội dung đầy đủ của thông báo..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 rounded-3 fw-semibold shadow-sm" style="background-color: #00A896; border-color: #00A896;">
+                        <i class="bi bi-send-fill me-2"></i> Gửi Phát Sóng
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Cột phải: Danh sách thông báo đã gửi gần đây -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold text-dark m-0"><i class="bi bi-clock-history me-2 text-primary"></i>Lịch Sử Thông Báo Gần Đây</h5>
+                    <span class="badge bg-light text-secondary border">Hiển thị tối đa 50 thông báo</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 small">
+                        <thead class="bg-light text-secondary">
+                            <tr>
+                                <th>Người Nhận</th>
+                                <th>Tiêu Đề & Nội Dung</th>
+                                <th>Loại</th>
+                                <th>Trạng Thái</th>
+                                <th>Thời Gian</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                foreach (var n in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold text-dark">@(n.User?.FullName ?? "N/A")</div>
+                                            <div class="text-muted" style="font-size: 11px;">@(n.User?.Email ?? "N/A")</div>
+                                        </td>
+                                        <td style="max-width: 320px;">
+                                            <div class="fw-semibold text-dark">@n.Title</div>
+                                            <div class="text-muted text-truncate" style="font-size: 12px;">@n.Content</div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info bg-opacity-10 text-info">@n.Type</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge @(n.IsRead ? "bg-secondary bg-opacity-10 text-secondary" : "bg-warning bg-opacity-10 text-warning")">
+                                                @(n.IsRead ? "Đã đọc" : "Chưa đọc")
+                                            </span>
+                                        </td>
+                                        <td class="text-muted text-nowrap">@n.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">Chưa có thông báo nào trong hệ thống.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

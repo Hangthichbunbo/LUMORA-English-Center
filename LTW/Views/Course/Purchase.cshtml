@@ -1,0 +1,121 @@
+@model LTW.Models.Course
+
+@{
+    ViewData["Title"] = "Thanh Toán Khóa Học - LUMORA English Center";
+}
+
+<div class="container py-5" style="max-width: 960px;">
+    <div class="text-center mb-5">
+        <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-semibold mb-2">
+            <i class="bi bi-shield-check me-1"></i> CỔNG THANH TOÁN BẢO MẬT 256-BIT SSL
+        </span>
+        <h2 class="fw-bold text-dark">Thanh Toán Khóa Học</h2>
+        <p class="text-muted small">Hoàn tất giao dịch để mở khóa toàn bộ bài học và tham gia lớp học trực tuyến</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Cột trái: Phương thức thanh toán -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h5 class="fw-bold text-dark mb-4"><i class="bi bi-credit-card-2-front me-2 text-primary"></i>Chọn Phương Thức Thanh Toán</h5>
+
+                <form asp-action="ProcessPayment" method="post" id="paymentForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="courseId" value="@Model.CourseId" />
+
+                    <!-- Phương thức 1: VNPay -->
+                    <div class="form-check p-3 border rounded-3 mb-3 bg-light d-flex align-items-center">
+                        <input class="form-check-input ms-0 me-3" type="radio" name="paymentMethod" id="payVnpay" value="VNPay" checked />
+                        <label class="form-check-label w-100 cursor-pointer d-flex justify-content-between align-items-center" for="payVnpay">
+                            <div>
+                                <div class="fw-bold text-dark">Cổng thanh toán VNPay QR / Thẻ ATM</div>
+                                <small class="text-muted">Quét mã VNPAY-QR qua 40+ ứng dụng ngân hàng</small>
+                            </div>
+                            <span class="badge bg-primary px-3 py-2">VNPAY</span>
+                        </label>
+                    </div>
+
+                    <!-- Phương thức 2: MoMo -->
+                    <div class="form-check p-3 border rounded-3 mb-3 bg-light d-flex align-items-center">
+                        <input class="form-check-input ms-0 me-3" type="radio" name="paymentMethod" id="payMomo" value="MoMo" />
+                        <label class="form-check-label w-100 cursor-pointer d-flex justify-content-between align-items-center" for="payMomo">
+                            <div>
+                                <div class="fw-bold text-dark">Ví điện tử MoMo</div>
+                                <small class="text-muted">Thanh toán siêu tốc qua ứng dụng MoMo</small>
+                            </div>
+                            <span class="badge bg-danger px-3 py-2">MOMO</span>
+                        </label>
+                    </div>
+
+                    <!-- Phương thức 3: Chuyển khoản ngân hàng -->
+                    <div class="form-check p-3 border rounded-3 mb-4 bg-light d-flex align-items-center">
+                        <input class="form-check-input ms-0 me-3" type="radio" name="paymentMethod" id="payBank" value="BankTransfer" />
+                        <label class="form-check-label w-100 cursor-pointer d-flex justify-content-between align-items-center" for="payBank">
+                            <div>
+                                <div class="fw-bold text-dark">Chuyển khoản Ngân hàng (24/7)</div>
+                                <small class="text-muted">Vietcombank / Techcombank / MBBank</small>
+                            </div>
+                            <span class="badge bg-secondary px-3 py-2">BANK 24/7</span>
+                        </label>
+                    </div>
+
+                    <!-- Bank details simulation preview box -->
+                    <div class="p-3 bg-info bg-opacity-10 rounded-3 border border-info border-opacity-25 small mb-4">
+                        <div class="fw-semibold text-info mb-1"><i class="bi bi-info-circle-fill me-1"></i> Thông tin đối soát tự động:</div>
+                        <div>Ngân hàng: <strong>MBBank (Ngân hàng Quân Đội)</strong></div>
+                        <div>Số tài khoản: <strong>0388998829</strong></div>
+                        <div>Chủ tài khoản: <strong>TRUNG TAM LUMORA ENGLISH</strong></div>
+                        <div>Nội dung CK: <strong>LUMORA @Model.CourseId @User.Identity?.Name</strong></div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-lumora-secondary text-white py-3 fw-bold rounded-3 shadow-sm fs-5">
+                            <i class="bi bi-shield-check me-2"></i> Xác Nhận Thanh Toán (@Model.Price.ToString("N0") đ)
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Cột phải: Thông tin đơn hàng -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 100px;">
+                <h5 class="fw-bold text-dark mb-3">Tóm Tắt Đơn Hàng</h5>
+                
+                <div class="d-flex gap-3 mb-3 pb-3 border-bottom">
+                    <img src="@Model.Thumbnail" alt="@Model.Title" class="rounded-3 shadow-sm" style="width: 80px; height: 80px; object-fit: cover;" />
+                    <div>
+                        <h6 class="fw-bold text-dark mb-1">@Model.Title</h6>
+                        <span class="badge bg-light text-secondary border small">@Model.Category</span>
+                        <div class="small text-muted mt-1"><i class="bi bi-person me-1"></i>@(Model.Teacher?.FullName ?? "Lumora Academic")</div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mb-2 small text-secondary">
+                    <span>Học phí niêm yết:</span>
+                    <span>@((Model.OriginalPrice > 0 ? Model.OriginalPrice : Model.Price).ToString("N0")) đ</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2 small text-success">
+                    <span>Ưu đãi học bổng Lumora:</span>
+                    <span>-@(((Model.OriginalPrice > Model.Price) ? (Model.OriginalPrice - Model.Price) : 0).ToString("N0")) đ</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3 small text-secondary">
+                    <span>Phí chứng nhận & tài liệu:</span>
+                    <span class="text-success fw-semibold">Miễn phí</span>
+                </div>
+
+                <hr class="my-2" />
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <span class="fw-bold text-dark fs-5">Tổng thanh toán:</span>
+                    <span class="fw-bold text-danger fs-3">@Model.Price.ToString("N0") đ</span>
+                </div>
+
+                <div class="alert alert-light border small text-muted p-2 rounded-2 mb-0">
+                    <i class="bi bi-shield-lock-fill text-success me-1"></i> Khóa học được kích hoạt tự động ngay sau khi thanh toán thành công.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

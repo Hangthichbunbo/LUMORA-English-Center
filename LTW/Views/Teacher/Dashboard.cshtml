@@ -1,0 +1,166 @@
+@using LTW.Models
+@{
+    ViewData["Title"] = "Bàn Làm Việc Giảng Viên (Teacher Dashboard) - LUMORA";
+    var taughtCourses = ViewBag.TaughtCourses as List<Course> ?? new List<Course>();
+    var myClasses = ViewBag.MyClasses as List<LiveClass> ?? new List<LiveClass>();
+    var totalStudents = ViewBag.TotalStudents != null ? (int)ViewBag.TotalStudents : 0;
+    var pendingAssessments = ViewBag.PendingAssessments as List<ExerciseSubmission> ?? new List<ExerciseSubmission>();
+}
+
+<div class="py-4 bg-light border-bottom">
+    <div class="container-fluid px-lg-5">
+        <div class="row align-items-center g-3">
+            <div class="col-md-7">
+                <span class="badge bg-primary text-white rounded-pill px-3 py-1 small fw-semibold mb-2">TEACHER PORTAL</span>
+                <h3 class="fw-bold text-dark m-0">Không Gian Giảng Dạy & Quản Lý Học Viên</h3>
+            </div>
+            <div class="col-md-5 text-md-end">
+                <a asp-action="CreateLesson" class="btn btn-outline-primary rounded-pill px-3 fw-semibold me-2">
+                    <i class="bi bi-plus-circle me-1"></i> Tạo Bài Học Mới
+                </a>
+                <a asp-action="CreateExercise" class="btn btn-primary rounded-pill px-3 fw-semibold shadow-sm" style="background-color: #00A896; border-color: #00A896;">
+                    <i class="bi bi-pencil-square me-1"></i> Tạo Bài Tập Mới
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-lg-5 py-4">
+    <!-- Quick Nav Pills for Teacher -->
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a asp-action="Dashboard" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold" style="background-color: #00A896; border-color: #00A896;">
+            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+        </a>
+        <a asp-action="MyClasses" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-camera-video me-1"></i> Lớp Của Tôi (@myClasses.Count)
+        </a>
+        <a asp-action="Lessons" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-journal-text me-1"></i> Quản Lý Bài Học
+        </a>
+        <a asp-action="Exercises" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-clipboard-check me-1"></i> Quản Lý Bài Tập
+        </a>
+        <a asp-action="Students" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-people me-1"></i> Danh Sách Học Viên (@totalStudents)
+        </a>
+        <a asp-action="Assessments" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-check2-square me-1"></i> Chấm Điểm Bài Nộp (@pendingAssessments.Count)
+        </a>
+    </div>
+
+    <!-- Metrics -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white d-flex flex-row align-items-center gap-3">
+                <div class="p-3 bg-primary bg-opacity-10 rounded-3 text-primary"><i class="bi bi-journal-album fs-3"></i></div>
+                <div>
+                    <div class="fs-4 fw-bold text-dark">@taughtCourses.Count</div>
+                    <small class="text-muted">Khóa học phụ trách</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white d-flex flex-row align-items-center gap-3">
+                <div class="p-3 bg-success bg-opacity-10 rounded-3 text-success"><i class="bi bi-camera-video fs-3"></i></div>
+                <div>
+                    <div class="fs-4 fw-bold text-dark">@myClasses.Count</div>
+                    <small class="text-muted">Buổi Live Class</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white d-flex flex-row align-items-center gap-3">
+                <div class="p-3 bg-info bg-opacity-10 rounded-3 text-info"><i class="bi bi-people fs-3"></i></div>
+                <div>
+                    <div class="fs-4 fw-bold text-dark">@totalStudents</div>
+                    <small class="text-muted">Học viên đang học</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white d-flex flex-row align-items-center gap-3">
+                <div class="p-3 bg-warning bg-opacity-10 rounded-3 text-warning"><i class="bi bi-hourglass-split fs-3"></i></div>
+                <div>
+                    <div class="fs-4 fw-bold text-dark">@pendingAssessments.Count</div>
+                    <small class="text-muted">Bài nộp chờ chấm</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Live Classes List -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold text-dark m-0"><i class="bi bi-broadcast me-2 text-danger"></i>Lớp Trực Tuyến Đang Phụ Trách</h5>
+                    <a asp-action="MyClasses" class="small text-primary text-decoration-none">Xem tất cả</a>
+                </div>
+
+                @if (myClasses.Any())
+                {
+                    <div class="d-flex flex-column gap-3">
+                        @foreach (var cls in myClasses.Take(4))
+                        {
+                            <div class="p-3 border rounded-3 bg-light d-flex align-items-center justify-content-between gap-3">
+                                <div>
+                                    <div class="fw-bold text-dark">@cls.ClassName</div>
+                                    <div class="small text-secondary">
+                                        <i class="bi bi-calendar3 me-1"></i>@cls.ScheduledDate.ToString("dd/MM/yyyy") | @cls.StartTime.ToString(@"hh\:mm") - @cls.EndTime.ToString(@"hh\:mm")
+                                    </div>
+                                    <span class="badge @(cls.IsPublic ? "bg-success" : "bg-danger") rounded-pill mt-1" style="font-size: 10px;">
+                                        @(cls.IsPublic ? "Public" : "Private")
+                                    </span>
+                                </div>
+                                <a asp-controller="Class" asp-action="Join" asp-route-id="@cls.LiveClassId" class="btn btn-danger btn-sm rounded-pill px-3 fw-semibold">
+                                    Vào Giảng Lớp
+                                </a>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted small m-0">Chưa có lớp học trực tuyến nào được phân công.</p>
+                }
+            </div>
+        </div>
+
+        <!-- Pending Assessments -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold text-dark m-0"><i class="bi bi-clipboard2-check me-2 text-warning"></i>Bài Nộp Cần Chấm Điểm & Feedback</h5>
+                    <a asp-action="Assessments" class="small text-primary text-decoration-none">Xem tất cả</a>
+                </div>
+
+                @if (pendingAssessments.Any())
+                {
+                    <div class="d-flex flex-column gap-3">
+                        @foreach (var sub in pendingAssessments)
+                        {
+                            <div class="p-3 border rounded-3 bg-light d-flex align-items-center justify-content-between gap-3">
+                                <div>
+                                    <div class="fw-bold text-dark">@sub.Student?.FullName</div>
+                                    <div class="small text-muted">Bài: @sub.Exercise?.Title</div>
+                                    <div class="small text-secondary">Nộp lúc: @sub.SubmittedAt.ToString("HH:mm - dd/MM")</div>
+                                </div>
+                                <a asp-action="Assessments" class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold text-dark">
+                                    Chấm Điểm Ngay
+                                </a>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-success small p-3 bg-success bg-opacity-10 rounded-3">
+                        <i class="bi bi-check-circle-fill me-1"></i> Tất cả các bài nộp của học viên đã được chấm hoàn tất!
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+

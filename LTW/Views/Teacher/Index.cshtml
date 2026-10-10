@@ -1,0 +1,93 @@
+@model IEnumerable<LTW.Data.ApplicationUser>
+@{
+    ViewData["Title"] = "Đội ngũ giảng viên - LUMORA English Center";
+    var teacherCourses = ViewBag.TeacherCourses as List<LTW.Models.Course> ?? new List<LTW.Models.Course>();
+}
+
+<!-- Hero Section -->
+<section class="bg-lumora-header text-white py-5">
+    <div class="container py-4 text-center">
+        <span class="badge rounded-pill px-3 py-2 text-white mb-3" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);">
+            <i class="bi bi-patch-check-fill me-1 text-info"></i> Đội Ngũ Chuyên Gia Khảo Thí Quốc Tế
+        </span>
+        <h1 class="display-5 fw-bold mb-3">Đội Ngũ Giảng Viên Lumora</h1>
+        <p class="lead text-white-50 mx-auto" style="max-width: 720px;">
+            100% giảng viên tại LUMORA đều là cựu giám khảo chấm thi British Council/IDP hoặc thạc sĩ TESOL quốc tế với bề dày kinh nghiệm rèn luyện học viên bứt phá mục tiêu IELTS.
+        </p>
+    </div>
+</section>
+
+<!-- Main Listing Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+            <div>
+                <h4 class="fw-bold text-dark mb-1">Tất cả giảng viên</h4>
+                <p class="text-muted small mb-0">Hồ sơ giảng viên được xác thực chính thức trên hệ thống học thuật LUMORA</p>
+            </div>
+            <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill shadow-sm">
+                @Model.Count() Giảng viên hoạt động
+            </span>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var teacher in Model)
+            {
+                var coursesTaught = teacherCourses.Where(c => c.TeacherId == teacher.Id).ToList();
+                <div class="col-md-6 col-lg-6">
+                    <div class="card h-100 border-0 rounded-4 shadow-sm hover-elevate p-4 bg-white d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <img src="@(string.IsNullOrEmpty(teacher.AvatarUrl) ? "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80" : teacher.AvatarUrl)" 
+                                     alt="@teacher.FullName" 
+                                     class="rounded-circle shadow-sm" 
+                                     style="width: 72px; height: 72px; object-fit: cover; border: 3px solid var(--border-line);" />
+                                <div>
+                                    <h5 class="fw-bold text-dark mb-1">@teacher.FullName</h5>
+                                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                                        <span class="badge bg-primary bg-opacity-10 text-primary small">
+                                            <i class="bi bi-award-fill me-1"></i> Giảng viên chính
+                                        </span>
+                                        <span class="badge bg-success bg-opacity-10 text-success small">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Đã xác thực
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p class="text-secondary small mb-3" style="line-height: 1.6;">
+                                @(string.IsNullOrEmpty(teacher.Bio) ? "Chuyên gia đào tạo tiếng Anh và luyện thi IELTS chuyên sâu với phương pháp sư phạm hiện đại." : teacher.Bio)
+                            </p>
+
+                            @if (coursesTaught.Any())
+                            {
+                                <div class="mb-3">
+                                    <div class="text-muted small fw-semibold mb-2">Khóa học phụ trách:</div>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach (var course in coursesTaught)
+                                        {
+                                            <a asp-controller="Course" asp-action="Detail" asp-route-id="@course.CourseId" 
+                                               class="badge bg-light text-dark border text-decoration-none py-2 px-3 rounded-pill">
+                                                <i class="bi bi-book-half me-1 text-primary"></i> @course.Title
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="pt-3 border-top d-flex justify-content-between align-items-center mt-3">
+                            <span class="small text-muted">
+                                <i class="bi bi-journal-check me-1"></i> @coursesTaught.Count khóa học
+                            </span>
+                            <a asp-action="Detail" asp-route-id="@teacher.Id" class="btn btn-sm btn-lumora-primary px-3 py-2 rounded-3">
+                                <span>Xem hồ sơ chi tiết</span>
+                                <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>

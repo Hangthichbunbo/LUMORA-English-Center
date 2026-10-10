@@ -1,0 +1,140 @@
+@model LTW.Models.TestAttempt
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Candidate Assessment Results - LUMORA English Center";
+}
+
+<div class="py-5 text-white bg-lumora-header">
+    <div class="container text-center">
+        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-semibold mb-3">
+            <i class="bi bi-award-fill me-1"></i> CANDIDATE PERFORMANCE REPORT
+        </span>
+        <h1 class="fw-bold mb-2">Diagnostic Assessment Results</h1>
+        <p class="text-white-50">Candidate: <strong>@Model.FullName</strong> | Date: @Model.CompletedAt.ToString("dd/MM/yyyy HH:mm")</p>
+    </div>
+</div>
+
+<div class="container py-5" style="max-width: 1040px;">
+    <!-- Score Overview Hero Card -->
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-5">
+        <div class="card-body p-4 p-md-5">
+            <div class="row align-items-center g-4 text-center text-md-start">
+                <div class="col-md-4 text-center border-end-md">
+                    <div class="p-3 bg-light rounded-4 d-inline-block shadow-sm">
+                        <small class="text-muted fw-bold text-uppercase d-block mb-1">Overall Band Score</small>
+                        <div class="display-3 fw-bold text-lumora-primary mb-1">
+                            @Model.OverallScore.ToString("F1")
+                        </div>
+                        <span class="badge bg-success px-3 py-2 rounded-pill fw-semibold">
+                            @Model.EstimatedLevel
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 4 Skills Scores -->
+                <div class="col-md-8">
+                    <h5 class="fw-bold text-dark mb-3">Band Score Breakdown (4 Skills):</h5>
+                    <div class="row g-3">
+                        <div class="col-6 col-sm-3">
+                            <div class="p-3 border rounded-3 text-center bg-light">
+                                <i class="bi bi-headphones fs-4 text-primary d-block mb-1"></i>
+                                <span class="small text-muted d-block">Listening</span>
+                                <span class="fs-4 fw-bold text-dark">@Model.ListeningScore.ToString("F1")</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <div class="p-3 border rounded-3 text-center bg-light">
+                                <i class="bi bi-book fs-4 text-success d-block mb-1"></i>
+                                <span class="small text-muted d-block">Reading</span>
+                                <span class="fs-4 fw-bold text-dark">@Model.ReadingScore.ToString("F1")</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <div class="p-3 border rounded-3 text-center bg-light">
+                                <i class="bi bi-pencil-square fs-4 text-warning d-block mb-1"></i>
+                                <span class="small text-muted d-block">Writing</span>
+                                <span class="fs-4 fw-bold text-dark">@Model.WritingScore.ToString("F1")</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <div class="p-3 border rounded-3 text-center bg-light">
+                                <i class="bi bi-mic fs-4 text-danger d-block mb-1"></i>
+                                <span class="small text-muted d-block">Speaking</span>
+                                <span class="fs-4 fw-bold text-dark">@Model.SpeakingScore.ToString("F1")</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Academic Feedback -->
+            <div class="mt-4 pt-4 border-top">
+                <h5 class="fw-bold text-dark mb-2"><i class="bi bi-chat-left-quote-fill me-2 text-primary"></i>Academic Assessment & Feedback</h5>
+                <p class="text-secondary" style="line-height: 1.8;">
+                    @Model.Feedback
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommended Courses Section -->
+    <div class="mb-5">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h3 class="fw-bold text-dark m-0">Recommended Preparation Pathways</h3>
+                <p class="text-muted small m-0">Based on your diagnostic performance</p>
+            </div>
+            <a asp-controller="Course" asp-action="Index" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                View all courses <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-4">
+            <!-- Course Card 1 -->
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden p-4 bg-white">
+                    <span class="badge bg-warning text-dark align-self-start px-3 py-2 rounded-pill fw-semibold mb-3">
+                        <i class="bi bi-star-fill me-1"></i> RECOMMENDED PATHWAY
+                    </span>
+                    <h5 class="fw-bold text-dark mb-2">IELTS Masterclass 7.5+ Toàn Diện</h5>
+                    <p class="text-muted small mb-3">Comprehensive 4-skills curriculum focusing on advanced Writing Task 2 cohesion and fluent Speaking Part 3 expression.</p>
+                    <div class="mt-auto d-flex align-items-center justify-content-between pt-2 border-top">
+                        <span class="fw-bold text-danger fs-5">2,450,000 đ</span>
+                        <a asp-controller="Course" asp-action="Index" class="btn btn-lumora-secondary text-white rounded-pill px-4 fw-semibold">
+                            Explore Course
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Course Card 2 -->
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden p-4 bg-white">
+                    <span class="badge bg-info text-dark align-self-start px-3 py-2 rounded-pill fw-semibold mb-3">
+                        <i class="bi bi-graph-up me-1"></i> SKILL SPECIALIZATION
+                    </span>
+                    <h5 class="fw-bold text-dark mb-2">Ngữ Pháp Chuyên Sâu & Viết Học Thuật Writing 7.0+</h5>
+                    <p class="text-muted small mb-3">Targeted module rectifying complex sentence grammar, academic collocation variety, and essay coherence.</p>
+                    <div class="mt-auto d-flex align-items-center justify-content-between pt-2 border-top">
+                        <span class="fw-bold text-danger fs-5">1,450,000 đ</span>
+                        <a asp-controller="Course" asp-action="Index" class="btn btn-outline-lumora-primary rounded-pill px-4 fw-semibold">
+                            Explore Course
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="text-center d-flex justify-content-center gap-3">
+        <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-semibold">
+            <i class="bi bi-arrow-repeat me-1"></i> Take Another Practice Test
+        </a>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-lumora-primary text-white px-4 py-2 rounded-pill fw-semibold">
+            <i class="bi bi-house me-1"></i> Return to Homepage
+        </a>
+    </div>
+</div>
+

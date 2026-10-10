@@ -1,0 +1,95 @@
+@model LTW.Models.Exercise
+
+@{
+    ViewData["Title"] = "Tạo Bài Tập Mới - Giảng Viên LUMORA";
+}
+
+<div class="container py-4" style="max-width: 900px;">
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+        <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+            <div>
+                <h3 class="fw-bold text-dark m-0"><i class="bi bi-pencil-square me-2 text-primary"></i>Tạo Bài Tập & Soạn Câu Hỏi</h3>
+                <p class="text-muted small m-0">Thiết lập bài tập, thời gian làm bài và câu hỏi kèm đáp án giải thích</p>
+            </div>
+            <a asp-action="Exercises" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i> Quay Lại
+            </a>
+        </div>
+
+        <form asp-action="CreateExercise" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger small mb-3"></div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-8">
+                    <label asp-for="Title" class="form-label small fw-semibold text-secondary"></label>
+                    <input asp-for="Title" class="form-control" placeholder="Ví dụ: Luyện tập Listening Form Completion #2" required />
+                    <span asp-validation-for="Title" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="LessonId" class="form-label small fw-semibold text-secondary">Chọn Bài Học Trực Thuộc</label>
+                    <select asp-for="LessonId" asp-items="ViewBag.Lessons" class="form-select" required>
+                        <option value="">-- Chọn bài học --</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="TimeLimitMinutes" class="form-label small fw-semibold text-secondary"></label>
+                    <input asp-for="TimeLimitMinutes" class="form-control" type="number" min="5" value="20" />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="PassingScore" class="form-label small fw-semibold text-secondary"></label>
+                    <input asp-for="PassingScore" class="form-control" type="number" min="0" max="100" value="70" />
+                </div>
+                <div class="col-12">
+                    <label asp-for="Description" class="form-label small fw-semibold text-secondary"></label>
+                    <textarea asp-for="Description" class="form-control" rows="2" placeholder="Hướng dẫn thí sinh các bước làm bài..."></textarea>
+                </div>
+            </div>
+
+            <h6 class="fw-bold text-secondary text-uppercase small mb-3">Soạn Thảo Câu Hỏi Ban Đầu (Question & Answers)</h6>
+            <div class="p-4 bg-light rounded-4 border mb-4">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-secondary">Nội dung câu hỏi</label>
+                    <input type="text" name="questionContent" class="form-control" placeholder="Ví dụ: Theo đoạn ghi âm, khách hàng đặt bàn cho mấy người?" required />
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">Lựa chọn A</label>
+                        <input type="text" name="optA" class="form-control" placeholder="2 người" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">Lựa chọn B</label>
+                        <input type="text" name="optB" class="form-control" placeholder="4 người" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">Lựa chọn C</label>
+                        <input type="text" name="optC" class="form-control" placeholder="6 người" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">Lựa chọn D</label>
+                        <input type="text" name="optD" class="form-control" placeholder="8 người" required />
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-success">Đáp án chuẩn (Khớp với tiền tố A., B., C., D.)</label>
+                        <input type="text" name="correctOpt" class="form-control border-success" placeholder="B. 4 người" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">Giải thích chi tiết (Feedback cho học viên)</label>
+                        <input type="text" name="explanation" class="form-control" placeholder="Người nói xác nhận: We have a party of four." />
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold rounded-pill shadow-sm" style="background-color: #00A896; border-color: #00A896;">
+                    <i class="bi bi-save me-1"></i> Lưu Bài Tập
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+

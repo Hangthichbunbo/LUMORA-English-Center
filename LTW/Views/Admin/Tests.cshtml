@@ -1,0 +1,100 @@
+@model IEnumerable<LTW.Models.Test>
+
+@{
+    ViewData["Title"] = "Quản Lý Đề Thi & Khảo Thí - Admin LUMORA";
+}
+
+<div class="container-fluid px-lg-5 py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="fw-bold text-dark m-0"><i class="bi bi-patch-question-fill me-2 text-primary"></i>Quản Lý Bộ Đề Kiểm Tra & Khảo Thí</h3>
+            <p class="text-muted small m-0">Danh sách các bài Example Test miễn phí và Placement Test xếp lớp</p>
+        </div>
+        <a asp-action="Dashboard" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-arrow-left me-1"></i> Dashboard
+        </a>
+    </div>
+
+    <!-- Admin Navigation Toolbar -->
+    <div class="d-flex flex-wrap gap-2 mb-4 bg-light p-2 rounded-4 border">
+        <a asp-action="Dashboard" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+        </a>
+        <a asp-action="Users" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-people-fill me-1"></i> Users
+        </a>
+        <a asp-action="Courses" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-collection-play-fill me-1"></i> Courses
+        </a>
+        <a asp-action="Classes" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-camera-video-fill me-1"></i> Classes
+        </a>
+        <a asp-action="Schedule" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-calendar-week-fill me-1"></i> Schedule
+        </a>
+        <a asp-controller="Teacher" asp-action="Lessons" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-book-fill me-1"></i> Lessons
+        </a>
+        <a asp-controller="Teacher" asp-action="Exercises" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-pencil-square me-1"></i> Exercises
+        </a>
+        <a asp-action="Tests" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold" style="background-color: #00A896; border-color: #00A896;">
+            <i class="bi bi-patch-question-fill me-1"></i> Tests
+        </a>
+        <a asp-action="Tips" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-lightbulb-fill me-1"></i> IELTS Tips
+        </a>
+        <a asp-action="Notifications" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-bell-fill me-1"></i> Notifications
+        </a>
+    </div>
+
+    <div class="row g-4">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var test in Model)
+            {
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100 d-flex flex-column">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="badge @(test.Type == LTW.Models.ExamType.ExampleTest ? "bg-success" : "bg-primary") px-3 py-2 rounded-pill fw-bold">
+                                @test.Type
+                            </span>
+                            <span class="text-muted small"><i class="bi bi-clock me-1"></i>@test.TimeLimitMinutes phút</span>
+                        </div>
+
+                        <h5 class="fw-bold text-dark mb-2">@test.Title</h5>
+                        <p class="text-muted small mb-3 flex-grow-1" style="line-height: 1.6;">@test.Description</p>
+
+                        <div class="p-3 bg-light rounded-3 mb-3 small text-secondary">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Số lượng câu hỏi:</span>
+                                <strong>@(test.Questions?.Count ?? 0) câu</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Lượt thí sinh đã làm:</span>
+                                <strong>@(test.Attempts?.Count ?? 0) lượt</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Trạng thái:</span>
+                                <span class="text-success fw-bold">Đang mở thi trực tuyến</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top">
+                            <span class="small text-muted">Tạo lúc: @test.CreatedAt.ToString("dd/MM/yyyy")</span>
+                            <a asp-controller="Test" asp-action="@(test.Type == LTW.Models.ExamType.ExampleTest ? "ExampleTest" : "PlacementTest")" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                <i class="bi bi-eye me-1"></i> Xem Giao Diện Thi
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5 text-muted">Chưa có bài thi nào được khởi tạo.</div>
+        }
+    </div>
+</div>
+

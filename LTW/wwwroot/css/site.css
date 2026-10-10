@@ -25,42 +25,91 @@
    2. SYSTEM DESIGN TOKENS (:root) TỪ LUMORA ENGLISH CENTER
    -------------------------------------------------------------------------- */
 :root {
-    /* Bảng màu lõi trích xuất từ LUMORA English Center */
-    --text: #23324a;
-    --muted: #475569;
-    --card: #fff;
-    --line: #e9eef6;
-    --shadow: 0 18px 40px rgba(20, 40, 80, 0.12);
-    --shadow-soft: 0 10px 24px rgba(20, 40, 80, 0.1);
-    --radius-lg: 22px;
+    /* ==========================================================================
+       CANONICAL LUMORA DESIGN TOKENS (GEMINI.md - Rule 4)
+       ========================================================================== */
+    /* Base colors */
+    --bg-body: #ffffff;
+    --text-main: #23324a;
+    --text-muted: #7c8aa4;
+    --card-bg: #ffffff;
+    --border-line: #e9eef6;
+
+    /* Brand and navy */
+    --brand-primary: #294563;
+    --brand-secondary: #2b7bbb;
+    --navy-dark: #14233b;
+    --navy-base: #1e2b43;
+
+    /* IELTS skills */
+    --color-listening: #32b4c8;
+    --color-reading: #37854d;
+    --color-writing: #f9a95a;
+    --color-speaking: #c76378;
+
+    /* Brand gradients */
+    --grad-primary: linear-gradient(180deg, #294563 0%, #172636 100%);
+    --grad-listening: linear-gradient(180deg, #33b2c7 0%, #268695 100%);
+    --grad-reading: linear-gradient(180deg, #337845 0%, #265a35 100%);
+    --grad-writing: linear-gradient(180deg, #faa859 0%, #bb7f44 100%);
+    --grad-speaking: linear-gradient(180deg, #c86478 0%, #954b5a 100%);
+
+    /* Typography */
+    --font-family: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --fs-xs: 1.4rem;
+    --fs-sm: 1.6rem;
+    --fs-md: 1.8rem;
+    --fs-lg: 2.4rem;
+    --fs-xl: 3.6rem;
+    --fs-xxl: 4.8rem;
+
+    /* Shape and elevation */
     --radius-md: 16px;
-    --brand: #2b7bbb;
-    --navy: #1e2b43;
-    --navy-2: #14233b;
-    /* Thước đo font size chuẩn */
+    --radius-lg: 22px;
+    --shadow-main: 0 18px 40px rgba(20, 40, 80, 0.12);
+    --shadow-soft: 0 10px 24px rgba(20, 40, 80, 0.1);
+
+    /* ==========================================================================
+       BACKWARD COMPATIBILITY ALIASES
+       ========================================================================== */
+    --text: var(--text-main);
+    --muted: var(--text-muted);
+    --card: var(--card-bg);
+    --line: var(--border-line);
+    --shadow: var(--shadow-main);
+    --brand: var(--brand-secondary);
+    --navy: var(--navy-base);
+    --navy-2: var(--navy-dark);
+    --main-color: var(--brand-primary);
+    --listening-color: var(--color-listening);
+    --reading-color: var(--color-reading);
+    --writing-color: var(--color-writing);
+    --speaking-color: var(--color-speaking);
+    --primary-gradient: var(--grad-primary);
+    --listening-gradient: var(--grad-listening);
+    --reading-gradient: var(--grad-reading);
+    --writing-gradient: var(--grad-writing);
+    --speaking-gradient: var(--grad-speaking);
+
     --font-size-xs: 14px;
     --font-size-sm: 16px;
     --font-size-md: 18px;
     --font-size-lg: 24px;
     --font-size-xl: 36px;
     --font-size-xxl: 48px;
-    /* Màu sắc và gradient 4 kỹ năng IELTS chính thức */
-    --main-color: #294563;
-    --speaking-color: #C76378;
-    --listening-color: #32B4C8;
-    --writing-color: #F9A95A;
-    --reading-color: #37854D;
-    --primary-gradient: linear-gradient(180deg, #294563 0%, #172636 100%);
-    --reading-gradient: linear-gradient(180deg, #337845 0%, #265A35 100%);
-    --listening-gradient: linear-gradient(180deg, #33B2C7 0%, #268695 100%);
-    --writing-gradient: linear-gradient(180deg, #FAA859 0%, #BB7F44 100%);
-    --speaking-gradient: linear-gradient(180deg, #C86478 0%, #954B5A 100%);
+
     --swiper-navigation-size: 44px;
     --swiper-theme-color: #007aff;
 }
 
-@media (min-width: 768px) and (max-width: 1024px) {
+@media (max-width: 1024px) {
     :root {
+        --fs-xs: 1.2rem;
+        --fs-sm: 1.4rem;
+        --fs-md: 1.6rem;
+        --fs-lg: 2rem;
+        --fs-xl: 3.2rem;
+        --fs-xxl: 4rem;
         --font-size-xs: 12px;
         --font-size-sm: 14px;
         --font-size-md: 16px;
@@ -100,7 +149,7 @@ body {
     line-height: 1.5;
     color: var(--text);
     font-family: "Nunito", "Helvetica Neue", "Roboto", Helvetica, Arial, sans-serif;
-    padding-top: 76px; /* Bù trừ fixed navbar */
+    /*padding-top: 76px;*/ 
     overflow-x: hidden;
 }
 
@@ -117,6 +166,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .text-muted {
     color: #475569 !important;
+
 }
 
 .text-secondary {
@@ -262,6 +312,7 @@ h1, h2, h3, h4, h5, h6 {
 .brand-title-main {
     font-weight: 800;
     letter-spacing: -0.5px;
+/*    color: #ffffff;*/
 }
 
 .brand-title-accent {
@@ -538,7 +589,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .step-summary-text {
     font-size: 14px;
-    font-weight: 600;
+/*    font-weight: 500;*/
     color: #334155;
     line-height: 1.65;
     margin-bottom: 0;
@@ -618,6 +669,10 @@ h1, h2, h3, h4, h5, h6 {
 /* --------------------------------------------------------------------------
    9. SECTION ONLINE COURSES & LIVE LESSONS
    -------------------------------------------------------------------------- */
+.fw-bold.mb-3 {
+    color: #ffffff !important;
+}
+
 .courses-official-section {
     padding: 70px 0;
     background-color: #ffffff;
@@ -784,6 +839,121 @@ h1, h2, h3, h4, h5, h6 {
     border: 3px solid rgba(43, 123, 187, 0.15);
 }
 
+/* Teacher Horizontal Slider Track & Controls */
+.teacher-slider-container {
+    position: relative;
+    width: 100%;
+}
+
+.teacher-slider-track {
+    display: flex;
+    gap: 24px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    padding: 12px 6px 20px 6px;
+    cursor: grab;
+    user-select: none;
+    scrollbar-width: thin;
+    scrollbar-color: var(--brand-secondary, #2b7bbb) var(--border-line, #e9eef6);
+}
+
+.teacher-slider-track.active-dragging {
+    cursor: grabbing;
+    scroll-snap-type: none;
+    scroll-behavior: auto;
+}
+
+.teacher-slider-track::-webkit-scrollbar {
+    height: 8px;
+}
+
+.teacher-slider-track::-webkit-scrollbar-track {
+    background: #e9eef6;
+    border-radius: 10px;
+}
+
+.teacher-slider-track::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, #2b7bbb, #32b4c8);
+    border-radius: 10px;
+}
+
+.teacher-slider-track::-webkit-scrollbar-thumb:hover {
+    background: var(--brand-primary, #294563);
+}
+
+.teacher-slider-card-wrapper {
+    flex: 0 0 320px;
+    max-width: 330px;
+    scroll-snap-align: start;
+    display: flex;
+}
+
+@media (max-width: 768px) {
+    .teacher-slider-card-wrapper {
+        flex: 0 0 280px;
+        max-width: 290px;
+    }
+}
+
+.btn-slider-ctrl {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1px solid var(--border-line, #e9eef6);
+    background: #ffffff;
+    color: var(--brand-primary, #294563);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.btn-slider-ctrl:hover {
+    background: var(--brand-secondary, #2b7bbb);
+    color: #ffffff;
+    border-color: var(--brand-secondary, #2b7bbb);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(43, 123, 187, 0.25);
+}
+
+.btn-slider-ctrl:focus-visible {
+    outline: 2px solid var(--brand-secondary, #2b7bbb);
+    outline-offset: 2px;
+}
+
+.teacher-slider-progress-wrap {
+    width: 100%;
+}
+
+.teacher-slider-scrollbar-wrap {
+    width: 180px;
+    height: 6px;
+    background: #e9eef6;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.teacher-slider-scrollbar-bar {
+    height: 100%;
+    width: 25%;
+    background: linear-gradient(90deg, #2b7bbb, #32b4c8);
+    border-radius: 10px;
+    transition: transform 0.1s linear, width 0.2s ease;
+}
+
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 .partner-logo-item {
     background: var(--card);
     border: 1px solid var(--line);
@@ -854,6 +1024,7 @@ h1, h2, h3, h4, h5, h6 {
 /* --------------------------------------------------------------------------
    14. FOOTER ĐA CỘT THÔNG TIN NỀN TỐI (DARK BACKGROUND FOOTER)
    -------------------------------------------------------------------------- */
+
 .site-footer-official {
     background-color: var(--navy-2);
     color: var(--muted);
@@ -890,10 +1061,11 @@ h1, h2, h3, h4, h5, h6 {
 
     .footer-nav-menu li {
         margin-bottom: 10px;
+        color: #e2e8f0;
     }
 
     .footer-nav-menu a {
-        color: #94a3b8;
+        color: #e2e8f0;
         text-decoration: none;
         transition: color 0.2s ease;
     }
@@ -1233,4 +1405,331 @@ h1, h2, h3, h4, h5, h6 {
         padding: 36px 24px;
     }
 }
+
+/* ==========================================================================
+   LUMORA DESIGN SYSTEM UTILITY CLASSES (Rule 4)
+   ========================================================================== */
+.bg-lumora-header {
+    background: var(--grad-primary) !important;
+}
+
+.bg-lumora-primary {
+    background-color: var(--brand-primary) !important;
+}
+
+.bg-lumora-secondary {
+    background-color: var(--brand-secondary) !important;
+}
+
+.text-lumora-primary {
+    color: var(--brand-primary) !important;
+}
+
+.text-lumora-secondary {
+    color: var(--brand-secondary) !important;
+}
+
+.btn-lumora-primary {
+    background-color: var(--brand-primary);
+    border-color: var(--brand-primary);
+    color: #ffffff;
+    transition: all 0.2s ease;
+}
+
+.btn-lumora-primary:hover,
+.btn-lumora-primary:focus {
+    background-color: var(--navy-dark);
+    border-color: var(--navy-dark);
+    color: #ffffff;
+}
+
+.btn-lumora-secondary {
+    background-color: var(--brand-secondary);
+    border-color: var(--brand-secondary);
+    color: #ffffff;
+    transition: all 0.2s ease;
+}
+
+.btn-lumora-secondary:hover,
+.btn-lumora-secondary:focus {
+    background-color: #236599;
+    border-color: #236599;
+    color: #ffffff;
+}
+
+.btn-outline-lumora-primary {
+    border-color: var(--brand-primary);
+    color: var(--brand-primary);
+    transition: all 0.2s ease;
+}
+
+.btn-outline-lumora-primary:hover {
+    background-color: var(--brand-primary);
+    color: #ffffff;
+}
+
+.btn-outline-lumora-secondary {
+    border-color: var(--brand-secondary);
+    color: var(--brand-secondary);
+    transition: all 0.2s ease;
+}
+
+.btn-outline-lumora-secondary:hover {
+    background-color: var(--brand-secondary);
+    color: #ffffff;
+}
+
+.badge-skill-listening {
+    background: var(--grad-listening) !important;
+    color: #ffffff;
+}
+
+.badge-skill-reading {
+    background: var(--grad-reading) !important;
+    color: #ffffff;
+}
+
+.badge-skill-writing {
+    background: var(--grad-writing) !important;
+    color: #ffffff;
+}
+
+.badge-skill-speaking {
+    background: var(--grad-speaking) !important;
+    color: #ffffff;
+}
+
+/* ==========================================================================
+   LUMORA AUTHENTICATION UI (Login & Sign Up Split Card)
+   ========================================================================== */
+.lumora-auth-bg {
+    background: #f1f5f9;
+    min-height: calc(100vh - 120px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+}
+
+.lumora-auth-card {
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(15, 30, 65, 0.12);
+    border: 1px solid rgba(226, 232, 240, 0.85);
+    overflow: hidden;
+    max-width: 1040px;
+    width: 100%;
+    background: #ffffff;
+}
+
+.lumora-auth-side-brand {
+    background: linear-gradient(165deg, #101c2e 0%, #172a45 50%, #0f1929 100%);
+    color: #ffffff;
+    padding: 44px 38px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+}
+
+.lumora-auth-side-brand::before {
+    content: "";
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, rgba(50, 180, 200, 0.22) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.lumora-auth-side-form {
+    background: #ffffff;
+    padding: 44px 44px;
+}
+
+@media (max-width: 768px) {
+    .lumora-auth-side-form {
+        padding: 32px 24px;
+    }
+    .lumora-auth-side-brand {
+        padding: 32px 24px;
+    }
+}
+
+.lumora-partner-capsule {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 12px 16px;
+}
+
+.badge-bc-navy {
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+    display: inline-block;
+}
+
+.badge-idp-red {
+    background: #e11d48;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 11px;
+    padding: 5px 16px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+    display: inline-block;
+}
+
+.auth-skill-pill {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.auth-skill-pill.skill-listening {
+    background: rgba(50, 180, 200, 0.22);
+    border: 1px solid #32b4c8;
+    color: #5eead4;
+}
+
+.auth-skill-pill.skill-reading {
+    background: rgba(55, 133, 77, 0.32);
+    border: 1px solid #37854d;
+    color: #86efac;
+}
+
+.auth-skill-pill.skill-writing {
+    background: rgba(249, 169, 90, 0.25);
+    border: 1px solid #f9a95a;
+    color: #fde047;
+}
+
+.auth-skill-pill.skill-speaking {
+    background: rgba(199, 99, 120, 0.3);
+    border: 1px solid #c76378;
+    color: #f472b6;
+}
+
+.auth-portal-badge {
+    background: #e0f2fe;
+    color: #0284c7;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 20px;
+    padding: 6px 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.auth-input-group .input-group-text {
+    background-color: #ffffff;
+    border-color: #e2e8f0;
+    color: #64748b;
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+    padding-left: 14px;
+    padding-right: 14px;
+}
+
+.auth-input-group .form-control {
+    border-color: #e2e8f0;
+    padding: 12px 14px;
+    font-size: 14px;
+    color: #1e293b;
+    border-radius: 0;
+}
+
+.auth-input-group .form-control:last-child {
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+.auth-input-group .btn-password-toggle {
+    background-color: #ffffff;
+    border-color: #e2e8f0;
+    color: #64748b;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    padding-left: 14px;
+    padding-right: 14px;
+}
+
+.auth-input-group .form-control:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+}
+
+.btn-auth-submit {
+    background: linear-gradient(135deg, #1d4ed8 0%, #0284c7 100%);
+    color: #ffffff;
+    font-weight: 800;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 14.5px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 8px 24px rgba(2, 132, 199, 0.35);
+    transition: all 0.25s ease;
+}
+
+.btn-auth-submit:hover {
+    background: linear-gradient(135deg, #1e40af 0%, #0369a1 100%);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px rgba(2, 132, 199, 0.42);
+}
+
+.btn-auth-switch {
+    border: 1.5px solid #0284c7;
+    color: #0284c7;
+    font-weight: 700;
+    border-radius: 12px;
+    padding: 10px;
+    background: transparent;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    text-decoration: none;
+}
+
+.btn-auth-switch:hover {
+    background: #f0f9ff;
+    color: #0369a1;
+    border-color: #0369a1;
+}
+
+.btn-auth-google {
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #334155;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 11px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.btn-auth-google:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+
 

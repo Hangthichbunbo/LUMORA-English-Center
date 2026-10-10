@@ -1,4 +1,4 @@
-﻿@* <!DOCTYPE html>
+@* <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -119,41 +119,56 @@
                 <div class="collapse navbar-collapse" id="navbarMainNavigation">
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
                         <li class="nav-item">
-                            <a class="nav-link active" asp-controller="Home" asp-action="Index">
-                                Home
+                            <a class="nav-link fw-semibold" asp-controller="Home" asp-action="Index">
+                                <i class="bi bi-house-door me-1"></i> Home
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#practice-section">
-                                Practice
+                            <a class="nav-link fw-semibold" asp-controller="Course" asp-action="Index">
+                                <i class="bi bi-collection-play me-1"></i> Courses
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#steps-section">
-                                Tests
+                            <a class="nav-link fw-semibold" asp-controller="Teacher" asp-action="Index">
+                                <i class="bi bi-people me-1"></i> Teachers
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link fw-semibold dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-patch-question me-1"></i> Test
+                            </a>
+                            <ul class="dropdown-menu shadow border-0 rounded-3">
+                                <li>
+                                    <a class="dropdown-item py-2 small" asp-controller="Test" asp-action="ExampleTest">
+                                        <i class="bi bi-star-fill text-warning me-2"></i> Example Test (Miễn phí)
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2 small" asp-controller="Test" asp-action="PlacementTest">
+                                        <i class="bi bi-award-fill text-primary me-2"></i> Placement Test (Đầu vào)
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item py-2 small text-muted" asp-controller="Test" asp-action="Index">
+                                        <i class="bi bi-list-task me-2"></i> Danh sách tất cả bài thi
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-semibold" asp-controller="Tip" asp-action="Index">
+                                <i class="bi bi-lightbulb me-1"></i> IELTS Tips
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#courses-section">
-                                Blog
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#contact-section">
-                                Contact
+                            <a class="nav-link fw-semibold" asp-controller="Class" asp-action="Index">
+                                <i class="bi bi-camera-video me-1"></i> Classes
                             </a>
                         </li>
                     </ul>
 
                     <!-- Các nút chức năng người dùng -->
-                    @*<div class="d-flex align-items-center gap-2 ms-lg-3 mt-3 mt-lg-0">
-                        <a href="#contact-section" class="btn btn-outline-subtle btn-sm px-3">
-                            <i class="bi bi-box-arrow-in-right me-1"></i> Log In
-                        </a>
-                        <a href="#contact-section" class="btn btn-cta-accent btn-sm px-3">
-                            <i class="bi bi-person-plus-fill me-1"></i> Sign Up
-                        </a>
-                    </div> *@
                     <partial name="_LoginPartial" />
                 </div>
             </div>
@@ -163,18 +178,32 @@
     <!-- ====================================================================
          MAIN BODY CONTENT (Wrapped in .home-page class for exact CSS scoping)
          ==================================================================== -->
-    <main role="main" class="home-page">
+    <main role="main" class="home-page" style="padding-top: 72px;">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="container pt-3">
+                <div class="alert alert-success alert-dismissible fade show shadow-sm rounded-3 d-flex align-items-center mb-0" role="alert">
+                    <i class="bi bi-check-circle-fill fs-5 me-2 text-success"></i>
+                    <div>@TempData["SuccessMessage"]</div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="container pt-3">
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3 d-flex align-items-center mb-0" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill fs-5 me-2 text-danger"></i>
+                    <div>@TempData["ErrorMessage"]</div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        }
         @RenderBody()
     </main>
 
     <!-- ====================================================================
          FOOTER ĐA CỘT THÔNG TIN NỀN TỐI (DARK BACKGROUND FOOTER)
-         - Representative Office
-         - More Information
-         - Legal
-         - Useful Link
-         - Center Addresses
-         - Bản quyền: © 2026 LTW Project - Designed by hoangthuhang
          ==================================================================== -->
     <footer class="site-footer-official">
         <div class="container-fluid px-lg-5">
@@ -185,7 +214,7 @@
                         <span class="brand-symbol-box">
                             <i class="bi bi-mortarboard-fill"></i>
                         </span>
-                        <span class="ms-2 brand-title-main">IELTS <span class="brand-title-accent">Online</span> Tests</span>
+                        <span class="ms-2 brand-title-main">LUMORA <span class="brand-title-accent">English</span> Center</span>
                     </a>
                     <p class="small text-secondary mt-2 mb-3" style="line-height: 1.7;">
                         Hệ thống luyện thi IELTS trực tuyến hàng đầu, đối tác Platinum nhiều năm liền của British Council và IDP.
@@ -202,12 +231,12 @@
                 <div class="col-lg-2 col-md-6 ps-lg-4">
                     <h6 class="footer-section-title">More Information</h6>
                     <ul class="footer-nav-menu">
-                        <li><a href="#hero-banner"><i class="bi bi-chevron-right text-muted me-1"></i> About Our Mission</a></li>
-                        <li><a href="#courses-section"><i class="bi bi-chevron-right text-muted me-1"></i> Teaching Methodology</a></li>
-                        <li><a href="#teachers-section"><i class="bi bi-chevron-right text-muted me-1"></i> Ex-Examiner Team</a></li>
-                        <li><a href="#partners-section"><i class="bi bi-chevron-right text-muted me-1"></i> Platinum Partners</a></li>
-                        <li><a href="#social-testimonials-section"><i class="bi bi-chevron-right text-muted me-1"></i> Success Stories</a></li>
-                        <li><a href="#live-lessons-section"><i class="bi bi-chevron-right text-muted me-1"></i> Free Webinars</a></li>
+                        <li><a asp-controller="Home" asp-action="Index"><i class="bi bi-chevron-right text-muted me-1"></i> About Our Mission</a></li>
+                        <li><a asp-controller="Course" asp-action="Index"><i class="bi bi-chevron-right text-muted me-1"></i> All Courses</a></li>
+                        <li><a asp-controller="Teacher" asp-action="Index"><i class="bi bi-chevron-right text-muted me-1"></i> Expert Teachers</a></li>
+                        <li><a asp-controller="Test" asp-action="Index"><i class="bi bi-chevron-right text-muted me-1"></i> IELTS Exam Library</a></li>
+                        <li><a asp-controller="Tip" asp-action="Index"><i class="bi bi-chevron-right text-muted me-1"></i> IELTS Tips & Blog</a></li>
+                        <li><a asp-controller="Class" asp-action="Index"><i class="bi bi-chevron-right text-muted me-1"></i> Free Live Classes</a></li>
                     </ul>
                 </div>
 
@@ -225,14 +254,14 @@
 
                 <!-- Cột 4: Useful Link -->
                 <div class="col-lg-2 col-md-6">
-                    <h6 class="footer-section-title">Useful Link</h6>
+                    <h6 class="footer-section-title">Useful Links</h6>
                     <ul class="footer-nav-menu">
-                        <li><a href="#practice-section"><i class="bi bi-arrow-right-short text-warning"></i> IELTS Test Library</a></li>
-                        <li><a href="#steps-section"><i class="bi bi-arrow-right-short text-warning"></i> Band Score Calculator</a></li>
-                        <li><a href="#courses-section"><i class="bi bi-arrow-right-short text-warning"></i> Cambridge Tests 1-19</a></li>
-                        <li><a href="#live-lessons-section"><i class="bi bi-arrow-right-short text-warning"></i> Speaking Tips & Tricks</a></li>
-                        <li><a href="#practice-section"><i class="bi bi-arrow-right-short text-warning"></i> Academic Reading</a></li>
-                        <li><a href="#contact-section"><i class="bi bi-arrow-right-short text-warning"></i> Placement Booking</a></li>
+                        <li><a asp-controller="Test" asp-action="ExampleTest"><i class="bi bi-arrow-right-short text-warning"></i> Quick Diagnostic Test</a></li>
+                        <li><a asp-controller="Test" asp-action="PlacementTest"><i class="bi bi-arrow-right-short text-warning"></i> Official Placement Test</a></li>
+                        <li><a asp-controller="Course" asp-action="Index"><i class="bi bi-arrow-right-short text-warning"></i> Cambridge Prep Courses</a></li>
+                        <li><a asp-controller="Tip" asp-action="Index"><i class="bi bi-arrow-right-short text-warning"></i> Speaking Tips & Tricks</a></li>
+                        <li><a asp-controller="Teacher" asp-action="Index"><i class="bi bi-arrow-right-short text-warning"></i> Ex-Examiner Guidance</a></li>
+                        <li><a asp-controller="Class" asp-action="Index"><i class="bi bi-arrow-right-short text-warning"></i> Live Interactive Rooms</a></li>
                     </ul>
                 </div>
 
@@ -250,11 +279,11 @@
                         </li>
                         <li class="mb-2">
                             <strong><i class="bi bi-telephone text-warning me-1"></i> Hotline:</strong>
-                            <div class="ps-3 text-secondary">+84 (0) 908 123 456 / +44 20 7946 0192</div>
+                            <div class="ps-3 text-secondary">+84 (0) 908 123 456</div>
                         </li>
                         <li class="mb-2">
                             <strong><i class="bi bi-envelope text-warning me-1"></i> Email:</strong>
-                            <div class="ps-3 text-secondary">support@ieltsonlinetests.com</div>
+                            <div class="ps-3 text-secondary">support@lumora.edu.vn</div>
                         </li>
                     </ul>
 

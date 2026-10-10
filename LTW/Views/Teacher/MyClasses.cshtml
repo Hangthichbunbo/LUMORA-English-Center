@@ -1,0 +1,71 @@
+@model IEnumerable<LTW.Models.LiveClass>
+
+@{
+    ViewData["Title"] = "Lớp Học Phụ Trách - Giảng Viên LUMORA";
+}
+
+<div class="container-fluid px-lg-5 py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="fw-bold text-dark m-0"><i class="bi bi-camera-video me-2 text-primary"></i>Danh Sách Lớp Phụ Trách</h3>
+            <p class="text-muted small m-0">Quản lý và điều phối các buổi Live Class trực tuyến cùng học viên</p>
+        </div>
+        <a asp-action="Dashboard" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-arrow-left me-1"></i> Dashboard
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-secondary small">
+                    <tr>
+                        <th class="ps-4">Tên Lớp Học</th>
+                        <th>Khóa Học</th>
+                        <th>Thời Gian</th>
+                        <th>Loại Lớp</th>
+                        <th>Sĩ Số Đã Vào</th>
+                        <th class="text-end pe-4">Hành Động</th>
+                    </tr>
+                </thead>
+                <tbody class="small">
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var cls in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold text-dark">@cls.ClassName</div>
+                                    <div class="text-muted" style="font-size: 11px;">@cls.Description</div>
+                                </td>
+                                <td>@(cls.Course?.Title ?? "Lớp Hội Thảo Mở")</td>
+                                <td>
+                                    <div>@cls.ScheduledDate.ToString("dd/MM/yyyy")</div>
+                                    <div class="text-muted" style="font-size: 11px;">@cls.StartTime.ToString(@"hh\:mm") - @cls.EndTime.ToString(@"hh\:mm")</div>
+                                </td>
+                                <td>
+                                    <span class="badge @(cls.IsPublic ? "bg-success" : "bg-danger") rounded-pill">
+                                        @(cls.IsPublic ? "Public" : "Private")
+                                    </span>
+                                </td>
+                                <td>@(cls.ClassStudents?.Count ?? 0) / @cls.Capacity</td>
+                                <td class="text-end pe-4">
+                                    <a asp-controller="Class" asp-action="Join" asp-route-id="@cls.LiveClassId" class="btn btn-danger btn-sm rounded-pill px-3 fw-semibold">
+                                        <i class="bi bi-broadcast me-1"></i> Mở Phòng Giảng
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">Chưa có lớp học nào được phân công.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+

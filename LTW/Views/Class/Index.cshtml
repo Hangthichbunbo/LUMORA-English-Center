@@ -1,0 +1,140 @@
+@model IEnumerable<LTW.Models.LiveClass>
+
+@{
+    ViewData["Title"] = "Lịch Học & Lớp Trực Tuyến - LUMORA English Center";
+    var filter = ViewBag.CurrentFilter as string ?? "All";
+    var enrolledCourseIds = ViewBag.EnrolledCourseIds as List<int> ?? new List<int>();
+}
+
+<div class="py-5 bg-lumora-header text-white">
+    <div class="container text-center">
+        <span class="badge rounded-pill px-3 py-2 text-white mb-3" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);">
+            <i class="bi bi-camera-video-fill me-1 text-info"></i> PHÒNG HỌC TRỰC TUYẾN 1-1 & THEO NHÓM
+        </span>
+        <h1 class="fw-bold mb-3">Lịch Lớp Học Trực Tuyến (Live Classes)</h1>
+        <p class="text-white-50 mx-auto" style="max-width: 650px;">
+            Tham gia các buổi Live tương tác trực tiếp cùng cựu giám khảo chấm thi và giảng viên bản ngữ. Luyện phản xạ và sửa lỗi phát âm, ngữ pháp tại chỗ.
+        </p>
+
+        <!-- Filter Buttons -->
+        <div class="d-flex flex-wrap gap-2 justify-content-center mt-4">
+            <a asp-action="Index" asp-route-filter="All" 
+               class="btn @(filter == "All" ? "btn-light text-dark fw-bold" : "btn-outline-light") rounded-pill px-4 py-2 shadow-sm">
+                <i class="bi bi-grid me-1"></i> Tất Cả Các Lớp
+            </a>
+            <a asp-action="Index" asp-route-filter="Public" 
+               class="btn @(filter == "Public" ? "btn-light text-dark fw-bold" : "btn-outline-light") rounded-pill px-4 py-2 shadow-sm">
+                <i class="bi bi-globe me-1"></i> Lớp Học Thử Miễn Phí (Public)
+            </a>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a asp-action="Index" asp-route-filter="MyClasses" 
+                   class="btn @(filter == "MyClasses" ? "btn-light text-dark fw-bold" : "btn-outline-light") rounded-pill px-4 py-2 shadow-sm">
+                    <i class="bi bi-person-check-fill me-1"></i> Lớp Học Của Tôi
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var item in Model)
+            {
+                bool isEnrolledInCourse = item.CourseId != null && enrolledCourseIds.Contains(item.CourseId.Value);
+                bool canJoin = item.IsPublic || isEnrolledInCourse;
+
+                <div class="col-lg-6">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-4 d-flex flex-column bg-white">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div>
+                                @if (item.IsPublic)
+                                {
+                                    <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-bold">
+                                        <i class="bi bi-unlock-fill me-1"></i> PUBLIC CLASS (MIỄN PHÍ)
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill fw-bold">
+                                        <i class="bi bi-lock-fill me-1"></i> PRIVATE CLASS (THEO KHÓA HỌC)
+                                    </span>
+                                }
+                            </div>
+                            <span class="badge bg-light text-secondary border small">
+                                <i class="bi bi-people me-1"></i> Tối đa @item.Capacity học viên
+                            </span>
+                        </div>
+
+                        <h5 class="fw-bold text-dark mb-2">
+                            <a asp-action="Detail" asp-route-id="@item.LiveClassId" class="text-dark text-decoration-none">
+                                @item.ClassName
+                            </a>
+                        </h5>
+
+                        <p class="text-muted small mb-3 flex-grow-1" style="line-height: 1.6;">
+                            @item.Description
+                        </p>
+
+                        <!-- Time & Schedule Meta -->
+                        <div class="p-3 bg-light rounded-3 mb-3 small text-secondary">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <i class="bi bi-calendar-event text-primary me-1"></i>
+                                    <strong>Ngày học:</strong> @item.ScheduledDate.ToString("dd/MM/yyyy")
+                                </div>
+                                <div class="col-6">
+                                    <i class="bi bi-clock-history text-primary me-1"></i>
+                                    <strong>Giờ học:</strong> @item.StartTime.ToString(@"hh\:mm") - @item.EndTime.ToString(@"hh\:mm")
+                                </div>
+                                <div class="col-12 mt-2 pt-2 border-top">
+                                    <i class="bi bi-person-video3 text-success me-1"></i>
+                                    <strong>Giảng viên:</strong> @(item.Teacher?.FullName ?? "Hội đồng học thuật Lumora")
+                                </div>
+                                @if (item.Course != null)
+                                {
+                                    <div class="col-12">
+                                        <i class="bi bi-journal-bookmark text-warning me-1"></i>
+                                        <strong>Khóa học liên kết:</strong> @item.Course.Title
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Join Button Action -->
+                        <div class="mt-auto d-flex align-items-center justify-content-between pt-2 border-top">
+                            <a asp-action="Detail" asp-route-id="@item.LiveClassId" class="btn btn-outline-secondary btn-sm px-3 rounded-pill">
+                                Chi Tiết Buổi Học
+                            </a>
+
+                            @if (canJoin)
+                            {
+                                <a asp-action="Join" asp-route-id="@item.LiveClassId" class="btn btn-lumora-secondary text-white px-4 py-2 rounded-pill fw-bold shadow-sm">
+                                    <i class="bi bi-broadcast me-1"></i> Vào Lớp Trực Tuyến
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-controller="Course" asp-action="Detail" asp-route-id="@item.CourseId" class="btn btn-outline-danger btn-sm px-3 rounded-pill fw-semibold" title="Vui lòng mua khóa học để mở khóa lớp học này">
+                                    <i class="bi bi-lock me-1"></i> Mua Khóa Học Để Tham Gia
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-calendar-x fs-1 text-muted d-block mb-3"></i>
+            <h5 class="fw-bold text-secondary">Không có lớp học nào trong danh mục này</h5>
+            <p class="text-muted small">Hãy quay lại kiểm tra lịch mới hoặc xem tất cả các lớp.</p>
+            <a asp-action="Index" class="btn btn-lumora-primary rounded-pill px-4 mt-2">Xem Tất Cả Lớp</a>
+        </div>
+    }
+</div>
+
