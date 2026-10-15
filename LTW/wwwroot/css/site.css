@@ -1732,4 +1732,14 @@ h1, h2, h3, h4, h5, h6 {
     color: #0f172a;
 }
 
+.fw-bold.mb-3.text--black {
+    color: #000000 !important;
+}
 
+.active.text--black {
+    color: #000000 !important;
+}
+
+.text--white {
+    color: #ffffff;
+}
