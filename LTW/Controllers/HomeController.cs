@@ -47,19 +47,39 @@ namespace LTW.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult SubmitConsultation(LandingPageViewModel incomingModel)
         {
+            // Trường Message là tùy chọn (không bắt buộc), loại bỏ lỗi xác thực nếu người dùng để trống
+            ModelState.Remove("ConsultationForm.Message");
+            ModelState.Remove($"{nameof(incomingModel.ConsultationForm)}.{nameof(incomingModel.ConsultationForm.Message)}");
+
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+                         Request.Headers.Accept.ToString().Contains("application/json");
+
             if (ModelState.IsValid)
             {
-                // Giả lập lưu trữ thông tin đăng ký thành công vào cơ sở dữ liệu
-                TempData["SuccessMessage"] = $"Cảm ơn {incomingModel.ConsultationForm.FullName}! Chuyên viên IELTS của chúng tôi sẽ liên hệ tư vấn lộ trình Band {incomingModel.ConsultationForm.TargetBand} trong vòng 24 giờ.";
-                return RedirectToAction(nameof(Index), "Home", "contact-section");
+                var message = $"Cảm ơn {incomingModel.ConsultationForm.FullName}! Chuyên viên IELTS của chúng tôi sẽ liên hệ tư vấn lộ trình Band {incomingModel.ConsultationForm.TargetBand} trong vòng 24 giờ.";
+
+                if (isAjax)
+                {
+                    return Json(new { success = true, message = message });
+                }
+
+                TempData["ConsultationSuccess"] = message;
+                return RedirectToAction(nameof(Index), "Home", null, "contact-section");
             }
 
-            // Nếu dữ liệu không hợp lệ, khởi tạo lại model và báo lỗi
+            var errorMessage = "Vui lòng kiểm tra lại các trường thông tin bắt buộc.";
+
+            if (isAjax)
+            {
+                return Json(new { success = false, message = errorMessage });
+            }
+
+            // Nếu gửi theo dạng form truyền thống không dùng JS
             var viewModel = new LandingPageViewModel
             {
                 ConsultationForm = incomingModel.ConsultationForm
             };
-            TempData["ErrorMessage"] = "Vui lòng kiểm tra lại các trường thông tin bắt buộc.";
+            TempData["ConsultationError"] = errorMessage;
             return View("Index", viewModel);
         }
 

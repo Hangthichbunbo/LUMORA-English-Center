@@ -4,7 +4,9 @@
     ViewData["Title"] = "Quản Lý Bài Tập - Giảng Viên LUMORA";
 }
 
-<div class="container-fluid px-lg-5 py-4">
+<partial name="_TeacherPortalHeader" />
+
+<div class="container-fluid px-lg-5 pb-4">
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
             <h3 class="fw-bold text-dark m-0"><i class="bi bi-clipboard-check me-2 text-primary"></i>Quản Lý Bài Tập (Exercises)</h3>
@@ -13,9 +15,6 @@
         <div>
             <a asp-action="CreateExercise" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold shadow-sm" style="background-color: #00A896; border-color: #00A896;">
                 <i class="bi bi-plus-circle me-1"></i> Tạo Bài Tập Mới
-            </a>
-            <a asp-action="Dashboard" class="btn btn-outline-secondary btn-sm rounded-pill px-3 ms-2">
-                <i class="bi bi-arrow-left me-1"></i> Dashboard
             </a>
         </div>
     </div>
@@ -26,7 +25,8 @@
                 <thead class="bg-light text-secondary small">
                     <tr>
                         <th class="ps-4">Tên Bài Tập</th>
-                        <th>Bài Học</th>
+                        <th>Khóa Học & Chương</th>
+                        <th>Bài Học Trực Thuộc</th>
                         <th>Thời Gian</th>
                         <th>Điểm Đạt</th>
                         <th>Số Câu Hỏi</th>
@@ -44,15 +44,44 @@
                                     <div class="fw-bold text-dark">@ex.Title</div>
                                     <div class="text-muted" style="font-size: 11px;">@ex.Description</div>
                                 </td>
-                                <td>@ex.Lesson?.Title</td>
+                                <td>
+                                    <a asp-controller="Course" asp-action="Detail" asp-route-id="@ex.Lesson?.Chapter?.CourseId" target="_blank" class="fw-semibold text-primary text-decoration-none" title="Xem khóa học">
+                                        @(ex.Lesson?.Chapter?.Course?.Title ?? "Khóa học") <i class="bi bi-box-arrow-up-right small ms-1"></i>
+                                    </a>
+                                    <div class="text-muted" style="font-size: 11px;">Chương @ex.Lesson?.Chapter?.OrderIndex: @ex.Lesson?.Chapter?.Title</div>
+                                </td>
+                                <td>
+                                    <a asp-controller="Student" asp-action="Lesson" asp-route-id="@ex.LessonId" target="_blank" class="text-decoration-none text-dark fw-semibold" title="Xem bài học">
+                                        @ex.Lesson?.Title
+                                    </a>
+                                </td>
                                 <td>@ex.TimeLimitMinutes phút</td>
                                 <td>@ex.PassingScore/100</td>
-                                <td>@(ex.Questions?.Count ?? 0) câu</td>
-                                <td>@(ex.Submissions?.Count ?? 0) lượt</td>
-                                <td class="text-end pe-4">
-                                    <a asp-controller="Student" asp-action="Exercise" asp-route-id="@ex.ExerciseId" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                                        <i class="bi bi-eye me-1"></i> Làm Thử
+                                <td>
+                                    <div>@(ex.Questions?.Count ?? 0) câu</div>
+                                    @if (ex.HasWriting)
+                                    {
+                                        <span class="badge bg-info bg-opacity-25 text-dark" style="font-size: 10px;">Có tự luận</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-light text-secondary border" style="font-size: 10px;">Trắc nghiệm</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-action="Assessments" class="text-decoration-none">
+                                        <span class="badge bg-light text-dark border">@(ex.Submissions?.Count ?? 0) lượt nộp</span>
                                     </a>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a asp-controller="Student" asp-action="Exercise" asp-route-id="@ex.ExerciseId" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                            <i class="bi bi-eye me-1"></i> Làm Thử
+                                        </a>
+                                        <a asp-action="Assessments" class="btn btn-outline-warning text-dark btn-sm rounded-pill px-2" title="Chấm điểm học viên nộp bài này">
+                                            <i class="bi bi-check2-square"></i>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         }

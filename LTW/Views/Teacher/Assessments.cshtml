@@ -4,15 +4,14 @@
     ViewData["Title"] = "Chấm Điểm & Đánh Giá Bài Nộp - Giảng Viên LUMORA";
 }
 
-<div class="container-fluid px-lg-5 py-4">
+<partial name="_TeacherPortalHeader" />
+
+<div class="container-fluid px-lg-5 pb-4">
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
             <h3 class="fw-bold text-dark m-0"><i class="bi bi-check2-square me-2 text-warning"></i>Đánh Giá & Chấm Điểm Bài Tập</h3>
             <p class="text-muted small m-0">Nhập điểm số và phản hồi chi tiết cho bài làm Writing, Speaking và các bài tập học viên nộp</p>
         </div>
-        <a asp-action="Dashboard" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-            <i class="bi bi-arrow-left me-1"></i> Dashboard
-        </a>
     </div>
 
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
@@ -21,10 +20,10 @@
                 <thead class="bg-light text-secondary small">
                     <tr>
                         <th class="ps-4">Học Viên</th>
-                        <th>Bài Tập</th>
+                        <th>Bài Tập & Khóa Học</th>
                         <th>Ngày Nộp</th>
-                        <th>Điểm Tự Chấm</th>
-                        <th>Điểm GV Chấm</th>
+                        <th>Điểm Trắc Nghiệm</th>
+                        <th>Điểm Tự Luận</th>
                         <th>Tổng Điểm</th>
                         <th>Nhận Xét</th>
                         <th class="text-end pe-4">Thao Tác</th>
@@ -36,6 +35,7 @@
                         foreach (var sub in Model)
                         {
                             var modalId = "gradeModal_" + sub.SubmissionId;
+                            bool hasWriting = sub.HasWriting;
                             <tr>
                                 <td class="ps-4">
                                     <div class="fw-bold text-dark">@(sub.Student?.FullName ?? "Học viên")</div>
@@ -43,21 +43,30 @@
                                 </td>
                                 <td>
                                     <div class="fw-semibold text-dark">@sub.Exercise?.Title</div>
-                                    <div class="text-muted" style="font-size: 11px;">Bài học: @sub.Exercise?.Lesson?.Title</div>
+                                    <div class="text-muted" style="font-size: 11px;">
+                                        @(sub.Exercise?.Lesson?.Chapter?.Course?.Title ?? "Khóa học") > @sub.Exercise?.Lesson?.Title
+                                    </div>
                                 </td>
                                 <td>@sub.SubmittedAt.ToString("HH:mm - dd/MM/yyyy")</td>
-                                <td><span class="badge bg-light text-dark border">@sub.AutoScore.ToString("F1")</span></td>
+                                <td><span class="badge bg-light text-dark border">@sub.McScoreDisplay</span></td>
                                 <td>
-                                    @if (sub.TeacherScore.HasValue)
+                                    @if (hasWriting)
                                     {
-                                        <span class="badge bg-success bg-opacity-10 text-success fw-bold">@sub.TeacherScore.Value.ToString("F1")</span>
+                                        if (sub.TeacherScore.HasValue)
+                                        {
+                                            <span class="badge bg-success bg-opacity-10 text-success fw-bold">@sub.TeacherScore.Value.ToString("G29") điểm</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark fw-bold">Chờ GV chấm</span>
+                                        }
                                     }
                                     else
                                     {
-                                        <span class="badge bg-warning bg-opacity-10 text-warning fw-bold">Chưa chấm</span>
+                                        <span class="badge bg-light text-muted">Không có</span>
                                     }
                                 </td>
-                                <td><strong class="text-primary fs-6">@sub.TotalScore.ToString("F1")</strong></td>
+                                <td><strong class="text-primary fs-6">@sub.TotalScore.ToString("G29")</strong></td>
                                 <td style="max-width: 200px;">
                                     <span class="text-truncate d-inline-block text-secondary" style="max-width: 200px;">
                                         @(string.IsNullOrEmpty(sub.TeacherComment) ? "(Chưa có nhận xét)" : sub.TeacherComment)
@@ -87,13 +96,51 @@
                                                 <div class="p-3 bg-light rounded-3 mb-3 small">
                                                     <div>Học viên: <strong>@sub.Student?.FullName</strong></div>
                                                     <div>Bài tập: <strong>@sub.Exercise?.Title</strong></div>
-                                                    <div>Điểm tự động: <strong>@sub.AutoScore.ToString("F1") / 10</strong></div>
+                                                    <div>Điểm trắc nghiệm (Tự chấm theo đáp án cố định): <strong class="text-primary">@sub.McScoreDisplay</strong></div>
+                                                    <div>Hình thức: <strong>@(hasWriting ? "Có câu hỏi tự luận (Writing/Speaking)" : "Chỉ có trắc nghiệm")</strong></div>
                                                 </div>
 
+                                                <!-- Chi tiết câu trả lời học viên (đặc biệt là bài tự luận) -->
+                                                @if (!string.IsNullOrEmpty(sub.AnswersJson))
+                                                {
+                                                    Dictionary<string, string>? answersMap = null;
+                                                    try { answersMap = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(sub.AnswersJson); } catch { }
+                                                    if (answersMap != null && sub.Exercise?.Questions != null && sub.Exercise.Questions.Any())
+                                                    {
+                                                        <div class="mb-3">
+                                                            <label class="form-label small fw-semibold text-dark"><i class="bi bi-file-earmark-text me-1 text-primary"></i>Bài làm nộp của học viên:</label>
+                                                            <div class="p-3 border rounded-3 bg-white" style="max-height: 220px; overflow-y: auto;">
+                                                                @{ int qNum = 0; }
+                                                                @foreach (var q in sub.Exercise.Questions)
+                                                                {
+                                                                    qNum++;
+                                                                    var a = answersMap.GetValueOrDefault($"q_{q.QuestionId}");
+                                                                    <div class="mb-2 pb-2 @(qNum < sub.Exercise.Questions.Count ? "border-bottom" : "") small">
+                                                                        <div class="fw-bold text-dark">Câu @qNum (@q.Format): @q.Content</div>
+                                                                        <div class="mt-1 text-secondary">
+                                                                            <span class="badge bg-secondary me-1">Học viên trả lời:</span>
+                                                                            <span class="text-dark fw-semibold">@(string.IsNullOrWhiteSpace(a) ? "(Chưa trả lời)" : a)</span>
+                                                                        </div>
+                                                                        @if (!string.IsNullOrEmpty(q.CorrectAnswer))
+                                                                        {
+                                                                            <div class="text-success mt-1" style="font-size: 11px;">
+                                                                                <i class="bi bi-check2-circle me-1"></i>Đáp án mẫu / Gợi ý: @q.CorrectAnswer
+                                                                            </div>
+                                                                        }
+                                                                    </div>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                }
+
                                                 <div class="mb-3">
-                                                    <label class="form-label small fw-semibold text-secondary">Điểm Giảng Viên Chấm (Thang điểm 10)</label>
-                                                    <input type="number" step="0.5" min="0" max="10" name="teacherScore" 
-                                                           value="@(sub.TeacherScore ?? sub.AutoScore)" class="form-control" required />
+                                                    <label class="form-label small fw-semibold text-secondary">Điểm Giảng Viên Chấm (Phần Tự Luận)</label>
+                                                    <input type="number" step="0.5" min="0" max="100" name="teacherScore" 
+                                                           value="@(sub.TeacherScore ?? 0)" class="form-control" required />
+                                                    <small class="text-muted d-block mt-1">
+                                                        <i class="bi bi-calculator me-1"></i>Tổng điểm học viên = Điểm trắc nghiệm (@sub.AutoScore) + Điểm tự luận GV chấm
+                                                    </small>
                                                 </div>
 
                                                 <div class="mb-3">

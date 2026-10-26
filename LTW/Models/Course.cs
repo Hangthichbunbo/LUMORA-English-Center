@@ -112,7 +112,7 @@ namespace LTW.Models
         public int OrderIndex { get; set; } = 1;
 
         [Display(Name = "Nội dung bài học")]
-        public string Content { get; set; } = string.Empty;
+        public string? Content { get; set; } = string.Empty;
 
         [StringLength(500)]
         [Display(Name = "Video URL")]
@@ -137,6 +137,21 @@ namespace LTW.Models
 
         public virtual ICollection<Exercise> Exercises { get; set; } = new List<Exercise>();
         public virtual ICollection<LessonProgress> LessonProgresses { get; set; } = new List<LessonProgress>();
+    }
+
+    public class TeacherCourseOptionDto
+    {
+        public int CourseId { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public List<TeacherChapterOptionDto> Chapters { get; set; } = new();
+    }
+
+    public class TeacherChapterOptionDto
+    {
+        public int ChapterId { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public int OrderIndex { get; set; }
+        public string DisplayText { get; set; } = string.Empty;
     }
 
     public class LessonProgress

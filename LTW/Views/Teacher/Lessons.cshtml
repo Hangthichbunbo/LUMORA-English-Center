@@ -4,7 +4,18 @@
     ViewData["Title"] = "Quản Lý Bài Học - Giảng Viên LUMORA";
 }
 
-<div class="container-fluid px-lg-5 py-4">
+<partial name="_TeacherPortalHeader" />
+
+<div class="container-fluid px-lg-5 pb-4">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm mb-4 d-flex align-items-center" role="alert">
+            <i class="bi bi-check-circle-fill fs-5 me-2 text-success"></i>
+            <div><strong>Thành công!</strong> @TempData["SuccessMessage"]</div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
             <h3 class="fw-bold text-dark m-0"><i class="bi bi-journal-text me-2 text-primary"></i>Quản Lý Nội Dung Bài Học</h3>
@@ -13,9 +24,6 @@
         <div>
             <a asp-action="CreateLesson" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold shadow-sm" style="background-color: #00A896; border-color: #00A896;">
                 <i class="bi bi-plus-circle me-1"></i> Thêm Bài Học Mới
-            </a>
-            <a asp-action="Dashboard" class="btn btn-outline-secondary btn-sm rounded-pill px-3 ms-2">
-                <i class="bi bi-arrow-left me-1"></i> Dashboard
             </a>
         </div>
     </div>
@@ -44,23 +52,37 @@
                                     <div class="fw-bold text-dark">@l.Title</div>
                                     <div class="text-muted" style="font-size: 11px;">Thứ tự: #@l.OrderIndex</div>
                                 </td>
-                                <td>@l.Chapter?.Course?.Title</td>
+                                <td>
+                                    <a asp-controller="Course" asp-action="Detail" asp-route-id="@l.Chapter?.CourseId" target="_blank" class="fw-semibold text-primary text-decoration-none" title="Xem chi tiết khóa học">
+                                        @l.Chapter?.Course?.Title <i class="bi bi-box-arrow-up-right small ms-1"></i>
+                                    </a>
+                                </td>
                                 <td>Chương @l.Chapter?.OrderIndex: @l.Chapter?.Title</td>
                                 <td>
                                     @if (!string.IsNullOrEmpty(l.VideoUrl)) { <span class="badge bg-primary me-1"><i class="bi bi-camera-video"></i> Video</span> }
                                     @if (!string.IsNullOrEmpty(l.AudioUrl)) { <span class="badge bg-success me-1"><i class="bi bi-headphones"></i> Audio</span> }
                                     @if (!string.IsNullOrEmpty(l.DocumentUrl)) { <span class="badge bg-danger"><i class="bi bi-file-pdf"></i> Doc</span> }
                                 </td>
-                                <td>@(l.Exercises?.Count ?? 0) bài tập</td>
+                                <td>
+                                    <div><span class="fw-semibold">@(l.Exercises?.Count ?? 0)</span> bài tập</div>
+                                    <a asp-action="CreateExercise" asp-route-lessonId="@l.LessonId" class="badge bg-warning bg-opacity-25 text-dark text-decoration-none mt-1 d-inline-block">
+                                        <i class="bi bi-plus-circle me-1"></i>Tạo bài tập
+                                    </a>
+                                </td>
                                 <td>
                                     <span class="badge @(l.IsFreePreview ? "bg-success" : "bg-secondary") rounded-pill">
                                         @(l.IsFreePreview ? "Free Preview" : "Khóa")
                                     </span>
                                 </td>
                                 <td class="text-end pe-4">
-                                    <a asp-controller="Student" asp-action="Lesson" asp-route-id="@l.LessonId" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                                        <i class="bi bi-eye me-1"></i> Xem Giao Diện Học
-                                    </a>
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a asp-controller="Student" asp-action="Lesson" asp-route-id="@l.LessonId" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                            <i class="bi bi-play-circle me-1"></i> Vào Học
+                                        </a>
+                                        <a asp-controller="Course" asp-action="Detail" asp-route-id="@l.Chapter?.CourseId" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-2" title="Xem giáo trình khóa học">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         }
