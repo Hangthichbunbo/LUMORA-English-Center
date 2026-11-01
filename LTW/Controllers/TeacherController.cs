@@ -383,6 +383,244 @@ namespace LTW.Controllers
             return View(lesson);
         }
 
+        // GET: /Teacher/EditLesson/5
+        [HttpGet]
+        [Authorize(Roles = "Teacher,Admin")]
+        public async Task<IActionResult> EditLesson(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var lesson = await _context.Lessons
+                .Include(l => l.Chapter)
+                    .ThenInclude(ch => ch!.Course)
+                .FirstOrDefaultAsync(l => l.LessonId == id);
+
+            if (lesson == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy bài học yêu cầu.";
+                return RedirectToAction(nameof(Lessons));
+            }
+
+            var isAdmin = User.IsInRole("Admin");
+            if (lesson.Chapter?.Course?.TeacherId != user.Id && !isAdmin)
+            {
+                TempData["ErrorMessage"] = "Bạn không có quyền chỉnh sửa bài học này.";
+                return RedirectToAction(nameof(Lessons));
+            }
+
+            var courses = await GetTeacherCoursesHierarchyAsync(user.Id);
+            ViewBag.Courses = courses;
+            ViewBag.CoursesJson = JsonSerializer.Serialize(courses);
+
+            var chapters = courses.SelectMany(c => c.Chapters.Select(ch => new { ch.ChapterId, Title = $"{c.Title} - {ch.DisplayText}" })).ToList();
+            ViewBag.Chapters = new SelectList(chapters, "ChapterId", "Title", lesson.ChapterId);
+
+            ViewBag.SelectedCourseId = lesson.Chapter?.CourseId;
+            ViewBag.SelectedChapterId = lesson.ChapterId;
+            ViewBag.IsNewChapter = false;
+
+            return View(lesson);
+        }
+
+        // POST: /Teacher/EditLesson/5
+        [HttpPost]
+        [Authorize(Roles = "Teacher,Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditLesson(
+            int id,
+            Lesson lesson,
+            int? courseId,
+            bool isNewChapter = false,
+            string? newChapterTitle = null,
+            int? newChapterOrder = null)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var existingLesson = await _context.Lessons
+                .Include(l => l.Chapter)
+                    .ThenInclude(ch => ch!.Course)
+                .FirstOrDefaultAsync(l => l.LessonId == id);
+
+            if (existingLesson == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy bài học cần cập nhật.";
+                return RedirectToAction(nameof(Lessons));
+            }
+
+            var isAdmin = User.IsInRole("Admin");
+            if (existingLesson.Chapter?.Course?.TeacherId != user.Id && !isAdmin)
+            {
+                TempData["ErrorMessage"] = "Bạn không có quyền chỉnh sửa bài học này.";
+                return RedirectToAction(nameof(Lessons));
+            }
+
+            ModelState.Remove("Chapter");
+            ModelState.Remove("Exercises");
+            ModelState.Remove("LessonProgresses");
+            ModelState.Remove("Content");
+
+            lesson.Content ??= string.Empty;
+
+            if (isNewChapter)
+            {
+                ModelState.Remove("ChapterId");
+
+                if (courseId == null || courseId <= 0)
+                {
+                    ModelState.AddModelError("courseId", "Vui lòng chọn khóa học để tạo chương mới");
+                }
+                else if (string.IsNullOrWhiteSpace(newChapterTitle))
+                {
+                    ModelState.AddModelError("newChapterTitle", "Vui lòng nhập tên chương mới");
+                }
+                else
+                {
+                    var course = await _context.Courses
+                        .Include(c => c.Chapters)
+                        .FirstOrDefaultAsync(c => c.CourseId == courseId.Value && (c.TeacherId == user.Id || isAdmin));
+
+                    if (course == null)
+                    {
+                        ModelState.AddModelError("courseId", "Khóa học không tồn tại hoặc bạn không có quyền phụ trách khóa này");
+                    }
+                    else
+                    {
+                        var maxOrder = course.Chapters.Any() ? course.Chapters.Max(ch => ch.OrderIndex) : 0;
+                        var order = (newChapterOrder.HasValue && newChapterOrder.Value > 0) ? newChapterOrder.Value : (maxOrder + 1);
+
+                        var createdChapter = new Chapter
+                        {
+                            CourseId = course.CourseId,
+                            Title = newChapterTitle.Trim(),
+                            OrderIndex = order
+                        };
+                        _context.Chapters.Add(createdChapter);
+                        await _context.SaveChangesAsync();
+
+                        lesson.ChapterId = createdChapter.ChapterId;
+                        ModelState.Remove("ChapterId");
+                    }
+                }
+            }
+            else
+            {
+                if (lesson.ChapterId <= 0)
+                {
+                    ModelState.AddModelError("ChapterId", "Vui lòng chọn chương học");
+                }
+                else
+                {
+                    var chapter = await _context.Chapters
+                        .Include(ch => ch.Course)
+                        .FirstOrDefaultAsync(ch => ch.ChapterId == lesson.ChapterId && (ch.Course!.TeacherId == user.Id || isAdmin));
+                    if (chapter == null)
+                    {
+                        ModelState.AddModelError("ChapterId", "Chương học không tồn tại hoặc bạn không có quyền quản lý");
+                    }
+                }
+            }
+
+            if (ModelState.IsValid)
+            {
+                existingLesson.Title = lesson.Title.Trim();
+                existingLesson.ChapterId = lesson.ChapterId;
+                existingLesson.OrderIndex = lesson.OrderIndex > 0 ? lesson.OrderIndex : 1;
+                existingLesson.Content = lesson.Content;
+                existingLesson.VideoUrl = lesson.VideoUrl?.Trim();
+                existingLesson.AudioUrl = lesson.AudioUrl?.Trim();
+                existingLesson.DocumentUrl = lesson.DocumentUrl?.Trim();
+                existingLesson.Vocabulary = lesson.Vocabulary?.Trim();
+                existingLesson.Grammar = lesson.Grammar?.Trim();
+                existingLesson.IsFreePreview = lesson.IsFreePreview;
+
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"Cập nhật bài học '{existingLesson.Title}' thành công!";
+                return RedirectToAction(nameof(Lessons));
+            }
+
+            var courses = await GetTeacherCoursesHierarchyAsync(user.Id);
+            ViewBag.Courses = courses;
+            ViewBag.CoursesJson = JsonSerializer.Serialize(courses);
+
+            var chapters = courses.SelectMany(c => c.Chapters.Select(ch => new { ch.ChapterId, Title = $"{c.Title} - {ch.DisplayText}" })).ToList();
+            ViewBag.Chapters = new SelectList(chapters, "ChapterId", "Title");
+
+            ViewBag.SelectedCourseId = courseId ?? existingLesson.Chapter?.CourseId;
+            ViewBag.SelectedChapterId = lesson.ChapterId > 0 ? lesson.ChapterId : existingLesson.ChapterId;
+            ViewBag.IsNewChapter = isNewChapter;
+            ViewBag.NewChapterTitle = newChapterTitle;
+            ViewBag.NewChapterOrder = newChapterOrder;
+
+            lesson.LessonId = id;
+            return View(lesson);
+        }
+
+        // POST: /Teacher/DeleteLesson
+        [HttpPost]
+        [Authorize(Roles = "Teacher,Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteLesson(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var lesson = await _context.Lessons
+                .Include(l => l.Chapter)
+                    .ThenInclude(ch => ch!.Course)
+                .Include(l => l.Exercises)
+                    .ThenInclude(e => e.Questions)
+                .Include(l => l.Exercises)
+                    .ThenInclude(e => e.Submissions)
+                .Include(l => l.LessonProgresses)
+                .FirstOrDefaultAsync(l => l.LessonId == id);
+
+            if (lesson == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy bài học cần xóa.";
+                return RedirectToAction(nameof(Lessons));
+            }
+
+            var isAdmin = User.IsInRole("Admin");
+            if (lesson.Chapter?.Course?.TeacherId != user.Id && !isAdmin)
+            {
+                TempData["ErrorMessage"] = "Bạn không có quyền xóa bài học này.";
+                return RedirectToAction(nameof(Lessons));
+            }
+
+            var lessonTitle = lesson.Title;
+
+            // Cascade cleanup to prevent FK constraint issues
+            if (lesson.Exercises != null && lesson.Exercises.Any())
+            {
+                foreach (var ex in lesson.Exercises)
+                {
+                    if (ex.Submissions != null && ex.Submissions.Any())
+                    {
+                        _context.ExerciseSubmissions.RemoveRange(ex.Submissions);
+                    }
+                    if (ex.Questions != null && ex.Questions.Any())
+                    {
+                        _context.ExerciseQuestions.RemoveRange(ex.Questions);
+                    }
+                }
+                _context.Exercises.RemoveRange(lesson.Exercises);
+            }
+
+            if (lesson.LessonProgresses != null && lesson.LessonProgresses.Any())
+            {
+                _context.LessonProgresses.RemoveRange(lesson.LessonProgresses);
+            }
+
+            _context.Lessons.Remove(lesson);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Đã xóa bài học '{lessonTitle}' thành công!";
+            return RedirectToAction(nameof(Lessons));
+        }
+
         // GET: /Teacher/Exercises
         [HttpGet]
         [Authorize(Roles = "Teacher,Admin")]
@@ -477,18 +715,41 @@ namespace LTW.Controllers
             string? correctOpt, 
             string? explanation)
         {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            var isAdmin = User.IsInRole("Admin");
+
             ModelState.Remove("Lesson");
             ModelState.Remove("Questions");
             ModelState.Remove("Submissions");
+            ModelState.Remove("Description");
 
             if (exercise.LessonId <= 0)
             {
                 ModelState.AddModelError("LessonId", "Vui lòng chọn bài học trực thuộc");
             }
+            else
+            {
+                var lesson = await _context.Lessons
+                    .Include(l => l.Chapter)
+                        .ThenInclude(ch => ch!.Course)
+                    .FirstOrDefaultAsync(l => l.LessonId == exercise.LessonId && (l.Chapter!.Course!.TeacherId == user.Id || isAdmin));
+                if (lesson == null)
+                {
+                    ModelState.AddModelError("LessonId", "Bài học không tồn tại hoặc bạn không có quyền quản lý");
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(exercise.Title))
+            {
+                ModelState.AddModelError("Title", "Vui lòng nhập tên bài tập");
+            }
 
             if (ModelState.IsValid)
             {
                 exercise.CreatedAt = DateTime.Now;
+                exercise.TimeLimitMinutes = exercise.TimeLimitMinutes > 0 ? exercise.TimeLimitMinutes : 20;
+                exercise.PassingScore = exercise.PassingScore >= 0 ? exercise.PassingScore : 70;
                 _context.Exercises.Add(exercise);
                 await _context.SaveChangesAsync();
 
@@ -505,7 +766,7 @@ namespace LTW.Controllers
                         var format = isWriting ? QuestionFormat.Writing : QuestionFormat.MultipleChoice;
 
                         string? optionsJson = null;
-                        string correctAnswer = qItem.CorrectAnswer?.Trim() ?? "";
+                        string correctAnswer = (qItem.WritingAnswer ?? qItem.CorrectAnswer)?.Trim() ?? "";
 
                         if (!isWriting)
                         {
@@ -531,6 +792,7 @@ namespace LTW.Controllers
                                     case "B": correctAnswer = options[1]; break;
                                     case "C": correctAnswer = options[2]; break;
                                     case "D": correctAnswer = options[3]; break;
+                                    default: correctAnswer = options[0]; break;
                                 }
                             }
                         }
@@ -579,15 +841,18 @@ namespace LTW.Controllers
 
                 await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = $"Tạo bài tập và {questionsAdded} câu hỏi thành công!";
+                TempData["SuccessMessage"] = $"Tạo bài tập '{exercise.Title}' và {questionsAdded} câu hỏi thành công!";
                 return RedirectToAction(nameof(Exercises));
             }
 
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
+            var errorList = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).Where(m => !string.IsNullOrEmpty(m)).ToList();
+            if (errorList.Any())
+            {
+                TempData["ErrorMessage"] = string.Join("; ", errorList);
+            }
 
             var coursesHierarchy = await _context.Courses
-                .Where(c => c.TeacherId == user.Id || User.IsInRole("Admin"))
+                .Where(c => c.TeacherId == user.Id || isAdmin)
                 .OrderBy(c => c.Title)
                 .Select(c => new {
                     c.CourseId,
@@ -613,7 +878,7 @@ namespace LTW.Controllers
             var flatLessons = coursesHierarchy
                 .SelectMany(c => c.Chapters.SelectMany(ch => ch.Lessons.Select(l => new { l.LessonId, Title = $"{c.Title} > {ch.DisplayText} > {l.DisplayText}" })))
                 .ToList();
-            ViewBag.Lessons = new SelectList(flatLessons, "LessonId", "Title");
+            ViewBag.Lessons = new SelectList(flatLessons, "LessonId", "Title", exercise.LessonId);
 
             if (exercise.LessonId > 0)
             {
@@ -633,6 +898,375 @@ namespace LTW.Controllers
             }
 
             return View(exercise);
+        }
+
+        // GET: /Teacher/EditExercise/5
+        [HttpGet]
+        [Authorize(Roles = "Teacher,Admin")]
+        public async Task<IActionResult> EditExercise(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            var isAdmin = User.IsInRole("Admin");
+
+            var exercise = await _context.Exercises
+                .Include(e => e.Lesson)
+                    .ThenInclude(l => l!.Chapter)
+                        .ThenInclude(ch => ch!.Course)
+                .Include(e => e.Questions)
+                .Include(e => e.Submissions)
+                .FirstOrDefaultAsync(e => e.ExerciseId == id);
+
+            if (exercise == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy bài tập yêu cầu.";
+                return RedirectToAction(nameof(Exercises));
+            }
+
+            if (exercise.Lesson?.Chapter?.Course?.TeacherId != user.Id && !isAdmin)
+            {
+                TempData["ErrorMessage"] = "Bạn không có quyền chỉnh sửa bài tập này.";
+                return RedirectToAction(nameof(Exercises));
+            }
+
+            var coursesHierarchy = await _context.Courses
+                .Where(c => c.TeacherId == user.Id || isAdmin)
+                .OrderBy(c => c.Title)
+                .Select(c => new {
+                    c.CourseId,
+                    c.Title,
+                    Chapters = c.Chapters.OrderBy(ch => ch.OrderIndex).Select(ch => new {
+                        ch.ChapterId,
+                        ch.Title,
+                        ch.OrderIndex,
+                        DisplayText = $"Chương {ch.OrderIndex}: {ch.Title}",
+                        Lessons = ch.Lessons.OrderBy(l => l.OrderIndex).Select(l => new {
+                            l.LessonId,
+                            l.Title,
+                            l.OrderIndex,
+                            DisplayText = $"Bài {l.OrderIndex}: {l.Title}"
+                        }).ToList()
+                    }).ToList()
+                })
+                .ToListAsync();
+
+            ViewBag.CoursesHierarchy = coursesHierarchy;
+            ViewBag.CoursesHierarchyJson = JsonSerializer.Serialize(coursesHierarchy);
+
+            var flatLessons = coursesHierarchy
+                .SelectMany(c => c.Chapters.SelectMany(ch => ch.Lessons.Select(l => new { l.LessonId, Title = $"{c.Title} > {ch.DisplayText} > {l.DisplayText}" })))
+                .ToList();
+            ViewBag.Lessons = new SelectList(flatLessons, "LessonId", "Title", exercise.LessonId);
+
+            ViewBag.SelectedCourseId = exercise.Lesson?.Chapter?.CourseId;
+            ViewBag.SelectedChapterId = exercise.Lesson?.ChapterId;
+            ViewBag.SelectedLessonId = exercise.LessonId;
+
+            return View(exercise);
+        }
+
+        // POST: /Teacher/EditExercise/5
+        [HttpPost]
+        [Authorize(Roles = "Teacher,Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditExercise(
+            int id,
+            Exercise exercise,
+            List<QuestionInputModel>? questions,
+            string? questionContent,
+            string? optA,
+            string? optB,
+            string? optC,
+            string? optD,
+            string? correctOpt,
+            string? explanation)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            var isAdmin = User.IsInRole("Admin");
+
+            var existingExercise = await _context.Exercises
+                .Include(e => e.Lesson)
+                    .ThenInclude(l => l!.Chapter)
+                        .ThenInclude(ch => ch!.Course)
+                .Include(e => e.Questions)
+                .FirstOrDefaultAsync(e => e.ExerciseId == id);
+
+            if (existingExercise == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy bài tập cần cập nhật.";
+                return RedirectToAction(nameof(Exercises));
+            }
+
+            if (existingExercise.Lesson?.Chapter?.Course?.TeacherId != user.Id && !isAdmin)
+            {
+                TempData["ErrorMessage"] = "Bạn không có quyền chỉnh sửa bài tập này.";
+                return RedirectToAction(nameof(Exercises));
+            }
+
+            ModelState.Remove("Lesson");
+            ModelState.Remove("Questions");
+            ModelState.Remove("Submissions");
+            ModelState.Remove("Description");
+
+            var questionKeys = ModelState.Keys.Where(k => k.StartsWith("questions", StringComparison.OrdinalIgnoreCase)).ToList();
+            foreach (var k in questionKeys)
+            {
+                ModelState.Remove(k);
+            }
+
+            if (exercise.LessonId <= 0)
+            {
+                exercise.LessonId = existingExercise.LessonId;
+            }
+
+            if (exercise.LessonId <= 0)
+            {
+                ModelState.AddModelError("LessonId", "Vui lòng chọn bài học trực thuộc");
+            }
+            else
+            {
+                var lesson = await _context.Lessons
+                    .Include(l => l.Chapter)
+                        .ThenInclude(ch => ch!.Course)
+                    .FirstOrDefaultAsync(l => l.LessonId == exercise.LessonId && (l.Chapter!.Course!.TeacherId == user.Id || isAdmin));
+                if (lesson == null)
+                {
+                    ModelState.AddModelError("LessonId", "Bài học không tồn tại hoặc bạn không có quyền quản lý");
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(exercise.Title))
+            {
+                ModelState.AddModelError("Title", "Vui lòng nhập tên bài tập");
+            }
+
+            if (ModelState.IsValid)
+            {
+                existingExercise.Title = exercise.Title.Trim();
+                existingExercise.Description = exercise.Description;
+                existingExercise.TimeLimitMinutes = exercise.TimeLimitMinutes > 0 ? exercise.TimeLimitMinutes : 20;
+                existingExercise.PassingScore = exercise.PassingScore >= 0 ? exercise.PassingScore : 70;
+                existingExercise.LessonId = exercise.LessonId;
+
+                // Update Questions: remove existing questions and replace with updated ones
+                if (existingExercise.Questions != null && existingExercise.Questions.Any())
+                {
+                    _context.ExerciseQuestions.RemoveRange(existingExercise.Questions);
+                }
+
+                int questionsAdded = 0;
+                if (questions != null && questions.Any())
+                {
+                    foreach (var qItem in questions)
+                    {
+                        if (string.IsNullOrWhiteSpace(qItem.Content)) continue;
+
+                        var isWriting = string.Equals(qItem.Format, "Writing", StringComparison.OrdinalIgnoreCase);
+                        var format = isWriting ? QuestionFormat.Writing : QuestionFormat.MultipleChoice;
+
+                        string? optionsJson = null;
+                        string correctAnswer = (qItem.WritingAnswer ?? qItem.CorrectAnswer)?.Trim() ?? "";
+
+                        if (!isWriting)
+                        {
+                            var options = new[]
+                            {
+                                $"A. {qItem.OptA ?? ""}".Trim(),
+                                $"B. {qItem.OptB ?? ""}".Trim(),
+                                $"C. {qItem.OptC ?? ""}".Trim(),
+                                $"D. {qItem.OptD ?? ""}".Trim()
+                            };
+                            optionsJson = JsonSerializer.Serialize(options);
+
+                            // Normalize answer key
+                            if (string.IsNullOrWhiteSpace(correctAnswer))
+                            {
+                                correctAnswer = options[0];
+                            }
+                            else if (correctAnswer.Length == 1)
+                            {
+                                switch (correctAnswer.ToUpperInvariant())
+                                {
+                                    case "A": correctAnswer = options[0]; break;
+                                    case "B": correctAnswer = options[1]; break;
+                                    case "C": correctAnswer = options[2]; break;
+                                    case "D": correctAnswer = options[3]; break;
+                                    default: correctAnswer = options[0]; break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (string.IsNullOrWhiteSpace(correctAnswer))
+                            {
+                                correctAnswer = "Tự luận - Giảng viên chấm điểm theo rubric";
+                            }
+                        }
+
+                        var q = new ExerciseQuestion
+                        {
+                            ExerciseId = existingExercise.ExerciseId,
+                            Skill = qItem.Skill != 0 ? qItem.Skill : SkillType.Reading,
+                            Format = format,
+                            Content = qItem.Content.Trim(),
+                            OptionsJson = optionsJson,
+                            CorrectAnswer = correctAnswer,
+                            Explanation = qItem.Explanation,
+                            Points = qItem.Points > 0 ? qItem.Points : 10
+                        };
+                        _context.ExerciseQuestions.Add(q);
+                        questionsAdded++;
+                    }
+                }
+
+                if (questionsAdded == 0 && !string.IsNullOrWhiteSpace(questionContent))
+                {
+                    var options = new[] { $"A. {optA}", $"B. {optB}", $"C. {optC}", $"D. {optD}" };
+                    var q = new ExerciseQuestion
+                    {
+                        ExerciseId = existingExercise.ExerciseId,
+                        Skill = SkillType.Reading,
+                        Format = QuestionFormat.MultipleChoice,
+                        Content = questionContent.Trim(),
+                        OptionsJson = JsonSerializer.Serialize(options),
+                        CorrectAnswer = string.IsNullOrWhiteSpace(correctOpt) ? $"A. {optA}" : correctOpt.Trim(),
+                        Explanation = explanation,
+                        Points = 10
+                    };
+                    _context.ExerciseQuestions.Add(q);
+                    questionsAdded++;
+                }
+
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"Cập nhật bài tập '{existingExercise.Title}' và {questionsAdded} câu hỏi thành công!";
+                return RedirectToAction(nameof(Exercises));
+            }
+
+            var errorList = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).Where(m => !string.IsNullOrEmpty(m)).ToList();
+            if (errorList.Any())
+            {
+                TempData["ErrorMessage"] = string.Join("; ", errorList);
+            }
+
+            var coursesHierarchy = await _context.Courses
+                .Where(c => c.TeacherId == user.Id || isAdmin)
+                .OrderBy(c => c.Title)
+                .Select(c => new {
+                    c.CourseId,
+                    c.Title,
+                    Chapters = c.Chapters.OrderBy(ch => ch.OrderIndex).Select(ch => new {
+                        ch.ChapterId,
+                        ch.Title,
+                        ch.OrderIndex,
+                        DisplayText = $"Chương {ch.OrderIndex}: {ch.Title}",
+                        Lessons = ch.Lessons.OrderBy(l => l.OrderIndex).Select(l => new {
+                            l.LessonId,
+                            l.Title,
+                            l.OrderIndex,
+                            DisplayText = $"Bài {l.OrderIndex}: {l.Title}"
+                        }).ToList()
+                    }).ToList()
+                })
+                .ToListAsync();
+
+            ViewBag.CoursesHierarchy = coursesHierarchy;
+            ViewBag.CoursesHierarchyJson = JsonSerializer.Serialize(coursesHierarchy);
+
+            var flatLessons = coursesHierarchy
+                .SelectMany(c => c.Chapters.SelectMany(ch => ch.Lessons.Select(l => new { l.LessonId, Title = $"{c.Title} > {ch.DisplayText} > {l.DisplayText}" })))
+                .ToList();
+            ViewBag.Lessons = new SelectList(flatLessons, "LessonId", "Title", exercise.LessonId);
+
+            if (exercise.LessonId > 0)
+            {
+                foreach (var c in coursesHierarchy)
+                {
+                    foreach (var ch in c.Chapters)
+                    {
+                        if (ch.Lessons.Any(l => l.LessonId == exercise.LessonId))
+                        {
+                            ViewBag.SelectedCourseId = c.CourseId;
+                            ViewBag.SelectedChapterId = ch.ChapterId;
+                            ViewBag.SelectedLessonId = exercise.LessonId;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (questions != null && questions.Any())
+            {
+                exercise.Questions = questions.Select(q => new ExerciseQuestion
+                {
+                    QuestionId = q.QuestionId,
+                    Content = q.Content ?? "",
+                    Format = string.Equals(q.Format, "Writing", StringComparison.OrdinalIgnoreCase) ? QuestionFormat.Writing : QuestionFormat.MultipleChoice,
+                    Skill = q.Skill,
+                    Points = q.Points,
+                    OptionsJson = JsonSerializer.Serialize(new[] { $"A. {q.OptA ?? ""}", $"B. {q.OptB ?? ""}", $"C. {q.OptC ?? ""}", $"D. {q.OptD ?? ""}" }),
+                    CorrectAnswer = q.WritingAnswer ?? q.CorrectAnswer ?? "",
+                    Explanation = q.Explanation
+                }).ToList();
+            }
+            else
+            {
+                exercise.Questions = existingExercise.Questions;
+            }
+
+            exercise.ExerciseId = id;
+            return View(exercise);
+        }
+
+        // POST: /Teacher/DeleteExercise
+        [HttpPost]
+        [Authorize(Roles = "Teacher,Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteExercise(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            var isAdmin = User.IsInRole("Admin");
+
+            var exercise = await _context.Exercises
+                .Include(e => e.Lesson)
+                    .ThenInclude(l => l!.Chapter)
+                        .ThenInclude(ch => ch!.Course)
+                .Include(e => e.Questions)
+                .Include(e => e.Submissions)
+                .FirstOrDefaultAsync(e => e.ExerciseId == id);
+
+            if (exercise == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy bài tập cần xóa.";
+                return RedirectToAction(nameof(Exercises));
+            }
+
+            if (exercise.Lesson?.Chapter?.Course?.TeacherId != user.Id && !isAdmin)
+            {
+                TempData["ErrorMessage"] = "Bạn không có quyền xóa bài tập này.";
+                return RedirectToAction(nameof(Exercises));
+            }
+
+            var title = exercise.Title;
+
+            // Cascade remove dependent records
+            if (exercise.Submissions != null && exercise.Submissions.Any())
+            {
+                _context.ExerciseSubmissions.RemoveRange(exercise.Submissions);
+            }
+
+            if (exercise.Questions != null && exercise.Questions.Any())
+            {
+                _context.ExerciseQuestions.RemoveRange(exercise.Questions);
+            }
+
+            _context.Exercises.Remove(exercise);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Đã xóa bài tập '{title}' thành công!";
+            return RedirectToAction(nameof(Exercises));
         }
 
         // GET: /Teacher/Students

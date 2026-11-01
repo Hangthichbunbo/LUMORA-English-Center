@@ -1,0 +1,423 @@
+@model LTW.Models.Lesson
+
+@{
+    ViewData["Title"] = $"Chỉnh Sửa Bài Học: {Model.Title} - Giảng Viên LUMORA";
+}
+
+<div class="container py-4" style="max-width: 900px;">
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+        <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+            <div>
+                <h3 class="fw-bold text-dark m-0"><i class="bi bi-pencil-square me-2 text-warning"></i>Chỉnh Sửa Bài Học</h3>
+                <p class="text-muted small m-0">Cập nhật nội dung lý thuyết, video, audio nghe, tài liệu và từ vựng trọng tâm</p>
+            </div>
+            <a asp-action="Lessons" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i> Quay Lại
+            </a>
+        </div>
+
+        <form asp-action="EditLesson" asp-route-id="@Model.LessonId" method="post" id="editLessonForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="LessonId" />
+            <div asp-validation-summary="All" class="alert alert-danger small mb-3 @(ViewData.ModelState.IsValid ? "d-none" : "")"></div>
+
+            <input type="hidden" name="isNewChapter" id="isNewChapterInput" value="@(ViewBag.IsNewChapter == true ? "true" : "false")" />
+
+            <div class="row g-3 mb-4">
+                <!-- Bước 1: Chọn Khóa học trước -->
+                <div class="col-12">
+                    <label for="courseSelect" class="form-label small fw-semibold text-secondary">
+                        <i class="bi bi-mortarboard me-1 text-primary"></i>Khóa Học Trực Thuộc <span class="text-danger">*</span>
+                    </label>
+                    <select id="courseSelect" name="courseId" class="form-select" required>
+                        <option value="">-- Vui lòng chọn khóa học --</option>
+                        @if (ViewBag.Courses != null)
+                        {
+                            foreach (var c in ViewBag.Courses)
+                            {
+                                <option value="@c.CourseId">@c.Title</option>
+                            }
+                        }
+                    </select>
+                    <span class="text-danger small field-validation-valid" data-valmsg-for="courseId" data-valmsg-replace="true"></span>
+                    <div class="form-text small text-muted">Bước 1: Chọn khóa học để quản lý chương học trực thuộc</div>
+                </div>
+
+                <!-- Bước 2: Chọn chương học có sẵn HOẶC Tạo chương mới -->
+                <div class="col-12">
+                    <div class="p-3 bg-light rounded-4 border">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                            <span class="fw-bold text-dark small d-flex align-items-center">
+                                <i class="bi bi-folder2-open text-primary me-2"></i>Chương Học Trong Khóa <span class="text-danger">*</span>
+                            </span>
+                            
+                            <!-- Toggle Mode -->
+                            <div class="btn-group btn-group-sm" role="group">
+                                <input type="radio" class="btn-check" name="chapterModeToggle" id="modeExisting" value="existing" autocomplete="off" @(ViewBag.IsNewChapter == true ? "" : "checked")>
+                                <label class="btn btn-outline-primary px-3 rounded-start-pill" for="modeExisting">
+                                    <i class="bi bi-list-task me-1"></i>Chọn chương có sẵn
+                                </label>
+
+                                <input type="radio" class="btn-check" name="chapterModeToggle" id="modeNew" value="new" autocomplete="off" @(ViewBag.IsNewChapter == true ? "checked" : "")>
+                                <label class="btn btn-outline-primary px-3 rounded-end-pill" for="modeNew">
+                                    <i class="bi bi-folder-plus me-1"></i>+ Tạo chương mới
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Khung 1: Chọn chương có sẵn -->
+                        <div id="existingChapterBox" class="@(ViewBag.IsNewChapter == true ? "d-none" : "")">
+                            <label asp-for="ChapterId" class="form-label small fw-semibold text-secondary">
+                                Chọn chương trong khóa học đã chọn
+                            </label>
+                            <div class="input-group">
+                                <select asp-for="ChapterId" id="chapterSelect" class="form-select" required>
+                                    <option value="">-- Vui lòng chọn khóa học trước --</option>
+                                </select>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="btnSwitchToNew" title="Bấm để tạo chương mới">
+                                    <i class="bi bi-plus-circle me-1"></i>Tạo mới
+                                </button>
+                            </div>
+                            <span asp-validation-for="ChapterId" class="text-danger small"></span>
+                            <div class="form-text small text-muted" id="existingChapterHint">Chọn chương mà bài học này sẽ thuộc về</div>
+                        </div>
+
+                        <!-- Khung 2: Tạo chương mới -->
+                        <div id="newChapterBox" class="@(ViewBag.IsNewChapter == true ? "" : "d-none")">
+                            <div class="alert alert-info py-2 px-3 small mb-3 border-0 bg-white shadow-none">
+                                <i class="bi bi-info-circle me-1 text-primary"></i>
+                                Bạn đang tạo chương mới cho khóa học này. Chương sẽ được tự động lưu cùng với bài học.
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-md-9">
+                                    <label for="newChapterTitle" class="form-label small fw-semibold text-secondary">
+                                        Tên Chương Mới <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" id="newChapterTitle" name="newChapterTitle" class="form-control" placeholder="Ví dụ: Chương 3: Kỹ năng Reading - Skimming & Scanning" value="@ViewBag.NewChapterTitle" />
+                                    <div class="text-danger small" id="newChapterTitleError"></div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="newChapterOrder" class="form-label small fw-semibold text-secondary">
+                                        Thứ tự chương (#)
+                                    </label>
+                                    <input type="number" id="newChapterOrder" name="newChapterOrder" class="form-control" min="1" value="@(ViewBag.NewChapterOrder ?? 1)" />
+                                </div>
+                            </div>
+                            <div class="mt-2 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                                <span class="text-muted small">Mẹo: Bạn có thể bấm nút bên phải để lưu chương ngay bây giờ</span>
+                                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3" id="btnQuickSaveChapter">
+                                    <i class="bi bi-check-circle me-1"></i>Tạo chương ngay
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <label asp-for="Title" class="form-label small fw-semibold text-secondary"></label>
+                    <input asp-for="Title" class="form-control" placeholder="Ví dụ: Bài 1: Chiến thuật Form & Note Completion" required />
+                    <span asp-validation-for="Title" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="OrderIndex" class="form-label small fw-semibold text-secondary">Thứ tự hiển thị (#)</label>
+                    <input asp-for="OrderIndex" class="form-control" type="number" min="1" />
+                    <span asp-validation-for="OrderIndex" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <h6 class="fw-bold text-secondary text-uppercase small mb-3">Nội Dung Đa Phương Tiện (Multimedia)</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label asp-for="VideoUrl" class="form-label small fw-semibold text-secondary">Đường dẫn Video bài giảng (YouTube Embed URL)</label>
+                    <input asp-for="VideoUrl" class="form-control" placeholder="https://www.youtube.com/embed/..." />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="AudioUrl" class="form-label small fw-semibold text-secondary">Đường dẫn Audio nghe (MP3 URL)</label>
+                    <input asp-for="AudioUrl" class="form-control" placeholder="https://example.com/audio.mp3" />
+                </div>
+                <div class="col-md-12">
+                    <label asp-for="DocumentUrl" class="form-label small fw-semibold text-secondary">Tài liệu đính kèm (PDF / Handout Drive link)</label>
+                    <input asp-for="DocumentUrl" class="form-control" placeholder="https://example.com/handout.pdf" />
+                </div>
+            </div>
+
+            <h6 class="fw-bold text-secondary text-uppercase small mb-3">Nội Dung Bài Học & Học Thuật</h6>
+            <div class="mb-3">
+                <label asp-for="Content" class="form-label small fw-semibold text-secondary">Nội dung lý thuyết & hướng dẫn (HTML hỗ trợ)</label>
+                <textarea asp-for="Content" class="form-control font-monospace" rows="6" placeholder="<p>Nội dung chi tiết của bài học...</p>"></textarea>
+                <span asp-validation-for="Content" class="text-danger small"></span>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label asp-for="Grammar" class="form-label small fw-semibold text-secondary">Điểm ngữ pháp cốt lõi</label>
+                    <textarea asp-for="Grammar" class="form-control" rows="3" placeholder="Ví dụ: Subject-Verb Agreement, Passive Voice..."></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Vocabulary" class="form-label small fw-semibold text-secondary">Từ vựng trọng tâm (JSON / Text)</label>
+                    <textarea asp-for="Vocabulary" class="form-control" rows="3" placeholder="Ví dụ: Accommodation, Registration, Curriculum..."></textarea>
+                </div>
+            </div>
+
+            <div class="form-check form-switch mb-4 p-3 bg-light rounded-4 border ps-5">
+                <input asp-for="IsFreePreview" class="form-check-input" type="checkbox" role="switch" id="freePreviewSwitch">
+                <label class="form-check-label fw-bold text-dark small" for="freePreviewSwitch">
+                    Cho phép học viên học thử miễn phí (Free Preview)
+                </label>
+                <div class="text-muted small">Nếu bật, học viên chưa mua khóa học vẫn có thể xem và làm bài học này để trải nghiệm chất lượng giảng dạy.</div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                <a asp-action="Lessons" class="btn btn-light rounded-pill px-4">Hủy bỏ</a>
+                <button type="submit" class="btn btn-warning text-dark px-4 py-2 rounded-pill fw-semibold shadow-sm">
+                    <i class="bi bi-check-circle-fill me-1"></i> Lưu Thay Đổi Bài Học
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var coursesData = @Html.Raw(ViewBag.CoursesJson ?? "[]");
+            var selectedCourseId = '@(ViewBag.SelectedCourseId ?? "")';
+            var selectedChapterId = '@(ViewBag.SelectedChapterId ?? Model.ChapterId.ToString())';
+            var isNewChapterInitial = @(ViewBag.IsNewChapter == true ? "true" : "false");
+
+            var courseSelect = document.getElementById('courseSelect');
+            var chapterSelect = document.getElementById('chapterSelect');
+            var modeExisting = document.getElementById('modeExisting');
+            var modeNew = document.getElementById('modeNew');
+            var existingChapterBox = document.getElementById('existingChapterBox');
+            var newChapterBox = document.getElementById('newChapterBox');
+            var isNewChapterInput = document.getElementById('isNewChapterInput');
+            var newChapterTitle = document.getElementById('newChapterTitle');
+            var newChapterOrder = document.getElementById('newChapterOrder');
+            var newChapterTitleError = document.getElementById('newChapterTitleError');
+            var btnSwitchToNew = document.getElementById('btnSwitchToNew');
+            var btnQuickSaveChapter = document.getElementById('btnQuickSaveChapter');
+            var form = document.getElementById('editLessonForm');
+
+            function setChapterMode(isNew) {
+                if (isNew) {
+                    modeNew.checked = true;
+                    existingChapterBox.classList.add('d-none');
+                    newChapterBox.classList.remove('d-none');
+                    isNewChapterInput.value = "true";
+                    chapterSelect.removeAttribute('required');
+                    newChapterTitle.setAttribute('required', 'required');
+                    newChapterTitle.focus();
+                } else {
+                    modeExisting.checked = true;
+                    existingChapterBox.classList.remove('d-none');
+                    newChapterBox.classList.add('d-none');
+                    isNewChapterInput.value = "false";
+                    chapterSelect.setAttribute('required', 'required');
+                    newChapterTitle.removeAttribute('required');
+                    newChapterTitleError.textContent = '';
+                }
+            }
+
+            if (modeExisting) modeExisting.addEventListener('change', function () { setChapterMode(false); });
+            if (modeNew) modeNew.addEventListener('change', function () { setChapterMode(true); });
+            if (btnSwitchToNew) btnSwitchToNew.addEventListener('click', function () { setChapterMode(true); });
+
+            function populateChapters(courseId, targetChapterId) {
+                chapterSelect.innerHTML = '';
+
+                if (!courseId) {
+                    chapterSelect.disabled = true;
+                    var defaultOpt = document.createElement('option');
+                    defaultOpt.value = '';
+                    defaultOpt.textContent = '-- Vui lòng chọn khóa học trước --';
+                    chapterSelect.appendChild(defaultOpt);
+                    return;
+                }
+
+                var course = coursesData.find(function(c) {
+                    return (c.CourseId && String(c.CourseId) === String(courseId)) ||
+                           (c.courseId && String(c.courseId) === String(courseId));
+                });
+                var chapters = course ? (course.Chapters || course.chapters || []) : [];
+
+                chapterSelect.disabled = false;
+                var optPlaceholder = document.createElement('option');
+                optPlaceholder.value = '';
+                optPlaceholder.textContent = chapters.length > 0 ? '-- Chọn chương học có sẵn --' : '-- Khóa học này chưa có chương nào --';
+                chapterSelect.appendChild(optPlaceholder);
+
+                var hasSelected = false;
+                chapters.forEach(function(ch) {
+                    var chId = ch.ChapterId || ch.chapterId;
+                    var chTitle = ch.Title || ch.title;
+                    var chOrder = ch.OrderIndex || ch.orderIndex;
+                    var chDisplay = ch.DisplayText || ch.displayText || ('Chương ' + chOrder + ': ' + chTitle);
+
+                    var opt = document.createElement('option');
+                    opt.value = chId;
+                    opt.textContent = chDisplay;
+                    if (targetChapterId && String(chId) === String(targetChapterId)) {
+                        opt.selected = true;
+                        hasSelected = true;
+                    }
+                    chapterSelect.appendChild(opt);
+                });
+
+                var optNew = document.createElement('option');
+                optNew.value = '__NEW_CHAPTER__';
+                optNew.textContent = '+ Tạo chương học mới cho khóa này...';
+                optNew.className = 'fw-bold text-primary';
+                chapterSelect.appendChild(optNew);
+
+                if (!hasSelected && targetChapterId) {
+                    chapterSelect.value = targetChapterId;
+                }
+
+                var maxOrder = 0;
+                chapters.forEach(function(ch) {
+                    var ord = ch.OrderIndex || ch.orderIndex || 0;
+                    if (ord > maxOrder) maxOrder = ord;
+                });
+                newChapterOrder.value = maxOrder + 1;
+            }
+
+            courseSelect.addEventListener('change', function () {
+                populateChapters(this.value, null);
+            });
+
+            chapterSelect.addEventListener('change', function () {
+                if (this.value === '__NEW_CHAPTER__') {
+                    setChapterMode(true);
+                }
+            });
+
+            // Quick Create Chapter via AJAX
+            if (btnQuickSaveChapter) {
+                btnQuickSaveChapter.addEventListener('click', function () {
+                    var courseId = courseSelect.value;
+                    var title = newChapterTitle.value.trim();
+                    var order = newChapterOrder.value;
+
+                    if (!courseId) {
+                        alert('Vui lòng chọn khóa học trước!');
+                        courseSelect.focus();
+                        return;
+                    }
+
+                    if (!title) {
+                        newChapterTitleError.textContent = 'Vui lòng nhập tên chương mới';
+                        newChapterTitle.focus();
+                        return;
+                    }
+                    newChapterTitleError.textContent = '';
+
+                    btnQuickSaveChapter.disabled = true;
+                    btnQuickSaveChapter.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang tạo...';
+
+                    var token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+                    var formData = new FormData();
+                    formData.append('__RequestVerificationToken', token);
+                    formData.append('courseId', courseId);
+                    formData.append('title', title);
+                    formData.append('orderIndex', order);
+
+                    fetch('/Teacher/QuickCreateChapter', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        if (data.success) {
+                            var course = coursesData.find(function(c) {
+                                return (c.CourseId && String(c.CourseId) === String(courseId)) ||
+                                       (c.courseId && String(c.courseId) === String(courseId));
+                            });
+                            if (course) {
+                                var chList = course.Chapters || course.chapters || [];
+                                chList.push({
+                                    ChapterId: data.chapterId,
+                                    Title: data.title,
+                                    OrderIndex: data.orderIndex,
+                                    DisplayText: data.displayText
+                                });
+                            }
+
+                            populateChapters(courseId, data.chapterId);
+                            setChapterMode(false);
+                            chapterSelect.value = data.chapterId;
+                            newChapterTitle.value = '';
+                            alert('Tạo chương mới thành công: ' + data.displayText);
+                        } else {
+                            alert(data.message || 'Không thể tạo chương mới.');
+                        }
+                    })
+                    .catch(function(err) {
+                        alert('Lỗi kết nối khi tạo chương mới.');
+                    })
+                    .finally(function() {
+                        btnQuickSaveChapter.disabled = false;
+                        btnQuickSaveChapter.innerHTML = '<i class="bi bi-check-circle me-1"></i>Tạo chương ngay';
+                    });
+                });
+            }
+
+            // Form validation before submit
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    var isNew = isNewChapterInput.value === "true";
+                    if (!courseSelect.value) {
+                        e.preventDefault();
+                        alert('Vui lòng chọn khóa học!');
+                        courseSelect.focus();
+                        return false;
+                    }
+
+                    if (isNew) {
+                        if (!newChapterTitle.value.trim()) {
+                            e.preventDefault();
+                            newChapterTitleError.textContent = 'Vui lòng nhập tên chương mới';
+                            newChapterTitle.focus();
+                            return false;
+                        }
+                        chapterSelect.disabled = true;
+                    } else {
+                        if (!chapterSelect.value || chapterSelect.value === '__NEW_CHAPTER__') {
+                            e.preventDefault();
+                            alert('Vui lòng chọn một chương học hoặc chuyển sang tab "Tạo chương mới"!');
+                            chapterSelect.focus();
+                            return false;
+                        }
+                        chapterSelect.disabled = false;
+                    }
+                });
+            }
+
+            // Initialize state
+            if (selectedCourseId) {
+                courseSelect.value = selectedCourseId;
+                populateChapters(selectedCourseId, selectedChapterId);
+            } else if (selectedChapterId) {
+                for (var i = 0; i < coursesData.length; i++) {
+                    var chList = coursesData[i].Chapters || coursesData[i].chapters || [];
+                    var found = chList.some(function (ch) {
+                        var cId = ch.ChapterId || ch.chapterId;
+                        return String(cId) === String(selectedChapterId);
+                    });
+                    if (found) {
+                        var crsId = coursesData[i].CourseId || coursesData[i].courseId;
+                        courseSelect.value = crsId;
+                        populateChapters(crsId, selectedChapterId);
+                        break;
+                    }
+                }
+            }
+
+            if (isNewChapterInitial) {
+                setChapterMode(true);
+            }
+        });
+    </script>
+}

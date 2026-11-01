@@ -151,6 +151,7 @@ namespace LTW.Models
     }
     public class QuestionInputModel
     {
+        public int QuestionId { get; set; }
         public string Format { get; set; } = "MultipleChoice"; // "MultipleChoice" or "Writing"
         public SkillType Skill { get; set; } = SkillType.Reading;
         public string Content { get; set; } = string.Empty;
@@ -159,6 +160,7 @@ namespace LTW.Models
         public string? OptC { get; set; }
         public string? OptD { get; set; }
         public string? CorrectAnswer { get; set; }
+        public string? WritingAnswer { get; set; }
         public string? Explanation { get; set; }
         public decimal Points { get; set; } = 10;
     }

@@ -1,3 +1,4 @@
+@using System.Text.Encodings.Web
 @model IEnumerable<LTW.Models.Exercise>
 
 @{
@@ -7,6 +8,24 @@
 <partial name="_TeacherPortalHeader" />
 
 <div class="container-fluid px-lg-5 pb-4">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm mb-4 d-flex align-items-center" role="alert">
+            <i class="bi bi-check-circle-fill fs-5 me-2 text-success"></i>
+            <div><strong>Thành công!</strong> @TempData["SuccessMessage"]</div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm mb-4 d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill fs-5 me-2 text-danger"></i>
+            <div><strong>Lỗi!</strong> @TempData["ErrorMessage"]</div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
             <h3 class="fw-bold text-dark m-0"><i class="bi bi-clipboard-check me-2 text-primary"></i>Quản Lý Bài Tập (Exercises)</h3>
@@ -74,13 +93,19 @@
                                     </a>
                                 </td>
                                 <td class="text-end pe-4">
-                                    <div class="d-flex justify-content-end gap-2">
-                                        <a asp-controller="Student" asp-action="Exercise" asp-route-id="@ex.ExerciseId" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                    <div class="d-flex justify-content-end gap-1 flex-wrap">
+                                        <a asp-controller="Student" asp-action="Exercise" asp-route-id="@ex.ExerciseId" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-2" title="Làm thử bài tập">
                                             <i class="bi bi-eye me-1"></i> Làm Thử
                                         </a>
-                                        <a asp-action="Assessments" class="btn btn-outline-warning text-dark btn-sm rounded-pill px-2" title="Chấm điểm học viên nộp bài này">
+                                        <a asp-action="EditExercise" asp-route-id="@ex.ExerciseId" class="btn btn-outline-warning text-dark btn-sm rounded-pill px-2" title="Chỉnh sửa bài tập & bộ câu hỏi">
+                                            <i class="bi bi-pencil-square me-1"></i> Sửa
+                                        </a>
+                                        <a asp-action="Assessments" class="btn btn-outline-secondary btn-sm rounded-pill px-2" title="Chấm điểm học viên nộp bài này">
                                             <i class="bi bi-check2-square"></i>
                                         </a>
+                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-2" onclick="openDeleteExerciseModal(@ex.ExerciseId, '@Html.Raw(JavaScriptEncoder.Default.Encode(ex.Title ?? ""))', '@Html.Raw(JavaScriptEncoder.Default.Encode(ex.Lesson?.Title ?? ""))', @(ex.Submissions?.Count ?? 0))" title="Xóa bài tập">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -97,4 +122,60 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Xác Nhận Xóa Bài Tập -->
+<div class="modal fade" id="deleteExerciseModal" tabindex="-1" aria-labelledby="deleteExerciseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger d-flex align-items-center" id="deleteExerciseModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i> Xác Nhận Xóa Bài Tập
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="DeleteExercise" method="post" id="deleteExerciseForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="deleteExerciseId" />
+                <div class="modal-body py-3">
+                    <p class="text-secondary mb-2">Bạn có chắc chắn muốn xóa bài tập sau khỏi hệ thống?</p>
+                    <div class="p-3 bg-light rounded-3 border mb-3">
+                        <div class="fw-bold text-dark fs-6" id="deleteExerciseTitle"></div>
+                        <div class="text-muted small mt-1" id="deleteExerciseLesson"></div>
+                        <div class="text-danger small mt-2" id="deleteExerciseWarning" style="display: none;">
+                            <i class="bi bi-info-circle-fill me-1"></i> Lưu ý: Bài tập này đã có lượt nộp của học viên. Xóa bài tập sẽ xóa vĩnh viễn bài làm và điểm số liên quan.
+                        </div>
+                    </div>
+                    <div class="text-muted small">Hành động này không thể hoàn tác sau khi thực hiện.</div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-semibold shadow-sm">
+                        <i class="bi bi-trash3 me-1"></i> Xóa Bài Tập
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openDeleteExerciseModal(exerciseId, exerciseTitle, lessonTitle, submissionCount) {
+            document.getElementById('deleteExerciseId').value = exerciseId;
+            document.getElementById('deleteExerciseTitle').textContent = exerciseTitle;
+            document.getElementById('deleteExerciseLesson').textContent = 'Bài học: ' + lessonTitle;
+            
+            var warningEl = document.getElementById('deleteExerciseWarning');
+            if (submissionCount > 0) {
+                warningEl.style.display = 'block';
+                warningEl.innerHTML = '<i class="bi bi-info-circle-fill me-1"></i> Lưu ý: Bài tập này đang có <strong>' + submissionCount + ' lượt nộp bài</strong> của học viên. Xóa bài tập sẽ đồng thời xóa toàn bộ câu trả lời và kết quả chấm điểm.';
+            } else {
+                warningEl.style.display = 'none';
+            }
+
+            var modal = new bootstrap.Modal(document.getElementById('deleteExerciseModal'));
+            modal.show();
+        }
+    </script>
+}
 

@@ -36,7 +36,15 @@
 
         <form asp-action="CreateExercise" method="post" id="createExerciseForm">
             @Html.AntiForgeryToken()
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger small mb-3"></div>
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm mb-3 d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill fs-5 me-2 text-danger"></i>
+                    <div><strong>Lỗi:</strong> @TempData["ErrorMessage"]</div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            <div asp-validation-summary="All" class="alert alert-danger small mb-3 @(ViewData.ModelState.IsValid ? "d-none" : "")"></div>
 
             <!-- Thông tin tổng quan bài tập -->
             <div class="row g-3 mb-4">
@@ -483,8 +491,11 @@
                     return;
                 }
 
-                var course = hierarchyData.find(function(c) { return String(c.CourseId) === String(courseId); });
-                var chapters = course ? course.Chapters : [];
+                var course = hierarchyData.find(function(c) {
+                    var cid = c.CourseId || c.courseId;
+                    return String(cid) === String(courseId);
+                });
+                var chapters = course ? (course.Chapters || course.chapters || []) : [];
 
                 if (!chapters || chapters.length === 0) {
                     chapterSelect.disabled = true;
@@ -503,9 +514,14 @@
 
                 chapters.forEach(function(ch) {
                     var opt = document.createElement('option');
-                    opt.value = ch.ChapterId;
-                    opt.textContent = ch.DisplayText || ('Chương ' + ch.OrderIndex + ': ' + ch.Title);
-                    if (targetChapterId && String(ch.ChapterId) === String(targetChapterId)) {
+                    var chId = ch.ChapterId || ch.chapterId;
+                    var chTitle = ch.Title || ch.title;
+                    var chOrder = ch.OrderIndex || ch.orderIndex;
+                    var chDisplay = ch.DisplayText || ch.displayText || ('Chương ' + chOrder + ': ' + chTitle);
+
+                    opt.value = chId;
+                    opt.textContent = chDisplay;
+                    if (targetChapterId && String(chId) === String(targetChapterId)) {
                         opt.selected = true;
                     }
                     chapterSelect.appendChild(opt);
@@ -528,9 +544,15 @@
                     return;
                 }
 
-                var course = hierarchyData.find(function(c) { return String(c.CourseId) === String(courseId); });
-                var chapter = course && course.Chapters ? course.Chapters.find(function(ch) { return String(ch.ChapterId) === String(chapterId); }) : null;
-                var lessons = chapter ? chapter.Lessons : [];
+                var course = hierarchyData.find(function(c) {
+                    var cid = c.CourseId || c.courseId;
+                    return String(cid) === String(courseId);
+                });
+                var chapter = course && (course.Chapters || course.chapters) ? (course.Chapters || course.chapters).find(function(ch) {
+                    var chId = ch.ChapterId || ch.chapterId;
+                    return String(chId) === String(chapterId);
+                }) : null;
+                var lessons = chapter ? (chapter.Lessons || chapter.lessons || []) : [];
 
                 if (!lessons || lessons.length === 0) {
                     lessonSelect.disabled = true;
@@ -549,9 +571,14 @@
 
                 lessons.forEach(function(l) {
                     var opt = document.createElement('option');
-                    opt.value = l.LessonId;
-                    opt.textContent = l.DisplayText || ('Bài ' + l.OrderIndex + ': ' + l.Title);
-                    if (targetLessonId && String(l.LessonId) === String(targetLessonId)) {
+                    var lId = l.LessonId || l.lessonId;
+                    var lTitle = l.Title || l.title;
+                    var lOrder = l.OrderIndex || l.orderIndex;
+                    var lDisplay = l.DisplayText || l.displayText || ('Bài ' + lOrder + ': ' + lTitle);
+
+                    opt.value = lId;
+                    opt.textContent = lDisplay;
+                    if (targetLessonId && String(lId) === String(targetLessonId)) {
                         opt.selected = true;
                     }
                     lessonSelect.appendChild(opt);
@@ -574,12 +601,17 @@
             if (selectedLessonId && !selectedCourseId) {
                 for (var i = 0; i < hierarchyData.length; i++) {
                     var c = hierarchyData[i];
-                    for (var j = 0; j < (c.Chapters || []).length; j++) {
-                        var ch = c.Chapters[j];
-                        var found = (ch.Lessons || []).some(function (l) { return String(l.LessonId) === String(selectedLessonId); });
+                    var chList = c.Chapters || c.chapters || [];
+                    for (var j = 0; j < chList.length; j++) {
+                        var ch = chList[j];
+                        var lList = ch.Lessons || ch.lessons || [];
+                        var found = lList.some(function (l) {
+                            var lId = l.LessonId || l.lessonId;
+                            return String(lId) === String(selectedLessonId);
+                        });
                         if (found) {
-                            selectedCourseId = c.CourseId;
-                            selectedChapterId = ch.ChapterId;
+                            selectedCourseId = c.CourseId || c.courseId;
+                            selectedChapterId = ch.ChapterId || ch.chapterId;
                             break;
                         }
                     }
@@ -605,26 +637,31 @@
                         return false;
                     }
 
+                    // Always ensure lessonSelect is enabled so browser includes it in POST payload
+                    lessonSelect.disabled = false;
+
                     var cards = document.querySelectorAll('#questionsContainer .exercise-q-card');
-                    cards.forEach(function (card, index) {
+                    if (cards.length > 1) {
+                        cards.forEach(function (card) {
+                            var contentInput = card.querySelector('.q-content-input');
+                            if (contentInput && !contentInput.value.trim()) {
+                                card.remove();
+                            }
+                        });
+                        reindexQuestions();
+                    }
+
+                    cards = document.querySelectorAll('#questionsContainer .exercise-q-card');
+                    cards.forEach(function (card) {
                         var formatSelect = card.querySelector('.q-format-select');
                         var isWriting = formatSelect && formatSelect.value === 'Writing';
-
                         if (isWriting) {
                             var writingRubric = card.querySelector('.q-writing-rubric');
                             var rubricVal = writingRubric ? writingRubric.value.trim() : '';
-                            // Make sure CorrectAnswer receives writing rubric
                             var correctMc = card.querySelector('.q-correct-mc');
+                            // If writing, correctMc select can be disabled or we can set hidden field
                             if (correctMc) {
-                                correctMc.value = rubricVal || 'Tự luận - Giảng viên chấm điểm theo rubric';
-                            }
-                        } else {
-                            var correctMc = card.querySelector('.q-correct-mc');
-                            var choice = correctMc ? correctMc.value : 'A';
-                            var optInput = card.querySelector('.q-opt-' + choice.toLowerCase());
-                            var optVal = optInput ? optInput.value.trim() : '';
-                            if (optVal && correctMc) {
-                                correctMc.value = choice + '. ' + optVal;
+                                correctMc.disabled = true; // prevent sending MC answer
                             }
                         }
                     });
@@ -645,7 +682,7 @@
                         if (firstOptB) document.getElementById('fallbackOptB').value = firstOptB.value;
                         if (firstOptC) document.getElementById('fallbackOptC').value = firstOptC.value;
                         if (firstOptD) document.getElementById('fallbackOptD').value = firstOptD.value;
-                        if (firstCorrect) document.getElementById('fallbackCorrectOpt').value = firstCorrect.value;
+                        if (firstCorrect && !firstCorrect.disabled) document.getElementById('fallbackCorrectOpt').value = firstCorrect.value;
                         if (firstExplanation) document.getElementById('fallbackExplanation').value = firstExplanation.value;
                     }
                 });

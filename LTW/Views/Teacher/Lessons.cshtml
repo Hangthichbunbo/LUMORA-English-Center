@@ -1,3 +1,4 @@
+@using System.Text.Encodings.Web
 @model IEnumerable<LTW.Models.Lesson>
 
 @{
@@ -12,6 +13,15 @@
         <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm mb-4 d-flex align-items-center" role="alert">
             <i class="bi bi-check-circle-fill fs-5 me-2 text-success"></i>
             <div><strong>Thành công!</strong> @TempData["SuccessMessage"]</div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm mb-4 d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill fs-5 me-2 text-danger"></i>
+            <div><strong>Lỗi!</strong> @TempData["ErrorMessage"]</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
@@ -75,13 +85,16 @@
                                     </span>
                                 </td>
                                 <td class="text-end pe-4">
-                                    <div class="d-flex justify-content-end gap-2">
-                                        <a asp-controller="Student" asp-action="Lesson" asp-route-id="@l.LessonId" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                    <div class="d-flex justify-end justify-content-end gap-1 flex-wrap">
+                                        <a asp-controller="Student" asp-action="Lesson" asp-route-id="@l.LessonId" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-2" title="Vào học / Xem bài giảng">
                                             <i class="bi bi-play-circle me-1"></i> Vào Học
                                         </a>
-                                        <a asp-controller="Course" asp-action="Detail" asp-route-id="@l.Chapter?.CourseId" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-2" title="Xem giáo trình khóa học">
-                                            <i class="bi bi-eye"></i>
+                                        <a asp-action="EditLesson" asp-route-id="@l.LessonId" class="btn btn-outline-warning text-dark btn-sm rounded-pill px-2" title="Chỉnh sửa bài học">
+                                            <i class="bi bi-pencil-square me-1"></i> Sửa
                                         </a>
+                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-2" onclick="openDeleteLessonModal(@l.LessonId, '@Html.Raw(JavaScriptEncoder.Default.Encode(l.Title ?? ""))', '@Html.Raw(JavaScriptEncoder.Default.Encode(l.Chapter?.Title ?? ""))', @(l.Exercises?.Count ?? 0))" title="Xóa bài học">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -98,4 +111,60 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Xác Nhận Xóa Bài Học -->
+<div class="modal fade" id="deleteLessonModal" tabindex="-1" aria-labelledby="deleteLessonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger d-flex align-items-center" id="deleteLessonModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i> Xác Nhận Xóa Bài Học
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="DeleteLesson" method="post" id="deleteLessonForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="deleteLessonId" />
+                <div class="modal-body py-3">
+                    <p class="text-secondary mb-2">Bạn có chắc chắn muốn xóa bài học sau khỏi hệ thống?</p>
+                    <div class="p-3 bg-light rounded-3 border mb-3">
+                        <div class="fw-bold text-dark fs-6" id="deleteLessonTitle"></div>
+                        <div class="text-muted small mt-1" id="deleteLessonChapter"></div>
+                        <div class="text-danger small mt-2" id="deleteLessonWarning" style="display: none;">
+                            <i class="bi bi-info-circle-fill me-1"></i> Lưu ý: Bài học này đang có bài tập đính kèm. Xóa bài học sẽ tự động dọn dẹp các bài tập liên quan.
+                        </div>
+                    </div>
+                    <div class="text-muted small">Hành động này không thể hoàn tác sau khi thực hiện.</div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-semibold shadow-sm">
+                        <i class="bi bi-trash3 me-1"></i> Xóa Bài Học
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openDeleteLessonModal(lessonId, lessonTitle, chapterTitle, exerciseCount) {
+            document.getElementById('deleteLessonId').value = lessonId;
+            document.getElementById('deleteLessonTitle').textContent = lessonTitle;
+            document.getElementById('deleteLessonChapter').textContent = 'Chương: ' + chapterTitle;
+            
+            var warningEl = document.getElementById('deleteLessonWarning');
+            if (exerciseCount > 0) {
+                warningEl.style.display = 'block';
+                warningEl.innerHTML = '<i class="bi bi-info-circle-fill me-1"></i> Lưu ý: Bài học này có <strong>' + exerciseCount + ' bài tập</strong> kèm theo. Xóa bài học sẽ đồng thời xóa toàn bộ các bài tập và dữ liệu nộp bài liên quan.';
+            } else {
+                warningEl.style.display = 'none';
+            }
+
+            var modal = new bootstrap.Modal(document.getElementById('deleteLessonModal'));
+            modal.show();
+        }
+    </script>
+}
 
