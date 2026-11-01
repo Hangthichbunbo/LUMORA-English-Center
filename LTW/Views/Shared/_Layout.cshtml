@@ -96,17 +96,6 @@
          - Nút hành động: Log In & Sign Up
          ==================================================================== -->
     <header>
-        @{
-            var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
-            var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
-            var isHomeActive = string.Equals(currentController, "Home", StringComparison.OrdinalIgnoreCase) && 
-                               (string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(currentAction));
-            var isCourseActive = string.Equals(currentController, "Course", StringComparison.OrdinalIgnoreCase);
-            var isTeacherActive = string.Equals(currentController, "Teacher", StringComparison.OrdinalIgnoreCase);
-            var isTestActive = string.Equals(currentController, "Test", StringComparison.OrdinalIgnoreCase);
-            var isTipActive = string.Equals(currentController, "Tip", StringComparison.OrdinalIgnoreCase);
-            var isClassActive = string.Equals(currentController, "Class", StringComparison.OrdinalIgnoreCase);
-        }
         <nav class="navbar navbar-expand-lg navbar-iot-clean fixed-top py-2">
             <div class="container-fluid px-lg-5">
                 <!-- Logo thương hiệu bên trái -->
@@ -130,53 +119,101 @@
                 <div class="collapse navbar-collapse" id="navbarMainNavigation">
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
                         <li class="nav-item">
-                            <a class="nav-link fw-semibold @(isHomeActive ? "active" : "")" asp-controller="Home" asp-action="Index">
+                            <a class="nav-link fw-semibold" asp-controller="Home" asp-action="Index">
                                 <i class="bi bi-house-door me-1"></i> Home
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link fw-semibold @(isCourseActive ? "active" : "")" asp-controller="Course" asp-action="Index">
+                            <a class="nav-link fw-semibold" asp-controller="Course" asp-action="Index">
                                 <i class="bi bi-collection-play me-1"></i> Courses
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link fw-semibold @(isTeacherActive ? "active" : "")" asp-controller="Teacher" asp-action="Index">
+                            <a class="nav-link fw-semibold" asp-controller="Teacher" asp-action="Index">
                                 <i class="bi bi-people me-1"></i> Teachers
                             </a>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link fw-semibold dropdown-toggle @(isTestActive ? "active" : "")" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <a class="nav-link fw-semibold dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-patch-question me-1"></i> Test
                             </a>
                             <ul class="dropdown-menu shadow border-0 rounded-3">
                                 <li>
-                                    <a class="dropdown-item py-2 small @(isTestActive && string.Equals(currentAction, "ExampleTest", StringComparison.OrdinalIgnoreCase) ? "active" : "")" asp-controller="Test" asp-action="ExampleTest">
+                                    <a class="dropdown-item py-2 small" asp-controller="Test" asp-action="ExampleTest">
                                         <i class="bi bi-star-fill text-warning me-2"></i> Example Test (Miễn phí)
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item py-2 small @(isTestActive && string.Equals(currentAction, "PlacementTest", StringComparison.OrdinalIgnoreCase) ? "active" : "")" asp-controller="Test" asp-action="PlacementTest">
+                                    <a class="dropdown-item py-2 small" asp-controller="Test" asp-action="PlacementTest">
                                         <i class="bi bi-award-fill text-primary me-2"></i> Placement Test (Đầu vào)
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <a class="dropdown-item py-2 small @(isTestActive && string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase) ? "active" : "") text-muted" asp-controller="Test" asp-action="Index">
+                                    <a class="dropdown-item py-2 small text-muted" asp-controller="Test" asp-action="Index">
                                         <i class="bi bi-list-task me-2"></i> Danh sách tất cả bài thi
                                     </a>
                                 </li>
                             </ul>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link fw-semibold @(isTipActive ? "active" : "")" asp-controller="Tip" asp-action="Index">
+                            <a class="nav-link fw-semibold" asp-controller="Tip" asp-action="Index">
                                 <i class="bi bi-lightbulb me-1"></i> IELTS Tips
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link fw-semibold @(isClassActive ? "active" : "")" asp-controller="Class" asp-action="Index">
+                            <a class="nav-link fw-semibold" asp-controller="Class" asp-action="Index">
                                 <i class="bi bi-camera-video me-1"></i> Classes
                             </a>
                         </li>
+                        @if (User.IsInRole("Teacher"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link fw-semibold dropdown-toggle text-primary" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-mortarboard-fill me-1"></i> Teacher Portal
+                                </a>
+                                <ul class="dropdown-menu shadow border-0 rounded-3">
+                                    <li>
+                                        <a class="dropdown-item py-2 small fw-semibold" asp-controller="Teacher" asp-action="Dashboard">
+                                            <i class="bi bi-speedometer2 text-primary me-2"></i> Bàn làm việc (Dashboard)
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2 small" asp-controller="Teacher" asp-action="MyClasses">
+                                            <i class="bi bi-camera-video text-danger me-2"></i> Lớp học phụ trách
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2 small" asp-controller="Teacher" asp-action="Lessons">
+                                            <i class="bi bi-journal-text text-primary me-2"></i> Quản lý bài học
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2 small" asp-controller="Teacher" asp-action="Exercises">
+                                            <i class="bi bi-clipboard-check text-success me-2"></i> Quản lý bài tập
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2 small" asp-controller="Teacher" asp-action="Students">
+                                            <i class="bi bi-people text-info me-2"></i> Danh sách học viên
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2 small" asp-controller="Teacher" asp-action="Assessments">
+                                            <i class="bi bi-check2-square text-warning me-2"></i> Chấm điểm bài nộp
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link fw-semibold text-warning" asp-controller="Admin" asp-action="Dashboard">
+                                    <i class="bi bi-shield-lock-fill me-1"></i> Admin Portal
+                                </a>
+                            </li>
+                        }
                     </ul>
 
                     <!-- Các nút chức năng người dùng -->
@@ -220,14 +257,14 @@
         <div class="container-fluid px-lg-5">
             <div class="row g-4">
                 <!-- Cột 1: Thông tin thương hiệu & Representative Office -->
-                <div class="col-lg-4 col-md-6">
+                <div class="col-lg-3 col-md-6">
                     <a class="navbar-brand text-white mb-3 d-inline-flex" asp-controller="Home" asp-action="Index">
                         <span class="brand-symbol-box">
                             <i class="bi bi-mortarboard-fill"></i>
                         </span>
                         <span class="ms-2 brand-title-main">LUMORA <span class="brand-title-accent">English</span> Center</span>
                     </a>
-                    <p class="small text-white mt-2 mb-3" style="line-height: 1.7;">
+                    <p class="small text-secondary mt-2 mb-3" style="line-height: 1.7;">
                         Hệ thống luyện thi IELTS trực tuyến hàng đầu, đối tác Platinum nhiều năm liền của British Council và IDP.
                     </p>
                     <h6 class="footer-section-title">Representative Office</h6>
@@ -239,7 +276,7 @@
                 </div>
 
                 <!-- Cột 2: More Information -->
-                <div class="col-lg-2 col-md-6 ps-lg-3">
+                <div class="col-lg-2 col-md-6 ps-lg-4">
                     <h6 class="footer-section-title">More Information</h6>
                     <ul class="footer-nav-menu">
                         <li><a asp-controller="Home" asp-action="Index"><i class="bi bi-chevron-right text-muted me-1"></i> About Our Mission</a></li>
@@ -251,7 +288,19 @@
                     </ul>
                 </div>
 
-                <!-- Cột 3: Useful Links -->
+                <!-- Cột 3: Legal -->
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="footer-section-title">Legal</h6>
+                    <ul class="footer-nav-menu">
+                        <li><a asp-controller="Home" asp-action="Privacy"><i class="bi bi-shield-lock me-1"></i> Privacy Policy</a></li>
+                        <li><a asp-controller="Home" asp-action="Privacy"><i class="bi bi-file-earmark-ruled me-1"></i> Terms of Service</a></li>
+                        <li><a asp-controller="Home" asp-action="Privacy"><i class="bi bi-cookie me-1"></i> Cookies Policy</a></li>
+                        <li><a asp-controller="Home" asp-action="Privacy"><i class="bi bi-patch-check me-1"></i> Security Standards</a></li>
+                        <li><a asp-controller="Home" asp-action="Privacy"><i class="bi bi-c-circle me-1"></i> Copyright Policy</a></li>
+                    </ul>
+                </div>
+
+                <!-- Cột 4: Useful Link -->
                 <div class="col-lg-2 col-md-6">
                     <h6 class="footer-section-title">Useful Links</h6>
                     <ul class="footer-nav-menu">
@@ -264,25 +313,25 @@
                     </ul>
                 </div>
 
-                <!-- Cột 4: Center Addresses & Contact Info -->
-                <div class="col-lg-4 col-md-6">
+                <!-- Cột 5: Center Addresses & Contact Info -->
+                <div class="col-lg-3 col-md-12">
                     <h6 class="footer-section-title">Center Addresses</h6>
                     <ul class="footer-nav-menu small">
                         <li class="mb-2">
                             <strong><i class="bi bi-building text-warning me-1"></i> Hà Nội Campus:</strong>
-                            <div class="ps-3 text-white">Tầng 5, Tòa nhà Landmark 72, Nam Từ Liêm, Hà Nội</div>
+                            <div class="ps-3 text-secondary">Tầng 5, Tòa nhà Landmark 72, Nam Từ Liêm, Hà Nội</div>
                         </li>
                         <li class="mb-2">
                             <strong><i class="bi bi-building text-warning me-1"></i> TP.HCM Campus:</strong>
-                            <div class="ps-3 text-white">Tòa nhà Bitexco Financial, 2 Hải Triều, Quận 1, TP.HCM</div>
+                            <div class="ps-3 text-secondary">Tòa nhà Bitexco Financial, 2 Hải Triều, Quận 1, TP.HCM</div>
                         </li>
                         <li class="mb-2">
                             <strong><i class="bi bi-telephone text-warning me-1"></i> Hotline:</strong>
-                            <div class="ps-3 text-white">+84 (0) 908 123 456</div>
+                            <div class="ps-3 text-secondary">+84 (0) 908 123 456</div>
                         </li>
                         <li class="mb-2">
                             <strong><i class="bi bi-envelope text-warning me-1"></i> Email:</strong>
-                            <div class="ps-3 text-white">support@lumora.edu.vn</div>
+                            <div class="ps-3 text-secondary">support@lumora.edu.vn</div>
                         </li>
                     </ul>
 
@@ -314,9 +363,6 @@
             </div>
         </div>
     </footer>
-
-    <!-- jQuery Library -->
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
 
     <!-- Bootstrap 5 JavaScript Bundle -->
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

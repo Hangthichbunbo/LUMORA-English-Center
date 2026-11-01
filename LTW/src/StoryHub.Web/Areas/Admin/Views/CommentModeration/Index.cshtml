@@ -1,0 +1,159 @@
+@model PaginatedList<CommentDto>
+@{
+    ViewData["Title"] = "Kiểm duyệt Bình luận";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Kiểm duyệt Bình luận</h3>
+        <p class="text-muted small mb-0">Quản lý và xử lý vi phạm chuẩn mực cộng đồng</p>
+    </div>
+    <a asp-action="Reports" class="btn btn-outline-danger btn-sm">
+        <i class="bi bi-flag-fill me-1"></i>Xem báo cáo vi phạm
+    </a>
+</div>
+
+<!-- Filter -->
+<div class="card border-0 shadow-sm p-3 mb-4">
+    <form method="get" class="row g-2 align-items-center">
+        <div class="col-md-3">
+            <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">-- Tất cả trạng thái --</option>
+                <option value="@CommentStatus.Visible" selected="@((CommentStatus?)ViewData["Status"] == CommentStatus.Visible)">Hiển thị</option>
+                <option value="@CommentStatus.Pending" selected="@((CommentStatus?)ViewData["Status"] == CommentStatus.Pending)">Chờ duyệt</option>
+                <option value="@CommentStatus.Hidden" selected="@((CommentStatus?)ViewData["Status"] == CommentStatus.Hidden)">Đang ẩn</option>
+                <option value="@CommentStatus.Rejected" selected="@((CommentStatus?)ViewData["Status"] == CommentStatus.Rejected)">Đã từ chối</option>
+            </select>
+        </div>
+    </form>
+</div>
+
+<!-- Table -->
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small">
+                <tr>
+                    <th>Người gửi</th>
+                    <th>Nội dung bình luận</th>
+                    <th>Vị trí</th>
+                    <th>Trạng thái</th>
+                    <th>Thời gian</th>
+                    <th class="text-end pe-3">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items.Count == 0)
+                {
+                    <tr><td colspan="6" class="text-center py-4 text-muted">Không có bình luận nào.</td></tr>
+                }
+                @foreach (var c in Model.Items)
+                {
+                    <tr>
+                        <td>
+                            <div class="fw-bold small">@c.UserDisplayName</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">Id: @c.UserId</small>
+                        </td>
+                        <td>
+                            <div class="small text-body" style="max-width: 450px; white-space: pre-line;">@c.Content</div>
+                        </td>
+                        <td class="small text-muted">
+                            @(string.IsNullOrEmpty(c.ChapterTitle) ? "Bình luận Truyện" : c.ChapterTitle)
+                        </td>
+                        <td>
+                            @if (c.Status == CommentStatus.Visible)
+                            {
+                                <span class="badge bg-success">Hiển thị</span>
+                            }
+                            else if (c.Status == CommentStatus.Hidden)
+                            {
+                                <span class="badge bg-warning text-dark">Đang ẩn</span>
+                            }
+                            else if (c.Status == CommentStatus.Pending)
+                            {
+                                <span class="badge bg-info text-dark">Chờ duyệt</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Từ chối</span>
+                            }
+                        </td>
+                        <td class="small text-muted">@c.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="text-end pe-3">
+                            <div class="btn-group btn-group-sm">
+                                @if (c.Status != CommentStatus.Visible)
+                                {
+                                    <form asp-action="Moderate" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="commentId" value="@c.Id" />
+                                        <input type="hidden" name="status" value="@CommentStatus.Visible" />
+                                        <button type="submit" class="btn btn-outline-success" title="Hiển thị bình luận">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </form>
+                                }
+                                @if (c.Status != CommentStatus.Hidden)
+                                {
+                                    <form asp-action="Moderate" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="commentId" value="@c.Id" />
+                                        <input type="hidden" name="status" value="@CommentStatus.Hidden" />
+                                        <button type="submit" class="btn btn-outline-warning" title="Ẩn bình luận">
+                                            <i class="bi bi-eye-slash"></i>
+                                        </button>
+                                    </form>
+                                }
+                                <button type="button" class="btn btn-outline-danger" title="Khóa tính năng bình luận" onclick="openBlockModal('@c.UserId', '@c.UserDisplayName')">
+                                    <i class="bi bi-slash-circle"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Khóa bình luận người dùng -->
+<div class="modal fade" id="blockUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title fw-bold text-danger"><i class="bi bi-slash-circle me-2"></i>Khóa quyền bình luận người dùng</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="BlockUser" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" name="userId" id="block-user-id" value="" />
+                    <p class="small text-muted mb-3">Khóa quyền đăng bình luận của tài khoản: <strong id="block-user-name"></strong></p>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Thời hạn khóa:</label>
+                        <select name="days" class="form-select">
+                            <option value="1">1 ngày</option>
+                            <option value="3">3 ngày</option>
+                            <option value="7" selected>7 ngày</option>
+                            <option value="30">30 ngày</option>
+                            <option value="0">Vĩnh viễn</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger btn-sm">Xác nhận Khóa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openBlockModal(userId, userName) {
+            document.getElementById('block-user-id').value = userId;
+            document.getElementById('block-user-name').textContent = userName;
+            new bootstrap.Modal(document.getElementById('blockUserModal')).show();
+        }
+    </script>
+}

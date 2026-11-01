@@ -64,7 +64,6 @@ namespace LTW.Controllers
                 .Include(c => c.Chapters.OrderBy(ch => ch.OrderIndex))
                     .ThenInclude(ch => ch.Lessons.OrderBy(l => l.OrderIndex))
                         .ThenInclude(l => l.Exercises)
-                            .ThenInclude(ex => ex.Questions)
                 .Include(c => c.LiveClasses.OrderBy(lc => lc.ScheduledDate))
                 .FirstOrDefaultAsync(c => c.CourseId == id);
 
@@ -74,31 +73,16 @@ namespace LTW.Controllers
             }
 
             bool isEnrolled = false;
-            bool isTeacher = false;
             if (User.Identity?.IsAuthenticated == true)
             {
                 var user = await _userManager.GetUserAsync(User);
                 if (user != null)
                 {
-                    bool isTeacherRole = await _userManager.IsInRoleAsync(user, "Teacher") || user.RoleName == "Teacher";
-                    bool isAdminRole = await _userManager.IsInRoleAsync(user, "Admin") || user.RoleName == "Admin";
-                    bool isCourseInstructor = course.TeacherId == user.Id;
-
-                    isTeacher = isTeacherRole || isAdminRole || isCourseInstructor;
-
-                    if (isTeacher)
-                    {
-                        isEnrolled = true;
-                    }
-                    else
-                    {
-                        isEnrolled = await _context.Enrollments.AnyAsync(e => e.StudentId == user.Id && e.CourseId == id && e.PaymentStatus == "Completed");
-                    }
+                    isEnrolled = await _context.Enrollments.AnyAsync(e => e.StudentId == user.Id && e.CourseId == id);
                 }
             }
 
             ViewBag.IsEnrolled = isEnrolled;
-            ViewBag.IsTeacher = isTeacher;
             return View(course);
         }
 
@@ -119,15 +103,7 @@ namespace LTW.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
-            bool isTeacher = await _userManager.IsInRoleAsync(user, "Teacher") || user.RoleName == "Teacher";
-            bool isAdmin = await _userManager.IsInRoleAsync(user, "Admin") || user.RoleName == "Admin";
-            if (isTeacher || isAdmin || course.TeacherId == user.Id)
-            {
-                TempData["SuccessMessage"] = "Bạn là Giảng viên phụ trách nên có toàn quyền truy cập nội dung khóa học mà không cần đăng ký mua!";
-                return RedirectToAction("Detail", new { id });
-            }
-
-            var alreadyEnrolled = await _context.Enrollments.AnyAsync(e => e.StudentId == user.Id && e.CourseId == id && e.PaymentStatus == "Completed");
+            var alreadyEnrolled = await _context.Enrollments.AnyAsync(e => e.StudentId == user.Id && e.CourseId == id);
             if (alreadyEnrolled)
             {
                 TempData["SuccessMessage"] = "Bạn đã đăng ký và sở hữu khóa học này rồi!";

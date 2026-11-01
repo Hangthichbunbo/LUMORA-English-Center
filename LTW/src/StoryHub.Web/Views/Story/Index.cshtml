@@ -1,0 +1,128 @@
+@model StoryListViewModel
+@{
+    ViewData["Title"] = Model.PageTitle;
+    ViewData["MetaDescription"] = $"Khám phá danh sách {Model.PageTitle} tại TruyenVietSub với hàng ngàn bộ truyện chữ được cập nhật liên tục, tốc độ cao, miễn phí.";
+}
+
+<div class="container my-3">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.PageTitle</li>
+        </ol>
+    </nav>
+
+    <!-- Page Title & Filter Bar -->
+    <div class="card border-0 shadow-sm p-3 mb-4 bg-body-tertiary">
+        <div class="row g-3 align-items-center">
+            <div class="col-lg-4">
+                <h1 class="h4 fw-bold mb-0 text-primary">@Model.PageTitle</h1>
+                <small class="text-muted">Tổng cộng @Model.Stories.TotalCount bộ truyện phù hợp</small>
+            </div>
+            <div class="col-lg-8">
+                <form method="get" class="row g-2 justify-content-lg-end" asp-action="Index" asp-controller="Story">
+                    <input type="hidden" name="SearchTerm" value="@Model.Filter.SearchTerm" />
+                    <div class="col-auto">
+                        <select class="form-select form-select-sm" name="CategorySlug" onchange="this.form.submit()">
+                            <option value="">-- Tất cả thể loại --</option>
+                            @foreach (var c in Model.Categories)
+                            {
+                                <option value="@c.Slug" selected="@(Model.Filter.CategorySlug == c.Slug)">@c.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <select class="form-select form-select-sm" name="Status" onchange="this.form.submit()">
+                            <option value="">-- Trạng thái --</option>
+                            <option value="@StoryStatus.Published" selected="@(Model.Filter.Status == StoryStatus.Published)">Đang ra</option>
+                            <option value="@StoryStatus.Completed" selected="@(Model.Filter.Status == StoryStatus.Completed)">Hoàn thành</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <select class="form-select form-select-sm" name="SortBy" onchange="this.form.submit()">
+                            <option value="updated" selected="@(Model.Filter.SortBy == "updated" || string.IsNullOrEmpty(Model.Filter.SortBy))">Mới cập nhật</option>
+                            <option value="views" selected="@(Model.Filter.SortBy == "views")">Lượt xem nhiều</option>
+                            <option value="rating" selected="@(Model.Filter.SortBy == "rating")">Đánh giá cao</option>
+                            <option value="chapters" selected="@(Model.Filter.SortBy == "chapters")">Nhiều chương nhất</option>
+                            <option value="title" selected="@(Model.Filter.SortBy == "title")">Tên truyện (A-Z)</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stories Grid -->
+    @if (Model.Stories.Items.Count == 0)
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-search display-3 text-muted mb-3 d-block"></i>
+            <h5 class="text-muted">Không tìm thấy truyện nào phù hợp với bộ lọc hiện tại.</h5>
+            <a asp-action="Index" class="btn btn-primary btn-sm mt-3">Xóa bộ lọc</a>
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-3 mb-4">
+            @foreach (var story in Model.Stories.Items)
+            {
+                <div class="col">
+                    <partial name="_StoryCardPartial" model="story" />
+                </div>
+            }
+        </div>
+
+        <!-- Pagination Controls -->
+        @if (Model.Stories.TotalPages > 1)
+        {
+            <nav aria-label="Page navigation" class="d-flex justify-content-center my-4">
+                <ul class="pagination pagination-sm shadow-sm">
+                    <li class="page-item @(Model.Stories.HasPreviousPage ? "" : "disabled")">
+                        <a class="page-link" asp-action="Index" 
+                           asp-route-pageIndex="@(Model.Stories.PageIndex - 1)"
+                           asp-route-SearchTerm="@Model.Filter.SearchTerm"
+                           asp-route-CategorySlug="@Model.Filter.CategorySlug"
+                           asp-route-AuthorSlug="@Model.Filter.AuthorSlug"
+                           asp-route-Status="@Model.Filter.Status"
+                           asp-route-SortBy="@Model.Filter.SortBy">
+                            <i class="bi bi-chevron-left"></i> Trước
+                        </a>
+                    </li>
+
+                    @for (int i = 1; i <= Model.Stories.TotalPages; i++)
+                    {
+                        if (i == 1 || i == Model.Stories.TotalPages || (i >= Model.Stories.PageIndex - 2 && i <= Model.Stories.PageIndex + 2))
+                        {
+                            <li class="page-item @(i == Model.Stories.PageIndex ? "active" : "")">
+                                <a class="page-link" asp-action="Index"
+                                   asp-route-pageIndex="@i"
+                                   asp-route-SearchTerm="@Model.Filter.SearchTerm"
+                                   asp-route-CategorySlug="@Model.Filter.CategorySlug"
+                                   asp-route-AuthorSlug="@Model.Filter.AuthorSlug"
+                                   asp-route-Status="@Model.Filter.Status"
+                                   asp-route-SortBy="@Model.Filter.SortBy">@i</a>
+                            </li>
+                        }
+                        else if (i == Model.Stories.PageIndex - 3 || i == Model.Stories.PageIndex + 3)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+                    }
+
+                    <li class="page-item @(Model.Stories.HasNextPage ? "" : "disabled")">
+                        <a class="page-link" asp-action="Index"
+                           asp-route-pageIndex="@(Model.Stories.PageIndex + 1)"
+                           asp-route-SearchTerm="@Model.Filter.SearchTerm"
+                           asp-route-CategorySlug="@Model.Filter.CategorySlug"
+                           asp-route-AuthorSlug="@Model.Filter.AuthorSlug"
+                           asp-route-Status="@Model.Filter.Status"
+                           asp-route-SortBy="@Model.Filter.SortBy">
+                            Sau <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        }
+    }
+</div>

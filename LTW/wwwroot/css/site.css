@@ -319,16 +319,6 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--brand);
 }
 
-/* Scoped logo branding for navbar: "LUMORA" and "Center" in brand blue */
-.navbar-iot-clean .navbar-brand,
-.navbar-iot-clean .brand-title-main {
-    color: var(--brand-primary) !important;
-}
-
-.navbar-iot-clean .brand-title-accent {
-    color: var(--brand) !important;
-}
-
 .navbar-iot-clean .nav-link {
     font-family: "Montserrat", sans-serif;
     font-weight: 600;
@@ -340,17 +330,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
     .navbar-iot-clean .nav-link:hover,
-    .navbar-iot-clean .nav-link.active,
-    .navbar-iot-clean .show > .nav-link {
-        color: var(--brand) !important;
-        background-color: rgba(43, 123, 187, 0.1) !important;
-    }
-
-    .navbar-iot-clean .dropdown-item.active,
-    .navbar-iot-clean .dropdown-item:active {
-        background-color: rgba(43, 123, 187, 0.12) !important;
-        color: var(--brand) !important;
-        font-weight: 600;
+    .navbar-iot-clean .nav-link.active {
+        color: var(--brand);
+        background-color: rgba(43, 123, 187, 0.08);
     }
 
 /* --------------------------------------------------------------------------
@@ -965,11 +947,34 @@ h1, h2, h3, h4, h5, h6 {
     transition: transform 0.1s linear, width 0.2s ease;
 }
 
+.line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 .line-clamp-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+.hover-elevate {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.hover-elevate:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-main) !important;
 }
 
 .partner-logo-item {
@@ -1092,23 +1097,6 @@ h1, h2, h3, h4, h5, h6 {
             color: #38bdf8;
             padding-left: 4px;
         }
-
-/* Scoped logo branding and text styling for footer:
-   - "LUMORA" and "Center" in white against dark navy background
-   - Description and contact texts in white */
-.site-footer-official .navbar-brand,
-.site-footer-official .brand-title-main {
-    color: #ffffff !important;
-}
-
-.site-footer-official .brand-title-accent {
-    color: #38bdf8 !important;
-}
-
-.site-footer-official p.small,
-.site-footer-official .text-secondary {
-    color: #ffffff !important;
-}
 
 .footer-bottom-statement {
     border-top: 1px solid rgba(255, 255, 255, 0.08);

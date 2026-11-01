@@ -4,257 +4,103 @@
     ViewData["Title"] = "Tạo Bài Tập Mới - Giảng Viên LUMORA";
 }
 
-<style>
-    .exercise-q-card {
-        border-color: #e2e8f0 !important;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-    .exercise-q-card:hover {
-        border-color: #cbd5e1 !important;
-        box-shadow: 0 4px 14px rgba(20, 35, 60, 0.05);
-    }
-    .exercise-add-box {
-        transition: all 0.2s ease;
-    }
-    .exercise-add-box:hover {
-        border-color: #00A896 !important;
-        background-color: #f0fdfa !important;
-    }
-</style>
+<!-- Unified Teacher Header -->
+<partial name="_TeacherHeader" />
 
 <div class="container py-4" style="max-width: 960px;">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-action="Dashboard" class="text-decoration-none">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-action="Exercises" class="text-decoration-none">Quản Lý Bài Tập</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Tạo Bài Tập Mới</li>
+        </ol>
+    </nav>
+
     <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
         <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
             <div>
-                <h3 class="fw-bold text-dark m-0"><i class="bi bi-pencil-square me-2 text-primary"></i>Tạo Bài Tập & Soạn Bộ Câu Hỏi</h3>
-                <p class="text-muted small m-0">Thiết lập bài tập và tạo nhiều câu hỏi trắc nghiệm hoặc tự luận kèm đáp án, hướng dẫn chi tiết</p>
+                <h3 class="fw-bold text-dark m-0"><i class="bi bi-pencil-square me-2 text-primary"></i>Tạo Bài Tập & Soạn Câu Hỏi</h3>
+                <p class="text-muted small m-0">Thiết lập bài tập, thời gian làm bài và câu hỏi kèm đáp án giải thích</p>
             </div>
             <a asp-action="Exercises" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
                 <i class="bi bi-arrow-left me-1"></i> Quay Lại
             </a>
         </div>
 
-        <form asp-action="CreateExercise" method="post" id="createExerciseForm">
+        <form asp-action="CreateExercise" method="post">
             @Html.AntiForgeryToken()
-            @if (TempData["ErrorMessage"] != null)
-            {
-                <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm mb-3 d-flex align-items-center" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill fs-5 me-2 text-danger"></i>
-                    <div><strong>Lỗi:</strong> @TempData["ErrorMessage"]</div>
-                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            }
-            <div asp-validation-summary="All" class="alert alert-danger small mb-3 @(ViewData.ModelState.IsValid ? "d-none" : "")"></div>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger small mb-3"></div>
 
-            <!-- Thông tin tổng quan bài tập -->
             <div class="row g-3 mb-4">
-                <div class="col-12">
-                    <label asp-for="Title" class="form-label small fw-semibold text-secondary"></label>
-                    <input asp-for="Title" class="form-control" placeholder="Ví dụ: Luyện tập Reading / Writing Chuyên Sâu #1" required />
+                <div class="col-md-8">
+                    <label asp-for="Title" class="form-label small fw-semibold text-secondary">Tên bài tập <span class="text-danger">*</span></label>
+                    <input asp-for="Title" class="form-control" placeholder="Ví dụ: Luyện tập Listening Form Completion #2" required />
                     <span asp-validation-for="Title" class="text-danger small"></span>
                 </div>
-
-                <!-- Phân cấp: Khóa học -> Chương học -> Bài học trực thuộc -->
-                <div class="col-12">
-                    <div class="p-3 bg-light rounded-4 border">
-                        <div class="fw-bold text-dark small mb-2 d-flex align-items-center">
-                            <i class="bi bi-diagram-3-fill text-primary me-2"></i>Chọn Bài Học Trực Thuộc (Theo Khóa Học & Chương)
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label for="courseSelect" class="form-label small fw-semibold text-secondary">
-                                    <i class="bi bi-mortarboard me-1 text-primary"></i>1. Chọn Khóa Học <span class="text-danger">*</span>
-                                </label>
-                                <select id="courseSelect" class="form-select" required>
-                                    <option value="">-- Chọn khóa học --</option>
-                                    @if (ViewBag.CoursesHierarchy != null)
-                                    {
-                                        foreach (var c in ViewBag.CoursesHierarchy)
-                                        {
-                                            <option value="@c.CourseId">@c.Title</option>
-                                        }
-                                    }
-                                </select>
-                                <div class="form-text small text-muted">Bước 1: Chọn khóa học</div>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="chapterSelect" class="form-label small fw-semibold text-secondary">
-                                    <i class="bi bi-folder2-open me-1 text-primary"></i>2. Chọn Chương Trong Khóa <span class="text-danger">*</span>
-                                </label>
-                                <select id="chapterSelect" class="form-select" required disabled>
-                                    <option value="">-- Vui lòng chọn khóa học trước --</option>
-                                </select>
-                                <div class="form-text small text-muted">Bước 2: Chọn chương học</div>
-                            </div>
-                            <div class="col-md-4">
-                                <label asp-for="LessonId" class="form-label small fw-semibold text-secondary">
-                                    <i class="bi bi-journal-check me-1 text-primary"></i>3. Chọn Bài Học Trực Thuộc <span class="text-danger">*</span>
-                                </label>
-                                <select asp-for="LessonId" id="lessonSelect" class="form-select" required disabled>
-                                    <option value="">-- Vui lòng chọn chương học trước --</option>
-                                </select>
-                                <span asp-validation-for="LessonId" class="text-danger small"></span>
-                                <div class="form-text small text-muted">Bước 3: Chọn bài học để gán bài tập</div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="col-md-4">
+                    <label asp-for="LessonId" class="form-label small fw-semibold text-secondary">Chọn Bài Học Trực Thuộc <span class="text-danger">*</span></label>
+                    <select asp-for="LessonId" asp-items="ViewBag.Lessons" class="form-select" required>
+                        <option value="">-- Chọn bài học --</option>
+                    </select>
+                    <span asp-validation-for="LessonId" class="text-danger small"></span>
                 </div>
-
                 <div class="col-md-6">
-                    <label asp-for="TimeLimitMinutes" class="form-label small fw-semibold text-secondary"></label>
+                    <label asp-for="TimeLimitMinutes" class="form-label small fw-semibold text-secondary">Thời gian làm bài (Phút)</label>
                     <input asp-for="TimeLimitMinutes" class="form-control" type="number" min="5" value="20" />
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="PassingScore" class="form-label small fw-semibold text-secondary"></label>
+                    <label asp-for="PassingScore" class="form-label small fw-semibold text-secondary">Điểm đạt yêu cầu (Thang 100)</label>
                     <input asp-for="PassingScore" class="form-control" type="number" min="0" max="100" value="70" />
                 </div>
                 <div class="col-12">
-                    <label asp-for="Description" class="form-label small fw-semibold text-secondary"></label>
-                    <textarea asp-for="Description" class="form-control" rows="2" placeholder="Hướng dẫn thí sinh các bước làm bài và các lưu ý quan trọng..."></textarea>
+                    <label asp-for="Description" class="form-label small fw-semibold text-secondary">Hướng dẫn thí sinh các bước làm bài</label>
+                    <textarea asp-for="Description" class="form-control" rows="2" placeholder="Ví dụ: Đọc kỹ đoạn văn và chọn 1 đáp án chính xác nhất..."></textarea>
                 </div>
             </div>
 
-            <!-- Header danh sách câu hỏi -->
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pt-3 border-top">
-                <div>
-                    <h5 class="fw-bold text-dark m-0"><i class="bi bi-list-check me-2 text-primary"></i>Soạn Thảo Bộ Câu Hỏi (Questions)</h5>
-                    <p class="text-muted small m-0">Tạo nhiều câu hỏi cho bài tập, tự do chọn giữa Trắc nghiệm hoặc Tự luận cho từng câu</p>
+            <h6 class="fw-bold text-secondary text-uppercase small mb-3"><i class="bi bi-patch-question me-1 text-primary"></i>Soạn Thảo Câu Hỏi Mẫu Ban Đầu</h6>
+            <div class="p-4 bg-light rounded-4 border mb-4">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-secondary">Nội dung câu hỏi <span class="text-danger">*</span></label>
+                    <input type="text" name="questionContent" class="form-control" placeholder="Ví dụ: Theo đoạn ghi âm, khách hàng đặt bàn cho mấy người?" required />
                 </div>
-                <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1 shadow-sm" onclick="addQuestion()" style="background-color: #00A896; border-color: #00A896;">
-                    <i class="bi bi-plus-circle-fill"></i> Thêm câu hỏi (+)
-                </button>
-            </div>
 
-            <!-- Container danh sách câu hỏi -->
-            <div id="questionsContainer" class="d-flex flex-column gap-3 mb-4">
-                <!-- Question Item 0 -->
-                <div class="card border rounded-4 p-4 exercise-q-card bg-light shadow-none" data-q-index="0">
-                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pb-3 mb-3 border-bottom">
-                        <div class="d-flex flex-wrap align-items-center gap-2">
-                            <span class="badge bg-primary px-3 py-2 rounded-pill fw-bold q-badge" style="background-color: #294563 !important;">
-                                Câu hỏi #1
-                            </span>
-                            <div class="d-flex align-items-center gap-1">
-                                <label class="small fw-semibold text-secondary me-1">Dạng:</label>
-                                <select name="questions[0].Format" class="form-select form-select-sm fw-semibold q-format-select" style="width: auto; min-width: 170px;" onchange="toggleFormat(this)">
-                                    <option value="MultipleChoice">Trắc nghiệm (A, B, C, D)</option>
-                                    <option value="Writing">Tự luận (Đoạn văn / Bài viết)</option>
-                                </select>
-                            </div>
-                            <div class="d-flex align-items-center gap-1 ms-1">
-                                <label class="small fw-semibold text-secondary me-1">Kỹ năng:</label>
-                                <select name="questions[0].Skill" class="form-select form-select-sm q-skill-select" style="width: auto;">
-                                    <option value="Reading">Reading</option>
-                                    <option value="Listening">Listening</option>
-                                    <option value="Writing">Writing</option>
-                                    <option value="Speaking">Speaking</option>
-                                    <option value="Grammar">Grammar</option>
-                                    <option value="Vocabulary">Vocabulary</option>
-                                </select>
-                            </div>
-                            <div class="d-flex align-items-center gap-1 ms-1">
-                                <label class="small fw-semibold text-secondary me-1">Điểm:</label>
-                                <input type="number" step="0.5" min="0.5" max="100" class="form-control form-control-sm text-center q-points-input" style="width: 65px;" name="questions[0].Points" value="10" />
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1 btn-remove-q" onclick="removeQuestion(this)" title="Xóa câu hỏi">
-                            <i class="bi bi-trash3 me-1"></i> Xóa câu này
-                        </button>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">Lựa chọn A</label>
+                        <input type="text" name="optA" class="form-control" placeholder="2 người" required />
                     </div>
-
-                    <!-- Nội dung câu hỏi -->
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-dark">Nội dung câu hỏi <span class="text-danger">*</span></label>
-                        <textarea name="questions[0].Content" class="form-control q-content-input" rows="2" placeholder="Ví dụ: Theo đoạn trích hoặc audio, thông tin nào sau đây là chính xác?" required></textarea>
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">Lựa chọn B</label>
+                        <input type="text" name="optB" class="form-control" placeholder="4 người" required />
                     </div>
-
-                    <!-- Khung trắc nghiệm Multiple Choice -->
-                    <div class="q-mc-box">
-                        <label class="form-label small fw-semibold text-secondary mb-2">Các phương án lựa chọn:</label>
-                        <div class="row g-2 mb-3">
-                            <div class="col-md-6">
-                                <div class="input-group">
-                                    <span class="input-group-text fw-bold text-primary bg-white">A</span>
-                                    <input type="text" name="questions[0].OptA" class="form-control q-opt-a" placeholder="Nội dung lựa chọn A" />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="input-group">
-                                    <span class="input-group-text fw-bold text-primary bg-white">B</span>
-                                    <input type="text" name="questions[0].OptB" class="form-control q-opt-b" placeholder="Nội dung lựa chọn B" />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="input-group">
-                                    <span class="input-group-text fw-bold text-primary bg-white">C</span>
-                                    <input type="text" name="questions[0].OptC" class="form-control q-opt-c" placeholder="Nội dung lựa chọn C" />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="input-group">
-                                    <span class="input-group-text fw-bold text-primary bg-white">D</span>
-                                    <input type="text" name="questions[0].OptD" class="form-control q-opt-d" placeholder="Nội dung lựa chọn D" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-success">
-                                <i class="bi bi-check-circle-fill me-1"></i> Đáp án đúng chuẩn:
-                            </label>
-                            <select name="questions[0].CorrectAnswer" class="form-select border-success q-correct-mc">
-                                <option value="A">Lựa chọn A</option>
-                                <option value="B" selected>Lựa chọn B</option>
-                                <option value="C">Lựa chọn C</option>
-                                <option value="D">Lựa chọn D</option>
-                            </select>
-                        </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">Lựa chọn C</label>
+                        <input type="text" name="optC" class="form-control" placeholder="6 người" required />
                     </div>
-
-                    <!-- Khung tự luận Essay / Writing (ẩn mặc định) -->
-                    <div class="q-writing-box" style="display: none;">
-                        <div class="alert alert-info py-2 small mb-3">
-                            <i class="bi bi-info-circle-fill me-1"></i>
-                            <strong>Dạng tự luận:</strong> Học viên sẽ nhập bài viết / câu trả lời vào khung văn bản. Giảng viên có thể xem nội dung bài làm và chấm điểm kèm lời nhận xét trong mục Chấm điểm bài nộp.
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-success">
-                                <i class="bi bi-card-checklist me-1"></i> Gợi ý đáp án / Tiêu chí chấm điểm (Rubric):
-                            </label>
-                            <textarea name="questions[0].WritingAnswer" class="form-control border-info q-writing-rubric" rows="2" placeholder="Ví dụ: Nêu đủ 3 ý chính, cấu trúc câu rõ ràng, sử dụng từ vựng chủ đề..."></textarea>
-                        </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">Lựa chọn D</label>
+                        <input type="text" name="optD" class="form-control" placeholder="8 người" required />
                     </div>
+                </div>
 
-                    <!-- Giải thích chi tiết cho học viên -->
-                    <div>
-                        <label class="form-label small text-secondary">Giải thích / Feedback chi tiết cho học viên</label>
-                        <input type="text" name="questions[0].Explanation" class="form-control q-explanation-input" placeholder="Feedback giải thích vì sao đáp án đúng, hoặc lưu ý từ vựng, ngữ pháp..." />
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-success">Đáp án chuẩn (Khớp với A, B, C hoặc D)</label>
+                        <input type="text" name="correctOpt" class="form-control border-success" placeholder="B. 4 người" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">Giải thích chi tiết (Feedback cho học viên)</label>
+                        <input type="text" name="explanation" class="form-control" placeholder="Người nói xác nhận: We have a party of four." />
                     </div>
                 </div>
             </div>
 
-            <!-- Nút thêm câu hỏi dưới dạng dashed box -->
-            <div class="p-3 text-center border rounded-4 mb-4 bg-light exercise-add-box" style="border-style: dashed !important; border-width: 2px !important; border-color: #cbd5e1 !important;">
-                <button type="button" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2" onclick="addQuestion()">
-                    <i class="bi bi-plus-circle-fill fs-5 text-primary"></i> Thêm Câu Hỏi Mới (+)
-                </button>
-            </div>
-
-            <!-- Fallback hidden fields for single-question legacy compatibility -->
-            <input type="hidden" name="questionContent" id="fallbackQuestionContent" />
-            <input type="hidden" name="optA" id="fallbackOptA" />
-            <input type="hidden" name="optB" id="fallbackOptB" />
-            <input type="hidden" name="optC" id="fallbackOptC" />
-            <input type="hidden" name="optD" id="fallbackOptD" />
-            <input type="hidden" name="correctOpt" id="fallbackCorrectOpt" />
-            <input type="hidden" name="explanation" id="fallbackExplanation" />
-
-            <div class="d-flex justify-content-between align-items-center pt-3 border-top">
-                <a asp-action="Exercises" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-semibold">
-                    <i class="bi bi-arrow-left me-1"></i> Hủy
-                </a>
-                <button type="submit" class="btn btn-primary px-5 py-3 fw-bold rounded-pill shadow-sm" style="background-color: #00A896; border-color: #00A896;">
-                    <i class="bi bi-save me-2"></i> Lưu Bài Tập & Toàn Bộ Câu Hỏi
+            <div class="d-flex justify-content-end gap-2">
+                <a asp-action="Exercises" class="btn btn-outline-secondary px-4 py-2 rounded-pill">Hủy bỏ</a>
+                <button type="submit" class="btn btn-lumora-secondary px-4 py-2 fw-semibold rounded-pill shadow-sm text-white">
+                    <i class="bi bi-save me-1"></i> Lưu Bài Tập Mới
                 </button>
             </div>
         </form>
@@ -262,431 +108,5 @@
 </div>
 
 @section Scripts {
-    <script>
-        function toggleFormat(select) {
-            var card = select.closest('.exercise-q-card');
-            var mcBox = card.querySelector('.q-mc-box');
-            var writingBox = card.querySelector('.q-writing-box');
-            var skillSelect = card.querySelector('.q-skill-select');
-
-            if (select.value === 'Writing') {
-                mcBox.style.display = 'none';
-                writingBox.style.display = 'block';
-                if (skillSelect && (skillSelect.value === 'Reading' || skillSelect.value === 'Listening')) {
-                    skillSelect.value = 'Writing';
-                }
-            } else {
-                mcBox.style.display = 'block';
-                writingBox.style.display = 'none';
-            }
-        }
-
-        function reindexQuestions() {
-            var cards = document.querySelectorAll('#questionsContainer .exercise-q-card');
-            cards.forEach(function (card, index) {
-                card.setAttribute('data-q-index', index);
-                
-                // Update badge text
-                var badge = card.querySelector('.q-badge');
-                if (badge) badge.textContent = 'Câu hỏi #' + (index + 1);
-
-                // Update input names
-                var formatSelect = card.querySelector('.q-format-select');
-                if (formatSelect) formatSelect.name = 'questions[' + index + '].Format';
-
-                var skillSelect = card.querySelector('.q-skill-select');
-                if (skillSelect) skillSelect.name = 'questions[' + index + '].Skill';
-
-                var pointsInput = card.querySelector('.q-points-input');
-                if (pointsInput) pointsInput.name = 'questions[' + index + '].Points';
-
-                var contentInput = card.querySelector('.q-content-input');
-                if (contentInput) contentInput.name = 'questions[' + index + '].Content';
-
-                var optA = card.querySelector('.q-opt-a');
-                if (optA) optA.name = 'questions[' + index + '].OptA';
-
-                var optB = card.querySelector('.q-opt-b');
-                if (optB) optB.name = 'questions[' + index + '].OptB';
-
-                var optC = card.querySelector('.q-opt-c');
-                if (optC) optC.name = 'questions[' + index + '].OptC';
-
-                var optD = card.querySelector('.q-opt-d');
-                if (optD) optD.name = 'questions[' + index + '].OptD';
-
-                var correctMc = card.querySelector('.q-correct-mc');
-                if (correctMc) correctMc.name = 'questions[' + index + '].CorrectAnswer';
-
-                var writingRubric = card.querySelector('.q-writing-rubric');
-                if (writingRubric) writingRubric.name = 'questions[' + index + '].WritingAnswer';
-
-                var explanation = card.querySelector('.q-explanation-input');
-                if (explanation) explanation.name = 'questions[' + index + '].Explanation';
-
-                // Manage remove button visibility
-                var removeBtn = card.querySelector('.btn-remove-q');
-                if (removeBtn) {
-                    removeBtn.style.display = cards.length > 1 ? 'inline-block' : 'none';
-                }
-            });
-        }
-
-        function addQuestion() {
-            var container = document.getElementById('questionsContainer');
-            var cards = container.querySelectorAll('.exercise-q-card');
-            var newIndex = cards.length;
-
-            var cardDiv = document.createElement('div');
-            cardDiv.className = 'card border rounded-4 p-4 exercise-q-card bg-light shadow-none';
-            cardDiv.setAttribute('data-q-index', newIndex);
-
-            cardDiv.innerHTML = `
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pb-3 mb-3 border-bottom">
-                    <div class="d-flex flex-wrap align-items-center gap-2">
-                        <span class="badge bg-primary px-3 py-2 rounded-pill fw-bold q-badge" style="background-color: #294563 !important;">
-                            Câu hỏi #${newIndex + 1}
-                        </span>
-                        <div class="d-flex align-items-center gap-1">
-                            <label class="small fw-semibold text-secondary me-1">Dạng:</label>
-                            <select name="questions[${newIndex}].Format" class="form-select form-select-sm fw-semibold q-format-select" style="width: auto; min-width: 170px;" onchange="toggleFormat(this)">
-                                <option value="MultipleChoice">Trắc nghiệm (A, B, C, D)</option>
-                                <option value="Writing">Tự luận (Đoạn văn / Bài viết)</option>
-                            </select>
-                        </div>
-                        <div class="d-flex align-items-center gap-1 ms-1">
-                            <label class="small fw-semibold text-secondary me-1">Kỹ năng:</label>
-                            <select name="questions[${newIndex}].Skill" class="form-select form-select-sm q-skill-select" style="width: auto;">
-                                <option value="Reading">Reading</option>
-                                <option value="Listening">Listening</option>
-                                <option value="Writing">Writing</option>
-                                <option value="Speaking">Speaking</option>
-                                <option value="Grammar">Grammar</option>
-                                <option value="Vocabulary">Vocabulary</option>
-                            </select>
-                        </div>
-                        <div class="d-flex align-items-center gap-1 ms-1">
-                            <label class="small fw-semibold text-secondary me-1">Điểm:</label>
-                            <input type="number" step="0.5" min="0.5" max="100" class="form-control form-control-sm text-center q-points-input" style="width: 65px;" name="questions[${newIndex}].Points" value="10" />
-                        </div>
-                    </div>
-                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1 btn-remove-q" onclick="removeQuestion(this)" title="Xóa câu hỏi">
-                        <i class="bi bi-trash3 me-1"></i> Xóa câu này
-                    </button>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label small fw-semibold text-dark">Nội dung câu hỏi <span class="text-danger">*</span></label>
-                    <textarea name="questions[${newIndex}].Content" class="form-control q-content-input" rows="2" placeholder="Ví dụ: Theo đoạn trích hoặc audio, thông tin nào sau đây là chính xác?" required></textarea>
-                </div>
-
-                <div class="q-mc-box">
-                    <label class="form-label small fw-semibold text-secondary mb-2">Các phương án lựa chọn:</label>
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-6">
-                            <div class="input-group">
-                                <span class="input-group-text fw-bold text-primary bg-white">A</span>
-                                <input type="text" name="questions[${newIndex}].OptA" class="form-control q-opt-a" placeholder="Nội dung lựa chọn A" />
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="input-group">
-                                <span class="input-group-text fw-bold text-primary bg-white">B</span>
-                                <input type="text" name="questions[${newIndex}].OptB" class="form-control q-opt-b" placeholder="Nội dung lựa chọn B" />
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="input-group">
-                                <span class="input-group-text fw-bold text-primary bg-white">C</span>
-                                <input type="text" name="questions[${newIndex}].OptC" class="form-control q-opt-c" placeholder="Nội dung lựa chọn C" />
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="input-group">
-                                <span class="input-group-text fw-bold text-primary bg-white">D</span>
-                                <input type="text" name="questions[${newIndex}].OptD" class="form-control q-opt-d" placeholder="Nội dung lựa chọn D" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-success">
-                            <i class="bi bi-check-circle-fill me-1"></i> Đáp án đúng chuẩn:
-                        </label>
-                        <select name="questions[${newIndex}].CorrectAnswer" class="form-select border-success q-correct-mc">
-                            <option value="A">Lựa chọn A</option>
-                            <option value="B">Lựa chọn B</option>
-                            <option value="C">Lựa chọn C</option>
-                            <option value="D">Lựa chọn D</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="q-writing-box" style="display: none;">
-                    <div class="alert alert-info py-2 small mb-3">
-                        <i class="bi bi-info-circle-fill me-1"></i>
-                        <strong>Dạng tự luận:</strong> Học viên sẽ nhập bài viết / câu trả lời vào khung văn bản. Giảng viên có thể xem nội dung bài làm và chấm điểm kèm lời nhận xét trong mục Chấm điểm bài nộp.
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-success">
-                            <i class="bi bi-card-checklist me-1"></i> Gợi ý đáp án / Tiêu chí chấm điểm (Rubric):
-                        </label>
-                        <textarea name="questions[${newIndex}].WritingAnswer" class="form-control border-info q-writing-rubric" rows="2" placeholder="Ví dụ: Nêu đủ 3 ý chính, cấu trúc câu rõ ràng, sử dụng từ vựng chủ đề..."></textarea>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="form-label small text-secondary">Giải thích / Feedback chi tiết cho học viên</label>
-                    <input type="text" name="questions[${newIndex}].Explanation" class="form-control q-explanation-input" placeholder="Feedback giải thích vì sao đáp án đúng, hoặc lưu ý từ vựng, ngữ pháp..." />
-                </div>
-            `;
-
-            container.appendChild(cardDiv);
-            reindexQuestions();
-
-            // Smooth scroll to the newly added card
-            cardDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            var newTextarea = cardDiv.querySelector('.q-content-input');
-            if (newTextarea) newTextarea.focus();
-        }
-
-        function removeQuestion(btn) {
-            var card = btn.closest('.exercise-q-card');
-            if (card) {
-                card.remove();
-                reindexQuestions();
-            }
-        }
-
-        // Initialize state
-        document.addEventListener('DOMContentLoaded', function () {
-            reindexQuestions();
-
-            // Cascading dropdowns: Course -> Chapter -> Lesson
-            var hierarchyData = @Html.Raw(ViewBag.CoursesHierarchyJson ?? "[]");
-            var selectedCourseId = '@(ViewBag.SelectedCourseId ?? "")';
-            var selectedChapterId = '@(ViewBag.SelectedChapterId ?? "")';
-            var selectedLessonId = '@(ViewBag.SelectedLessonId ?? (Model?.LessonId > 0 ? Model.LessonId.ToString() : ""))';
-
-            var courseSelect = document.getElementById('courseSelect');
-            var chapterSelect = document.getElementById('chapterSelect');
-            var lessonSelect = document.getElementById('lessonSelect');
-
-            function populateChapters(courseId, targetChapterId, targetLessonId) {
-                chapterSelect.innerHTML = '';
-                lessonSelect.innerHTML = '';
-                lessonSelect.disabled = true;
-
-                var defaultLessonOpt = document.createElement('option');
-                defaultLessonOpt.value = '';
-                defaultLessonOpt.textContent = '-- Vui lòng chọn chương học trước --';
-                lessonSelect.appendChild(defaultLessonOpt);
-
-                if (!courseId) {
-                    chapterSelect.disabled = true;
-                    var opt = document.createElement('option');
-                    opt.value = '';
-                    opt.textContent = '-- Vui lòng chọn khóa học trước --';
-                    chapterSelect.appendChild(opt);
-                    return;
-                }
-
-                var course = hierarchyData.find(function(c) {
-                    var cid = c.CourseId || c.courseId;
-                    return String(cid) === String(courseId);
-                });
-                var chapters = course ? (course.Chapters || course.chapters || []) : [];
-
-                if (!chapters || chapters.length === 0) {
-                    chapterSelect.disabled = true;
-                    var opt = document.createElement('option');
-                    opt.value = '';
-                    opt.textContent = '-- Khóa học này chưa có chương học nào --';
-                    chapterSelect.appendChild(opt);
-                    return;
-                }
-
-                chapterSelect.disabled = false;
-                var defaultOpt = document.createElement('option');
-                defaultOpt.value = '';
-                defaultOpt.textContent = '-- Chọn chương học --';
-                chapterSelect.appendChild(defaultOpt);
-
-                chapters.forEach(function(ch) {
-                    var opt = document.createElement('option');
-                    var chId = ch.ChapterId || ch.chapterId;
-                    var chTitle = ch.Title || ch.title;
-                    var chOrder = ch.OrderIndex || ch.orderIndex;
-                    var chDisplay = ch.DisplayText || ch.displayText || ('Chương ' + chOrder + ': ' + chTitle);
-
-                    opt.value = chId;
-                    opt.textContent = chDisplay;
-                    if (targetChapterId && String(chId) === String(targetChapterId)) {
-                        opt.selected = true;
-                    }
-                    chapterSelect.appendChild(opt);
-                });
-
-                if (targetChapterId) {
-                    populateLessons(courseId, targetChapterId, targetLessonId);
-                }
-            }
-
-            function populateLessons(courseId, chapterId, targetLessonId) {
-                lessonSelect.innerHTML = '';
-
-                if (!chapterId) {
-                    lessonSelect.disabled = true;
-                    var opt = document.createElement('option');
-                    opt.value = '';
-                    opt.textContent = '-- Vui lòng chọn chương học trước --';
-                    lessonSelect.appendChild(opt);
-                    return;
-                }
-
-                var course = hierarchyData.find(function(c) {
-                    var cid = c.CourseId || c.courseId;
-                    return String(cid) === String(courseId);
-                });
-                var chapter = course && (course.Chapters || course.chapters) ? (course.Chapters || course.chapters).find(function(ch) {
-                    var chId = ch.ChapterId || ch.chapterId;
-                    return String(chId) === String(chapterId);
-                }) : null;
-                var lessons = chapter ? (chapter.Lessons || chapter.lessons || []) : [];
-
-                if (!lessons || lessons.length === 0) {
-                    lessonSelect.disabled = true;
-                    var opt = document.createElement('option');
-                    opt.value = '';
-                    opt.textContent = '-- Chương này chưa có bài học nào --';
-                    lessonSelect.appendChild(opt);
-                    return;
-                }
-
-                lessonSelect.disabled = false;
-                var defaultOpt = document.createElement('option');
-                defaultOpt.value = '';
-                defaultOpt.textContent = '-- Chọn bài học trực thuộc --';
-                lessonSelect.appendChild(defaultOpt);
-
-                lessons.forEach(function(l) {
-                    var opt = document.createElement('option');
-                    var lId = l.LessonId || l.lessonId;
-                    var lTitle = l.Title || l.title;
-                    var lOrder = l.OrderIndex || l.orderIndex;
-                    var lDisplay = l.DisplayText || l.displayText || ('Bài ' + lOrder + ': ' + lTitle);
-
-                    opt.value = lId;
-                    opt.textContent = lDisplay;
-                    if (targetLessonId && String(lId) === String(targetLessonId)) {
-                        opt.selected = true;
-                    }
-                    lessonSelect.appendChild(opt);
-                });
-            }
-
-            if (courseSelect) {
-                courseSelect.addEventListener('change', function () {
-                    populateChapters(this.value, null, null);
-                });
-            }
-
-            if (chapterSelect) {
-                chapterSelect.addEventListener('change', function () {
-                    populateLessons(courseSelect.value, this.value, null);
-                });
-            }
-
-            // Auto-detect preselected lesson
-            if (selectedLessonId && !selectedCourseId) {
-                for (var i = 0; i < hierarchyData.length; i++) {
-                    var c = hierarchyData[i];
-                    var chList = c.Chapters || c.chapters || [];
-                    for (var j = 0; j < chList.length; j++) {
-                        var ch = chList[j];
-                        var lList = ch.Lessons || ch.lessons || [];
-                        var found = lList.some(function (l) {
-                            var lId = l.LessonId || l.lessonId;
-                            return String(lId) === String(selectedLessonId);
-                        });
-                        if (found) {
-                            selectedCourseId = c.CourseId || c.courseId;
-                            selectedChapterId = ch.ChapterId || ch.chapterId;
-                            break;
-                        }
-                    }
-                    if (selectedCourseId) break;
-                }
-            }
-
-            if (selectedCourseId && courseSelect) {
-                courseSelect.value = selectedCourseId;
-                populateChapters(selectedCourseId, selectedChapterId, selectedLessonId);
-            }
-
-            // Intercept form submit to ensure correct answer formatting & legacy fallback fields
-            var form = document.getElementById('createExerciseForm');
-            if (form) {
-                form.addEventListener('submit', function (e) {
-                    if (!lessonSelect || !lessonSelect.value) {
-                        e.preventDefault();
-                        alert('Vui lòng chọn đầy đủ Khóa học, Chương học và Bài học trực thuộc!');
-                        if (courseSelect && !courseSelect.value) courseSelect.focus();
-                        else if (chapterSelect && !chapterSelect.value) chapterSelect.focus();
-                        else if (lessonSelect) lessonSelect.focus();
-                        return false;
-                    }
-
-                    // Always ensure lessonSelect is enabled so browser includes it in POST payload
-                    lessonSelect.disabled = false;
-
-                    var cards = document.querySelectorAll('#questionsContainer .exercise-q-card');
-                    if (cards.length > 1) {
-                        cards.forEach(function (card) {
-                            var contentInput = card.querySelector('.q-content-input');
-                            if (contentInput && !contentInput.value.trim()) {
-                                card.remove();
-                            }
-                        });
-                        reindexQuestions();
-                    }
-
-                    cards = document.querySelectorAll('#questionsContainer .exercise-q-card');
-                    cards.forEach(function (card) {
-                        var formatSelect = card.querySelector('.q-format-select');
-                        var isWriting = formatSelect && formatSelect.value === 'Writing';
-                        if (isWriting) {
-                            var writingRubric = card.querySelector('.q-writing-rubric');
-                            var rubricVal = writingRubric ? writingRubric.value.trim() : '';
-                            var correctMc = card.querySelector('.q-correct-mc');
-                            // If writing, correctMc select can be disabled or we can set hidden field
-                            if (correctMc) {
-                                correctMc.disabled = true; // prevent sending MC answer
-                            }
-                        }
-                    });
-
-                    // Populate legacy fallback fields from question 0 if available
-                    if (cards.length > 0) {
-                        var firstCard = cards[0];
-                        var firstContent = firstCard.querySelector('.q-content-input');
-                        var firstOptA = firstCard.querySelector('.q-opt-a');
-                        var firstOptB = firstCard.querySelector('.q-opt-b');
-                        var firstOptC = firstCard.querySelector('.q-opt-c');
-                        var firstOptD = firstCard.querySelector('.q-opt-d');
-                        var firstCorrect = firstCard.querySelector('.q-correct-mc');
-                        var firstExplanation = firstCard.querySelector('.q-explanation-input');
-
-                        if (firstContent) document.getElementById('fallbackQuestionContent').value = firstContent.value;
-                        if (firstOptA) document.getElementById('fallbackOptA').value = firstOptA.value;
-                        if (firstOptB) document.getElementById('fallbackOptB').value = firstOptB.value;
-                        if (firstOptC) document.getElementById('fallbackOptC').value = firstOptC.value;
-                        if (firstOptD) document.getElementById('fallbackOptD').value = firstOptD.value;
-                        if (firstCorrect && !firstCorrect.disabled) document.getElementById('fallbackCorrectOpt').value = firstCorrect.value;
-                        if (firstExplanation) document.getElementById('fallbackExplanation').value = firstExplanation.value;
-                    }
-                });
-            }
-        });
-    </script>
+    <partial name="_ValidationScriptsPartial" />
 }

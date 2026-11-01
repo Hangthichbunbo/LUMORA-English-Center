@@ -1,0 +1,240 @@
+@model ReadingViewModel
+@{
+    ViewData["Title"] = $"{Model.Chapter.StoryTitle} - {Model.Chapter.Title}";
+    ViewData["MetaDescription"] = $"Đọc truyện {Model.Chapter.StoryTitle} {Model.Chapter.Title} online tốc độ nhanh, cập nhật sớm nhất tại TruyenVietSub.";
+    ViewData["MetaKeywords"] = $"{Model.Chapter.StoryTitle}, {Model.Chapter.Title}, chuong {Model.Chapter.FormattedChapterNumber}, doc truyen {Model.Chapter.StoryTitle}, truyenvietsub";
+    ViewData["OgType"] = "article";
+
+    var requestScheme = Context.Request.Scheme;
+    var requestHost = Context.Request.Host.Value;
+}
+
+<!-- JSON-LD Structured Data for Article & Breadcrumbs -->
+@Html.Raw("<script type=\"application/ld+json\">")
+{
+  "@@context": "https://schema.org",
+  "@@graph": [
+    {
+      "@@type": "Article",
+      "headline": "@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode($"{Model.Chapter.StoryTitle} - {Model.Chapter.Title}"))",
+      "description": "@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(ViewData["MetaDescription"]?.ToString() ?? ""))",
+      "datePublished": "@Model.Chapter.CreatedAt.ToString("o")",
+      "inLanguage": "vi",
+      "mainEntityOfPage": {
+        "@@type": "WebPage",
+        "@@id": "@($"{requestScheme}://{requestHost}/truyen/{Model.Chapter.StorySlug}/chuong-{Model.Chapter.FormattedChapterNumber}")"
+      },
+      "publisher": {
+        "@@type": "Organization",
+        "name": "TruyenVietSub",
+        "url": "@($"{requestScheme}://{requestHost}/")"
+      }
+    },
+    {
+      "@@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@@type": "ListItem",
+          "position": 1,
+          "name": "Trang chủ",
+          "item": "@($"{requestScheme}://{requestHost}/")"
+        },
+        {
+          "@@type": "ListItem",
+          "position": 2,
+          "name": "@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(Model.Chapter.StoryTitle))",
+          "item": "@($"{requestScheme}://{requestHost}/truyen/{Model.Chapter.StorySlug}")"
+        },
+        {
+          "@@type": "ListItem",
+          "position": 3,
+          "name": "@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(Model.Chapter.Title))",
+          "item": "@($"{requestScheme}://{requestHost}/truyen/{Model.Chapter.StorySlug}/chuong-{Model.Chapter.FormattedChapterNumber}")"
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<div class="container my-2">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-2 small">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item">
+                <a asp-controller="Story" asp-action="Detail" asp-route-slug="@Model.Chapter.StorySlug">
+                    @Model.Chapter.StoryTitle
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Chương @Model.Chapter.FormattedChapterNumber</li>
+        </ol>
+    </nav>
+
+    <!-- Reading Sticky Toolbar -->
+    <div class="reader-toolbar py-2 px-3 rounded shadow-sm border mb-4 d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div class="d-flex align-items-center gap-1">
+            <!-- Chapter Selector Dropdown -->
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-list me-1"></i>Chương @Model.Chapter.FormattedChapterNumber
+                </button>
+                <ul class="dropdown-menu shadow border-0" style="max-height: 300px; overflow-y: auto;">
+                    @foreach (var ch in Model.AllChapters)
+                    {
+                        <li>
+                            <a class="dropdown-item small @(ch.Id == Model.Chapter.Id ? "active fw-bold" : "")" 
+                               asp-controller="Chapter" asp-action="Read" 
+                               asp-route-storySlug="@Model.Chapter.StorySlug" 
+                               asp-route-chapterNumber="@ch.FormattedChapterNumber" 
+                               asp-route-chapterSlug="@ch.Slug">
+                                Chương @ch.FormattedChapterNumber: @ch.Title
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <!-- Previous Chapter Button -->
+            @if (Model.Chapter.PrevChapterId.HasValue)
+            {
+                <a asp-controller="Chapter" asp-action="Read" 
+                   asp-route-storySlug="@Model.Chapter.StorySlug" 
+                   asp-route-chapterNumber="@Model.Chapter.FormattedPrevChapterNumber" 
+                   asp-route-chapterSlug="@Model.Chapter.PrevChapterSlug" 
+                   class="btn btn-sm btn-outline-primary" title="Chương trước (Phím mũi tên trái)">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            }
+            else
+            {
+                <button class="btn btn-sm btn-outline-secondary" disabled><i class="bi bi-chevron-left"></i></button>
+            }
+
+            <!-- Next Chapter Button -->
+            @if (Model.Chapter.NextChapterId.HasValue)
+            {
+                <a asp-controller="Chapter" asp-action="Read" 
+                   asp-route-storySlug="@Model.Chapter.StorySlug" 
+                   asp-route-chapterNumber="@Model.Chapter.FormattedNextChapterNumber" 
+                   asp-route-chapterSlug="@Model.Chapter.NextChapterSlug" 
+                   class="btn btn-sm btn-primary" title="Chương sau (Phím mũi tên phải)">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            }
+            else
+            {
+                <button class="btn btn-sm btn-outline-secondary" disabled><i class="bi bi-chevron-right"></i></button>
+            }
+        </div>
+
+        <!-- Typography & Width Controls -->
+        <div class="d-flex align-items-center gap-1">
+            <button class="btn btn-sm btn-outline-secondary" id="btn-font-dec" title="Giảm cỡ chữ">A-</button>
+            <span class="badge bg-secondary-subtle text-secondary small px-2" id="font-size-display">18px</span>
+            <button class="btn btn-sm btn-outline-secondary" id="btn-font-inc" title="Tăng cỡ chữ">A+</button>
+            <button class="btn btn-sm btn-outline-secondary ms-2" id="btn-width-toggle" title="Thay đổi độ rộng vùng đọc">
+                <i class="bi bi-arrows-expand"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Chapter Top Ad -->
+    <partial name="_AdPlacementPartial" model="(Placement: AdPlacement.ChapterTop, StoryId: (int?)Model.Chapter.StoryId, CategorySlug: (string?)null)" />
+
+    <!-- Chapter Heading -->
+    <div class="text-center my-4">
+        <h1 class="h3 fw-bold text-primary mb-1">
+            <a asp-controller="Story" asp-action="Detail" asp-route-slug="@Model.Chapter.StorySlug" class="text-decoration-none text-body">
+                @Model.Chapter.StoryTitle
+            </a>
+        </h1>
+        <h2 class="h5 text-muted mb-2">@Model.Chapter.Title</h2>
+        <div class="small text-muted">
+            <span class="me-3"><i class="bi bi-clock me-1"></i>@Model.Chapter.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+            <span><i class="bi bi-eye me-1"></i>@Model.Chapter.ViewCount lượt đọc</span>
+        </div>
+    </div>
+
+    <!-- Chapter Reading Main Area -->
+    <div class="reader-container p-4 p-md-5 rounded shadow-sm border bg-body">
+        <div class="reader-content text-body" id="reader-content">
+            @Html.Raw(Model.Chapter.Content)
+        </div>
+    </div>
+
+    <!-- Chapter Middle Ad -->
+    <partial name="_AdPlacementPartial" model="(Placement: AdPlacement.ChapterMiddle, StoryId: (int?)Model.Chapter.StoryId, CategorySlug: (string?)null)" />
+
+    <!-- Bottom Navigation Bar -->
+    <div class="d-flex justify-content-center align-items-center gap-3 my-4">
+        @if (Model.Chapter.PrevChapterId.HasValue)
+        {
+            <a asp-controller="Chapter" asp-action="Read" 
+               asp-route-storySlug="@Model.Chapter.StorySlug" 
+               asp-route-chapterNumber="@Model.Chapter.FormattedPrevChapterNumber" 
+               asp-route-chapterSlug="@Model.Chapter.PrevChapterSlug" 
+               class="btn btn-outline-primary px-4">
+                <i class="bi bi-chevron-left me-1"></i>Chương trước
+            </a>
+        }
+        else
+        {
+            <button class="btn btn-outline-secondary px-4" disabled>Chương trước</button>
+        }
+
+        <a asp-controller="Story" asp-action="Detail" asp-route-slug="@Model.Chapter.StorySlug" class="btn btn-outline-secondary">
+            <i class="bi bi-list-ul me-1"></i>Mục lục
+        </a>
+
+        @if (Model.Chapter.NextChapterId.HasValue)
+        {
+            <a asp-controller="Chapter" asp-action="Read" 
+               asp-route-storySlug="@Model.Chapter.StorySlug" 
+               asp-route-chapterNumber="@Model.Chapter.FormattedNextChapterNumber" 
+               asp-route-chapterSlug="@Model.Chapter.NextChapterSlug" 
+               class="btn btn-primary px-4">
+                Chương sau <i class="bi bi-chevron-right ms-1"></i>
+            </a>
+        }
+        else
+        {
+            <button class="btn btn-outline-secondary px-4" disabled>Chương sau</button>
+        }
+    </div>
+
+    <!-- Chapter Bottom Ad -->
+    <partial name="_AdPlacementPartial" model="(Placement: AdPlacement.ChapterBottom, StoryId: (int?)Model.Chapter.StoryId, CategorySlug: (string?)null)" />
+
+    <!-- Chapter Comments -->
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body p-4">
+            <partial name="_CommentSectionPartial" model="(StoryId: Model.Chapter.StoryId, ChapterId: (int?)Model.Chapter.Id, Comments: Model.InitialComments)" />
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Keyboard navigation (ArrowLeft = prev, ArrowRight = next)
+        document.addEventListener('keydown', function (e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            @if (Model.Chapter.PrevChapterId.HasValue)
+            {
+                <text>
+                if (e.key === 'ArrowLeft') {
+                    window.location.href = '@Url.Action("Read", "Chapter", new { storySlug = Model.Chapter.StorySlug, chapterNumber = Model.Chapter.FormattedPrevChapterNumber, chapterSlug = Model.Chapter.PrevChapterSlug })';
+                }
+                </text>
+            }
+            @if (Model.Chapter.NextChapterId.HasValue)
+            {
+                <text>
+                if (e.key === 'ArrowRight') {
+                    window.location.href = '@Url.Action("Read", "Chapter", new { storySlug = Model.Chapter.StorySlug, chapterNumber = Model.Chapter.FormattedNextChapterNumber, chapterSlug = Model.Chapter.NextChapterSlug })';
+                }
+                </text>
+            }
+        });
+    </script>
+}

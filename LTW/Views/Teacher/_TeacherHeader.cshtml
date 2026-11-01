@@ -1,0 +1,64 @@
+@{
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "Dashboard";
+}
+
+<!-- Teacher Portal Masthead / Banner -->
+<div class="py-4 bg-light border-bottom">
+    <div class="container-fluid px-lg-5">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-7">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-primary text-white rounded-pill px-3 py-1 small fw-semibold">TEACHER PORTAL</span>
+                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 small fw-semibold">
+                        <i class="bi bi-shield-check me-1"></i> Lumora Faculty
+                    </span>
+                </div>
+                <h3 class="fw-bold text-dark m-0">Không Gian Giảng Dạy & Quản Lý Học Thuật</h3>
+                <p class="text-muted small m-0 mt-1">Điều phối lớp học trực tuyến, biên soạn bài giảng, tạo bài tập và đánh giá học viên</p>
+            </div>
+            <div class="col-lg-5 text-lg-end">
+                <div class="d-flex flex-wrap justify-content-lg-end gap-2">
+                    <a asp-controller="Teacher" asp-action="CreateLesson" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold @(currentAction == "CreateLesson" ? "active" : "")">
+                        <i class="bi bi-plus-circle me-1"></i> Tạo Bài Học Mới
+                    </a>
+                    <a asp-controller="Teacher" asp-action="CreateExercise" class="btn btn-lumora-secondary btn-sm rounded-pill px-3 fw-semibold shadow-sm text-white @(currentAction == "CreateExercise" ? "active" : "")">
+                        <i class="bi bi-pencil-square me-1"></i> Tạo Bài Tập Mới
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Teacher Portal Navigation Bar -->
+<div class="container-fluid px-lg-5 pt-3">
+    <div class="bg-white p-2 rounded-4 border shadow-sm">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <a asp-controller="Teacher" asp-action="Dashboard" 
+               class="btn btn-sm rounded-pill px-3 fw-semibold @(currentAction == "Dashboard" ? "btn-lumora-secondary text-white shadow-sm" : "btn-outline-secondary")">
+                <i class="bi bi-speedometer2 me-1"></i> Tổng Quan
+            </a>
+            <a asp-controller="Teacher" asp-action="MyClasses" 
+               class="btn btn-sm rounded-pill px-3 fw-semibold @(currentAction == "MyClasses" ? "btn-lumora-secondary text-white shadow-sm" : "btn-outline-secondary")">
+                <i class="bi bi-camera-video me-1"></i> Lớp Trực Tuyến
+            </a>
+            <a asp-controller="Teacher" asp-action="Lessons" 
+               class="btn btn-sm rounded-pill px-3 fw-semibold @(currentAction == "Lessons" || currentAction == "CreateLesson" ? "btn-lumora-secondary text-white shadow-sm" : "btn-outline-secondary")">
+                <i class="bi bi-journal-text me-1"></i> Quản Lý Bài Học
+            </a>
+            <a asp-controller="Teacher" asp-action="Exercises" 
+               class="btn btn-sm rounded-pill px-3 fw-semibold @(currentAction == "Exercises" || currentAction == "CreateExercise" ? "btn-lumora-secondary text-white shadow-sm" : "btn-outline-secondary")">
+                <i class="bi bi-clipboard-check me-1"></i> Quản Lý Bài Tập
+            </a>
+            <a asp-controller="Teacher" asp-action="Students" 
+               class="btn btn-sm rounded-pill px-3 fw-semibold @(currentAction == "Students" ? "btn-lumora-secondary text-white shadow-sm" : "btn-outline-secondary")">
+                <i class="bi bi-people me-1"></i> Danh Sách Học Viên
+            </a>
+            <a asp-controller="Teacher" asp-action="Assessments" 
+               class="btn btn-sm rounded-pill px-3 fw-semibold @(currentAction == "Assessments" ? "btn-lumora-secondary text-white shadow-sm" : "btn-outline-secondary")">
+                <i class="bi bi-check2-square me-1"></i> Chấm Điểm & Đánh Giá
+            </a>
+        </div>
+    </div>
+</div>
+

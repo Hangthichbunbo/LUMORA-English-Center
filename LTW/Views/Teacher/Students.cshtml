@@ -4,21 +4,32 @@
 @{
     ViewData["Title"] = "Quản Lý Học Viên - Giảng Viên LUMORA";
     var submissions = ViewBag.Submissions as List<ExerciseSubmission> ?? new List<ExerciseSubmission>();
+    var totalStudents = Model?.Select(e => e.StudentId).Distinct().Count() ?? 0;
 }
 
-<partial name="_TeacherPortalHeader" />
+<!-- Unified Teacher Header -->
+<partial name="_TeacherHeader" />
 
-<div class="container-fluid px-lg-5 pb-4">
-    <div class="d-flex align-items-center justify-content-between mb-4">
+<div class="container-fluid px-lg-5 py-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
         <div>
-            <h3 class="fw-bold text-dark m-0"><i class="bi bi-people me-2 text-primary"></i>Danh Sách Học Viên Thuộc Khóa</h3>
+            <h4 class="fw-bold text-dark m-0"><i class="bi bi-people me-2 text-info"></i>Danh Sách Học Viên Thuộc Khóa</h4>
             <p class="text-muted small m-0">Theo dõi tiến độ, số bài tập đã nộp và điểm trung bình của từng học viên</p>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-white text-secondary border rounded-pill px-3 py-2 shadow-sm">
+                Tổng số: <strong class="text-dark">@totalStudents</strong> học viên
+            </span>
+            <div class="position-relative" style="width: 260px;">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                <input type="text" id="studentSearchInput" class="form-control form-control-sm rounded-pill ps-5 bg-white border shadow-sm" placeholder="Tìm tên, email, khóa học..." />
+            </div>
         </div>
     </div>
 
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0" id="studentsTable">
                 <thead class="bg-light text-secondary small">
                     <tr>
                         <th class="ps-4">Học Viên</th>
@@ -37,34 +48,53 @@
                             var studentSubs = submissions.Where(s => s.StudentId == en.StudentId).ToList();
                             var avgScore = studentSubs.Any() ? studentSubs.Average(s => s.TotalScore) : 0;
 
-                            <tr>
+                            <tr class="student-row">
                                 <td class="ps-4">
-                                    <div class="d-flex align-items-center gap-2">
+                                    <div class="d-flex align-items-center gap-3">
                                         <img src="@(string.IsNullOrEmpty(en.Student?.AvatarUrl) ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" : en.Student.AvatarUrl)" 
-                                             class="rounded-circle" style="width: 36px; height: 36px; object-fit: cover;" alt="Avatar" />
+                                             class="rounded-circle shadow-sm flex-shrink-0" style="width: 40px; height: 40px; object-fit: cover;" alt="Avatar" />
                                         <div>
-                                            <div class="fw-bold text-dark">@(en.Student?.FullName ?? "Học viên")</div>
+                                            <div class="fw-bold text-dark student-name">@(en.Student?.FullName ?? "Học viên")</div>
                                             <div class="text-muted" style="font-size: 11px;">&#64;@en.Student?.UserName</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
-                                    <div>@en.Student?.Email</div>
-                                    <div class="text-muted" style="font-size: 11px;">@(en.Student?.PhoneNumber ?? "Chưa có SĐT")</div>
+                                    <div class="student-email text-dark">@en.Student?.Email</div>
+                                    <div class="text-muted" style="font-size: 11px;">
+                                        <i class="bi bi-telephone me-1"></i>@(en.Student?.PhoneNumber ?? "Chưa có SĐT")
+                                    </div>
                                 </td>
-                                <td><span class="badge bg-light text-dark border">@en.Course?.Title</span></td>
-                                <td>@en.EnrolledAt.ToString("dd/MM/yyyy")</td>
-                                <td><strong>@studentSubs.Count</strong> bài</td>
                                 <td>
+                                    <span class="badge bg-light text-dark border student-course">
+                                        <i class="bi bi-book me-1 text-primary"></i>@(en.Course?.Title ?? "Khóa học")
+                                    </span>
+                                </td>
+                                <td class="text-nowrap text-secondary">
+                                    <i class="bi bi-calendar-event me-1"></i>@en.EnrolledAt.ToString("dd/MM/yyyy")
+                                </td>
+                                <td class="text-nowrap">
                                     @if (studentSubs.Any())
                                     {
-                                        <span class="badge bg-success bg-opacity-10 text-success fw-bold px-3 py-1 rounded-pill">
+                                        <a asp-action="Assessments" class="badge bg-primary bg-opacity-10 text-primary text-decoration-none py-1 px-2">
+                                            <strong>@studentSubs.Count</strong> bài đã nộp
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">0 bài</span>
+                                    }
+                                </td>
+                                <td class="text-nowrap">
+                                    @if (studentSubs.Any())
+                                    {
+                                        <span class="badge @(avgScore >= 7.0m ? "bg-success bg-opacity-10 text-success" : (avgScore >= 5.0m ? "bg-warning bg-opacity-10 text-warning" : "bg-danger bg-opacity-10 text-danger")) fw-bold px-3 py-1 rounded-pill">
                                             @avgScore.ToString("F1") / 10
                                         </span>
                                     }
                                     else
                                     {
-                                        <span class="text-muted">Chưa làm bài</span>
+                                        <span class="text-muted" style="font-size: 11px;">Chưa làm bài</span>
                                     }
                                 </td>
                             </tr>
@@ -73,7 +103,11 @@
                     else
                     {
                         <tr>
-                            <td colspan="6" class="text-center py-4 text-muted">Chưa có học viên nào đăng ký khóa học của bạn.</td>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-people display-6 d-block mb-2 text-secondary"></i>
+                                <h6 class="fw-bold text-dark">Chưa có học viên nào</h6>
+                                <p class="small text-muted mb-0">Khi học viên đăng ký tham gia khóa học của bạn, danh sách sẽ hiển thị tại đây.</p>
+                            </td>
                         </tr>
                     }
                 </tbody>
@@ -82,3 +116,19 @@
     </div>
 </div>
 
+@section Scripts {
+    <script>
+        document.getElementById('studentSearchInput')?.addEventListener('keyup', function() {
+            var filter = this.value.toLowerCase();
+            var rows = document.querySelectorAll('.student-row');
+            rows.forEach(function(row) {
+                var text = row.textContent.toLowerCase();
+                if (text.indexOf(filter) > -1) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    </script>
+}

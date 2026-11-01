@@ -1,4 +1,4 @@
-// ============================================================================
+﻿// ============================================================================
 // Main Author: hoangthuhang
 // Project: LTW Project - IELTS Online Practice Landing Page
 // File: wwwroot/js/site.js
@@ -12,8 +12,8 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log("LTW Landing Page initialized - Designed by hoangthuhang");
 
     // 1. Tự động đóng navbar menu khi người dùng click vào một link trên mobile
-    const navLinks = document.querySelectorAll('.navbar-nav .nav-link, .navbar-nav .dropdown-item');
-    const navbarCollapse = document.getElementById('navbarMainNavigation') || document.getElementById('navbarMain');
+    const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+    const navbarCollapse = document.getElementById('navbarMain');
 
     if (navbarCollapse && typeof bootstrap !== 'undefined') {
         const bsCollapse = new bootstrap.Collapse(navbarCollapse, { toggle: false });
@@ -36,28 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 3. Highlight liên kết navbar theo URL hiện tại nếu chưa được đánh dấu active bởi server
-    const currentPath = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
-    let hasServerActive = document.querySelector('.navbar-iot-clean .nav-link.active');
-    if (!hasServerActive) {
-        navLinks.forEach(function (link) {
-            const href = (link.getAttribute('href') || '').toLowerCase().replace(/\/$/, '') || '/';
-            if (href.startsWith('#')) return;
-
-            if (currentPath === href || 
-                (href !== '/' && currentPath.startsWith(href + '/')) ||
-                (href === '/' && (currentPath === '' || currentPath === '/home' || currentPath === '/home/index'))) {
-                link.classList.add('active');
-                const dropdown = link.closest('.dropdown');
-                if (dropdown) {
-                    const toggle = dropdown.querySelector('.dropdown-toggle');
-                    if (toggle) toggle.classList.add('active');
-                }
-            }
-        });
-    }
-
-    // 4. Highlight liên kết navbar theo vị trí cuộn trang (nếu có các liên kết dạng #sectionId)
+    // 3. Highlight liên kết navbar theo vị trí cuộn trang (Scrollspy đơn giản)
     window.addEventListener('scroll', function () {
         const sections = document.querySelectorAll('section[id]');
         const scrollPos = window.scrollY + 100;

@@ -139,21 +139,6 @@ namespace LTW.Models
         public virtual ICollection<LessonProgress> LessonProgresses { get; set; } = new List<LessonProgress>();
     }
 
-    public class TeacherCourseOptionDto
-    {
-        public int CourseId { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public List<TeacherChapterOptionDto> Chapters { get; set; } = new();
-    }
-
-    public class TeacherChapterOptionDto
-    {
-        public int ChapterId { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public int OrderIndex { get; set; }
-        public string DisplayText { get; set; } = string.Empty;
-    }
-
     public class LessonProgress
     {
         [Key]

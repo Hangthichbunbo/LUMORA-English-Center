@@ -1,0 +1,211 @@
+@model AdminDashboardDto
+@{
+    ViewData["Title"] = "Bảng điều khiển quản trị";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Dashboard Tổng Quan</h3>
+        <p class="text-muted small mb-0">Theo dõi thời gian thực các chỉ số hoạt động của TruyenVietSub</p>
+    </div>
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-controller="StoryManagement" asp-action="Create" class="btn btn-primary btn-sm px-3 shadow-sm">
+            <i class="bi bi-plus-lg me-1"></i>Đăng truyện mới
+        </a>
+    }
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-sm-6">
+        <div class="card border-0 shadow-sm p-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold">Tổng số Truyện</span>
+                    <h3 class="fw-bold my-1 text-primary">@Model.TotalStories.ToString("N0")</h3>
+                    <small class="text-success"><i class="bi bi-check-circle me-1"></i>@Model.PublishedStoriesCount đã xuất bản</small>
+                </div>
+                <div class="bg-primary-subtle text-primary p-3 rounded-circle fs-3">
+                    <i class="bi bi-book-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-sm-6">
+        <div class="card border-0 shadow-sm p-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold">Tổng số Chương</span>
+                    <h3 class="fw-bold my-1 text-success">@Model.TotalChapters.ToString("N0")</h3>
+                    <small class="text-muted">Nội dung hoàn chỉnh</small>
+                </div>
+                <div class="bg-success-subtle text-success p-3 rounded-circle fs-3">
+                    <i class="bi bi-file-earmark-text-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-sm-6">
+        <div class="card border-0 shadow-sm p-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold">Tổng Lượt Xem</span>
+                    <h3 class="fw-bold my-1 text-warning">@Model.TotalViews.ToString("N0")</h3>
+                    <small class="text-muted">Cập nhật qua bộ đệm</small>
+                </div>
+                <div class="bg-warning-subtle text-warning p-3 rounded-circle fs-3">
+                    <i class="bi bi-eye-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-sm-6">
+        <div class="card border-0 shadow-sm p-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold">Thành Viên</span>
+                    <h3 class="fw-bold my-1 text-info">@Model.TotalUsers.ToString("N0")</h3>
+                    <small class="text-muted">Đang hoạt động</small>
+                </div>
+                <div class="bg-info-subtle text-info p-3 rounded-circle fs-3">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Cards for Pending Tasks -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-3 border-start border-4 border-warning">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small">Bình luận chờ kiểm duyệt</span>
+                    <h4 class="fw-bold my-1">@Model.PendingCommentsCount</h4>
+                </div>
+                <a asp-controller="CommentModeration" asp-action="Index" asp-route-status="@CommentStatus.Pending" class="btn btn-sm btn-outline-warning">
+                    Kiểm tra
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-3 border-start border-4 border-danger">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small">Báo cáo vi phạm chờ duyệt</span>
+                    <h4 class="fw-bold my-1 text-danger">@Model.PendingReportsCount</h4>
+                </div>
+                <a asp-controller="CommentModeration" asp-action="Reports" asp-route-status="@ReportStatus.Pending" class="btn btn-sm btn-outline-danger">
+                    Xử lý
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-3 border-start border-4 border-primary">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small">Quảng cáo đang chạy</span>
+                    <h4 class="fw-bold my-1">@Model.ActiveAdsCount</h4>
+                </div>
+                <a asp-controller="AdvertisementManagement" asp-action="Index" class="btn btn-sm btn-outline-primary">
+                    Xem Ads
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts & Recent Stories -->
+<div class="row g-4 mb-4">
+    <!-- View Statistics Bar Chart -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-body border-bottom py-3">
+                <h6 class="fw-bold mb-0"><i class="bi bi-graph-up text-primary me-2"></i>Lượt xem 7 ngày gần nhất</h6>
+            </div>
+            <div class="card-body p-4 d-flex flex-column justify-content-between">
+                <div class="d-flex align-items-end justify-content-between h-100 pt-4" style="min-height: 220px;">
+                    @{
+                        var maxViews = Model.DailyViewStats.Count > 0 ? Model.DailyViewStats.Max(s => s.Views) : 1;
+                        if (maxViews <= 0) maxViews = 1;
+                    }
+                    @foreach (var stat in Model.DailyViewStats)
+                    {
+                        var heightPct = Math.Max((int)((stat.Views / (double)maxViews) * 100), 10);
+                        <div class="text-center d-flex flex-column align-items-center" style="width: 12%;">
+                            <span class="small fw-semibold text-muted mb-1" style="font-size: 0.75rem;">@stat.Views</span>
+                            <div class="bg-primary rounded-top w-100" style="height: @(heightPct * 1.6)px; opacity: 0.85;"></div>
+                            <span class="small text-muted mt-2" style="font-size: 0.75rem;">@stat.Date</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Stories -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-body border-bottom py-3 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0"><i class="bi bi-clock-history text-secondary me-2"></i>Truyện cập nhật gần đây</h6>
+                <a asp-controller="StoryManagement" asp-action="Index" class="small text-decoration-none">Xem tất cả</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small">
+                            <tr>
+                                <th>Tên truyện</th>
+                                <th>Tác giả</th>
+                                <th>Lượt xem</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var s in Model.RecentStories)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="@(string.IsNullOrEmpty(s.CoverImageUrl) ? "/images/default-cover.webp" : s.CoverImageUrl)" 
+                                                 class="rounded me-2" width="30" height="40" style="object-fit: cover;" 
+                                                 onerror="this.onerror=null; this.src='/images/default-cover.webp';" />
+                                            <a asp-controller="StoryManagement" asp-action="Edit" asp-route-id="@s.Id" class="text-decoration-none fw-semibold text-truncate text-body" style="max-width: 180px;">
+                                                @s.Title
+                                            </a>
+                                        </div>
+                                    </td>
+                                    <td class="small text-muted">@s.AuthorName</td>
+                                    <td class="small fw-bold">@s.ViewCount.ToString("N0")</td>
+                                    <td>
+                                        @if (s.Status == StoryStatus.Published)
+                                        {
+                                            <span class="badge bg-success-subtle text-success">Xuất bản</span>
+                                        }
+                                        else if (s.Status == StoryStatus.Removed)
+                                        {
+                                            <span class="badge bg-danger-subtle text-danger">Đã gỡ</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary-subtle text-secondary">@s.Status</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

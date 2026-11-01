@@ -33,15 +33,6 @@ namespace LTW.Models
 
         public virtual ICollection<ExerciseQuestion> Questions { get; set; } = new List<ExerciseQuestion>();
         public virtual ICollection<ExerciseSubmission> Submissions { get; set; } = new List<ExerciseSubmission>();
-
-        [NotMapped]
-        public bool HasWriting => Questions != null && Questions.Any(q => q.Format == QuestionFormat.Writing || q.Format == QuestionFormat.Speaking);
-
-        [NotMapped]
-        public bool HasMultipleChoice => Questions != null && Questions.Any(q => q.Format != QuestionFormat.Writing && q.Format != QuestionFormat.Speaking);
-
-        [NotMapped]
-        public decimal TotalMcPoints => Questions != null ? Questions.Where(q => q.Format != QuestionFormat.Writing && q.Format != QuestionFormat.Speaking).Sum(q => q.Points > 0 ? q.Points : 10m) : 0m;
     }
 
     public class ExerciseQuestion
@@ -123,46 +114,6 @@ namespace LTW.Models
 
         [Display(Name = "Chi tiết bài làm (JSON)")]
         public string? AnswersJson { get; set; } // Saves user chosen answers, correctness, feedback
-
-        [NotMapped]
-        public bool HasWriting => Exercise?.HasWriting ?? false;
-
-        [NotMapped]
-        public bool HasMultipleChoice => Exercise?.HasMultipleChoice ?? false;
-
-        [NotMapped]
-        public decimal TotalMcPoints => Exercise?.TotalMcPoints ?? 0m;
-
-        [NotMapped]
-        public string McScoreDisplay
-        {
-            get
-            {
-                var total = TotalMcPoints;
-                if (total <= 0)
-                {
-                    return (AutoScore % 1 == 0) ? ((int)AutoScore).ToString() : AutoScore.ToString("F1");
-                }
-                string earnedStr = (AutoScore % 1 == 0) ? ((int)AutoScore).ToString() : AutoScore.ToString("F1");
-                string totalStr = (total % 1 == 0) ? ((int)total).ToString() : total.ToString("F1");
-                return $"{earnedStr}/{totalStr}";
-            }
-        }
-    }
-    public class QuestionInputModel
-    {
-        public int QuestionId { get; set; }
-        public string Format { get; set; } = "MultipleChoice"; // "MultipleChoice" or "Writing"
-        public SkillType Skill { get; set; } = SkillType.Reading;
-        public string Content { get; set; } = string.Empty;
-        public string? OptA { get; set; }
-        public string? OptB { get; set; }
-        public string? OptC { get; set; }
-        public string? OptD { get; set; }
-        public string? CorrectAnswer { get; set; }
-        public string? WritingAnswer { get; set; }
-        public string? Explanation { get; set; }
-        public decimal Points { get; set; } = 10;
     }
 }
 

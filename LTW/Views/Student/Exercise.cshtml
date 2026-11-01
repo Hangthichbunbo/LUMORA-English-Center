@@ -42,79 +42,20 @@
         <!-- Previous Submission Alert -->
         @if (submission != null)
         {
-            bool hasWriting = Model.Questions.Any(q => q.Format == QuestionFormat.Writing || q.Format == QuestionFormat.Speaking);
-            bool hasMc = Model.Questions.Any(q => q.Format != QuestionFormat.Writing && q.Format != QuestionFormat.Speaking);
-            decimal totalMcPoints = Model.Questions.Where(q => q.Format != QuestionFormat.Writing && q.Format != QuestionFormat.Speaking).Sum(q => q.Points > 0 ? q.Points : 10m);
-            decimal autoScore = submission.AutoScore;
-            string earnedStr = (autoScore % 1 == 0) ? ((int)autoScore).ToString() : autoScore.ToString("F1");
-            string totalStr = (totalMcPoints % 1 == 0) ? ((int)totalMcPoints).ToString() : totalMcPoints.ToString("F1");
-            string mcScoreDisplay = totalMcPoints > 0 ? $"{earnedStr}/{totalStr}" : earnedStr;
-
-            <div class="alert alert-light border shadow-sm mt-4 p-4 rounded-4">
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 pb-3 border-bottom">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="rounded-circle bg-success bg-opacity-10 p-3 text-success">
-                            <i class="bi bi-award-fill fs-2"></i>
-                        </div>
-                        <div>
-                            <h5 class="fw-bold text-dark m-0">Kết Quả Bài Làm Của Bạn</h5>
-                            <small class="text-muted">Nộp lúc: @submission.SubmittedAt.ToString("HH:mm - dd/MM/yyyy")</small>
-                        </div>
-                    </div>
-
-                    <div class="d-flex flex-wrap align-items-center gap-2">
-                        @if (hasWriting)
-                        {
-                            <div class="px-3 py-2 bg-light rounded-pill border small">
-                                <span class="text-muted">Điểm trắc nghiệm:</span>
-                                <strong class="text-primary ms-1">@mcScoreDisplay</strong>
-                            </div>
-
-                            <div class="px-3 py-2 bg-light rounded-pill border small">
-                                <span class="text-muted">Điểm tự luận:</span>
-                                @if (submission.TeacherScore.HasValue)
-                                {
-                                    <strong class="text-success ms-1">@submission.TeacherScore.Value.ToString("G29") điểm</strong>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-warning text-dark ms-1">Chờ GV chấm</span>
-                                }
-                            </div>
-
-                            <div class="px-3 py-2 rounded-pill small @(submission.TeacherScore.HasValue ? "bg-success text-white" : "bg-secondary text-white")">
-                                <span>Tổng điểm:</span>
-                                @if (submission.TeacherScore.HasValue)
-                                {
-                                    <strong class="ms-1">@submission.TotalScore.ToString("G29")</strong>
-                                }
-                                else
-                                {
-                                    <span class="ms-1">@mcScoreDisplay (+ Chờ GV chấm)</span>
-                                }
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="px-3 py-2 bg-light rounded-pill border small">
-                                <span class="text-muted">Điểm tự chấm (Đáp án cố định):</span>
-                                <strong class="text-success ms-1">@mcScoreDisplay</strong>
-                            </div>
-                            <div class="px-3 py-2 bg-success text-white rounded-pill small">
-                                <span>Tổng điểm:</span>
-                                <strong class="ms-1">@submission.TotalScore.ToString("G29")</strong>
-                            </div>
-                        }
+            <div class="alert alert-success mt-4 p-3 rounded-3 d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-award-fill fs-1 text-success"></i>
+                    <div>
+                        <div class="fw-bold fs-5 text-dark">Điểm số của bạn: @submission.TotalScore.ToString("F1") / 10</div>
+                        <small class="text-muted">Nộp lúc: @submission.SubmittedAt.ToString("HH:mm - dd/MM/yyyy")</small>
                     </div>
                 </div>
-
-                @if (!string.IsNullOrWhiteSpace(submission.TeacherComment))
-                {
-                    <div class="p-3 bg-white rounded-3 border">
-                        <div class="fw-bold text-dark mb-1"><i class="bi bi-chat-quote-fill me-2 text-primary"></i>Nhận xét từ Giảng viên:</div>
-                        <div class="text-secondary small" style="line-height: 1.6;">@submission.TeacherComment</div>
-                    </div>
-                }
+                <div>
+                    @if (!string.IsNullOrEmpty(submission.TeacherComment))
+                    {
+                        <div class="small text-secondary"><strong>Nhận xét:</strong> @submission.TeacherComment</div>
+                    }
+                </div>
             </div>
         }
     </div>
@@ -129,51 +70,26 @@
         {
             qCount++;
             var userAns = submittedAnswers != null ? submittedAnswers.GetValueOrDefault($"q_{q.QuestionId}") : null;
-            bool isWriting = q.Format == QuestionFormat.Writing || q.Format == QuestionFormat.Speaking;
-            var isAnswerCorrect = submission != null && !isWriting && !string.IsNullOrEmpty(userAns) && q.CorrectAnswer.Trim().StartsWith(userAns.Substring(0, Math.Min(2, userAns.Length)));
+            var isAnswerCorrect = submission != null && !string.IsNullOrEmpty(userAns) && q.CorrectAnswer.Trim().StartsWith(userAns.Substring(0, Math.Min(2, userAns.Length)));
 
-            string borderClass = "";
-            if (submission != null)
-            {
-                if (isWriting)
-                {
-                    borderClass = submission.TeacherScore.HasValue ? "border-start border-4 border-info" : "border-start border-4 border-warning";
-                }
-                else
-                {
-                    borderClass = isAnswerCorrect ? "border-start border-4 border-success" : "border-start border-4 border-danger";
-                }
-            }
-
-            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white @borderClass">
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white @(submission != null ? (isAnswerCorrect ? "border-start border-4 border-success" : "border-start border-4 border-danger") : "")">
                 <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-primary px-3 py-2 rounded-pill fw-semibold" style="background-color: #00A896 !important;">
                             @q.Skill
                         </span>
-                        <span class="fw-bold text-dark">Câu @qCount: @(isWriting ? "Tự Luận (Writing)" : "Trắc Nghiệm")</span>
+                        <span class="fw-bold text-dark">Câu @qCount: @q.Format</span>
                     </div>
 
                     @if (submission != null)
                     {
-                        if (isWriting)
-                        {
-                            if (submission.TeacherScore.HasValue)
-                            {
-                                <span class="badge bg-success text-white px-3 py-2 rounded-pill"><i class="bi bi-person-check-fill me-1"></i> Điểm GV chấm: @submission.TeacherScore.Value.ToString("G29") điểm</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill"><i class="bi bi-hourglass-split me-1"></i> Chờ GV chấm</span>
-                            }
-                        }
-                        else if (isAnswerCorrect)
+                        if (isAnswerCorrect)
                         {
                             <span class="badge bg-success px-3 py-2 rounded-pill"><i class="bi bi-check-circle me-1"></i> Chính xác (+@q.Points đ)</span>
                         }
                         else
                         {
-                            <span class="badge bg-danger px-3 py-2 rounded-pill"><i class="bi bi-x-circle me-1"></i> Chưa chính xác (0/@q.Points đ)</span>
+                            <span class="badge bg-danger px-3 py-2 rounded-pill"><i class="bi bi-x-circle me-1"></i> Chưa chính xác</span>
                         }
                     }
                     else
@@ -184,7 +100,7 @@
 
                 <h6 class="fw-bold text-dark mb-3">@q.Content</h6>
 
-                <!-- Options / Answer Area -->
+                <!-- Options -->
                 @{
                     string[]? options = null;
                     if (!string.IsNullOrEmpty(q.OptionsJson))
@@ -193,18 +109,7 @@
                     }
                 }
 
-                @if (isWriting || options == null || options.Length == 0)
-                {
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-secondary">
-                            <i class="bi bi-pencil-square me-1"></i> Bài làm / Câu trả lời tự luận của bạn:
-                        </label>
-                        <textarea name="q_@q.QuestionId" class="form-control" rows="5" 
-                                  placeholder="Nhập nội dung bài làm tự luận của bạn tại đây..." 
-                                  @(submission != null ? "readonly" : "required")>@(userAns ?? "")</textarea>
-                    </div>
-                }
-                else
+                @if (options != null && options.Length > 0)
                 {
                     <div class="d-flex flex-column gap-2 mb-3">
                         @foreach (var opt in options)
@@ -226,25 +131,10 @@
                 @if (submission != null)
                 {
                     <div class="p-3 bg-light rounded-3 mt-2 border small">
-                        @if (isWriting)
-                        {
-                            <div class="mb-1 text-primary">
-                                <i class="bi bi-info-circle-fill me-1"></i> <strong>Gợi ý đáp án / Tiêu chí đánh giá:</strong> @q.CorrectAnswer
-                            </div>
-                            @if (!string.IsNullOrEmpty(submission.TeacherComment))
-                            {
-                                <div class="text-secondary mt-1">
-                                    <strong class="text-dark"><i class="bi bi-chat-quote-fill me-1 text-warning"></i> Lời nhận xét của Giảng viên:</strong> @submission.TeacherComment
-                                </div>
-                            }
-                        }
-                        else
-                        {
-                            <div class="mb-1"><strong class="text-success"><i class="bi bi-check-circle-fill me-1"></i> Đáp án đúng:</strong> @q.CorrectAnswer</div>
-                        }
+                        <div class="mb-1"><strong class="text-success"><i class="bi bi-check-circle-fill me-1"></i> Đáp án đúng:</strong> @q.CorrectAnswer</div>
                         @if (!string.IsNullOrEmpty(q.Explanation))
                         {
-                            <div class="text-secondary mt-1"><strong class="text-primary"><i class="bi bi-lightbulb-fill me-1"></i> Giải thích chi tiết:</strong> @q.Explanation</div>
+                            <div class="text-secondary"><strong class="text-primary"><i class="bi bi-info-circle-fill me-1"></i> Giải thích chi tiết:</strong> @q.Explanation</div>
                         }
                     </div>
                 }

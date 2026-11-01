@@ -1,0 +1,117 @@
+@model CreateOrUpdateAdDto
+@{
+    ViewData["Title"] = "Chỉnh sửa quảng cáo: " + Model.Name;
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Chỉnh sửa quảng cáo: @Model.Name</h3>
+        <p class="text-muted small mb-0">Cập nhật thông tin chiến dịch</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm p-4">
+    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="RowVersion" />
+        <input type="hidden" asp-for="ImageUrl" />
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger small p-2"></div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="Name" class="form-label small fw-bold">Tên chiến dịch quảng cáo (*)</label>
+                <input asp-for="Name" class="form-control" required maxlength="150" />
+                <span asp-validation-for="Name" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-3">
+                <label asp-for="Placement" class="form-label small fw-bold">Vị trí hiển thị (*)</label>
+                <select asp-for="Placement" class="form-select" asp-items="Html.GetEnumSelectList<AdPlacement>()"></select>
+            </div>
+
+            <div class="col-md-3">
+                <label asp-for="AdType" class="form-label small fw-bold">Định dạng quảng cáo (*)</label>
+                <select asp-for="AdType" class="form-select" asp-items="Html.GetEnumSelectList<AdType>()"></select>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="DestinationUrl" class="form-label small fw-bold">URL Đích (Bắt buộc HTTPS)</label>
+                <input asp-for="DestinationUrl" class="form-control" />
+                <span asp-validation-for="DestinationUrl" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label small fw-bold">Banner hiện tại</label>
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <div class="mb-1">
+                        <img src="@Model.ImageUrl" class="rounded border" height="40" />
+                    </div>
+                }
+                <input type="file" name="imageFile" id="ad-image-file" class="form-control form-control-sm" accept=".jpg,.jpeg,.png,.webp" />
+            </div>
+
+            <div class="col-md-3">
+                <label asp-for="Priority" class="form-label small fw-bold">Độ ưu tiên</label>
+                <input asp-for="Priority" class="form-control" type="number" min="1" max="100" />
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="StartAt" class="form-label small fw-bold">Ngày bắt đầu</label>
+                <input asp-for="StartAt" class="form-control" type="datetime-local" value="@Model.StartAt.ToString("yyyy-MM-ddTHH:mm")" />
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="EndAt" class="form-label small fw-bold">Ngày kết thúc</label>
+                <input asp-for="EndAt" class="form-control" type="datetime-local" value="@Model.EndAt.ToString("yyyy-MM-ddTHH:mm")" />
+            </div>
+
+            <div class="col-12">
+                <label asp-for="HtmlContent" class="form-label small fw-bold">Mã HTML an toàn (Nếu là SafeHtml / Text)</label>
+                <textarea asp-for="HtmlContent" class="form-control" rows="4"></textarea>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input asp-for="IsEnabled" class="form-check-input" />
+                    <label asp-for="IsEnabled" class="form-check-label small fw-bold">Kích hoạt quảng cáo</label>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input asp-for="OpenInNewTab" class="form-check-input" />
+                    <label asp-for="OpenInNewTab" class="form-check-label small fw-bold">Mở trong tab mới (target="_blank")</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+            <a asp-action="Index" class="btn btn-secondary px-4">Hủy</a>
+            <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-save me-1"></i>Lưu thay đổi
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const adImageInput = document.getElementById('ad-image-file');
+        if (adImageInput) {
+            adImageInput.addEventListener('change', function () {
+                const file = this.files[0];
+                if (file && file.size > 1024 * 1024) {
+                    alert('Dung lượng ảnh banner (' + (file.size / (1024 * 1024)).toFixed(2) + ' MB) vượt quá giới hạn tối đa 1 MB! Vui lòng chọn ảnh nhỏ hơn.');
+                    this.value = '';
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,108 @@
+@model PaginatedList<CommentReportDto>
+@{
+    ViewData["Title"] = "Báo cáo vi phạm bình luận";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h3 class="fw-bold mb-1 text-danger">Báo cáo vi phạm bình luận</h3>
+        <p class="text-muted small mb-0">Các báo cáo do người dùng gửi lên hệ thống</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Về danh sách bình luận
+    </a>
+</div>
+
+<!-- Filter -->
+<div class="card border-0 shadow-sm p-3 mb-4">
+    <form method="get" class="row g-2 align-items-center">
+        <div class="col-md-3">
+            <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">-- Tất cả trạng thái báo cáo --</option>
+                <option value="@ReportStatus.Pending" selected="@((ReportStatus?)ViewData["Status"] == ReportStatus.Pending)">Chờ xử lý</option>
+                <option value="@ReportStatus.Approved" selected="@((ReportStatus?)ViewData["Status"] == ReportStatus.Approved)">Đã duyệt vi phạm (Đã ẩn)</option>
+                <option value="@ReportStatus.Dismissed" selected="@((ReportStatus?)ViewData["Status"] == ReportStatus.Dismissed)">Bỏ qua (Không vi phạm)</option>
+            </select>
+        </div>
+    </form>
+</div>
+
+<!-- Table -->
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small">
+                <tr>
+                    <th>Bình luận bị báo cáo</th>
+                    <th>Lý do vi phạm</th>
+                    <th>Chi tiết mô tả</th>
+                    <th>Người báo cáo</th>
+                    <th>Thời gian</th>
+                    <th>Trạng thái</th>
+                    <th class="text-end pe-3">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items.Count == 0)
+                {
+                    <tr><td colspan="7" class="text-center py-4 text-muted">Không có báo cáo nào.</td></tr>
+                }
+                @foreach (var r in Model.Items)
+                {
+                    <tr>
+                        <td>
+                            <div class="small text-body border-start border-3 border-danger ps-2" style="max-width: 320px;">
+                                @r.CommentContent
+                            </div>
+                        </td>
+                        <td><span class="badge bg-danger-subtle text-danger">@r.Reason</span></td>
+                        <td class="small text-muted" style="max-width: 250px;">@(string.IsNullOrEmpty(r.Description) ? "Không có" : r.Description)</td>
+                        <td class="small">@r.ReportedByUserName</td>
+                        <td class="small text-muted">@r.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            @if (r.Status == ReportStatus.Pending)
+                            {
+                                <span class="badge bg-warning text-dark">Chờ xử lý</span>
+                            }
+                            else if (r.Status == ReportStatus.Approved)
+                            {
+                                <span class="badge bg-success">Đã duyệt vi phạm</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Bỏ qua</span>
+                            }
+                        </td>
+                        <td class="text-end pe-3">
+                            @if (r.Status == ReportStatus.Pending)
+                            {
+                                <div class="btn-group btn-group-sm">
+                                    <form asp-action="ReviewReport" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="reportId" value="@r.Id" />
+                                        <input type="hidden" name="status" value="@ReportStatus.Approved" />
+                                        <button type="submit" class="btn btn-outline-danger" title="Duyệt vi phạm (Tự động ẩn bình luận)">
+                                            <i class="bi bi-check-lg"></i> Xử lý
+                                        </button>
+                                    </form>
+                                    <form asp-action="ReviewReport" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="reportId" value="@r.Id" />
+                                        <input type="hidden" name="status" value="@ReportStatus.Dismissed" />
+                                        <button type="submit" class="btn btn-outline-secondary" title="Bỏ qua báo cáo">
+                                            <i class="bi bi-x-lg"></i> Bỏ qua
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                            else
+                            {
+                                <small class="text-muted">Đã duyệt bởi: @r.ReviewedByUserName</small>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

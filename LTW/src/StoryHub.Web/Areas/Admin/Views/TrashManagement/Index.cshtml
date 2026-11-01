@@ -1,0 +1,375 @@
+@using StoryHub.Application.DTOs.Trash
+@{
+    ViewData["Title"] = "Thùng rác hệ thống";
+    var summary = ViewBag.Summary as TrashSummaryDto ?? new TrashSummaryDto();
+    string activeTab = ViewBag.ActiveTab as string ?? "stories";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h3 class="fw-bold mb-1"><i class="bi bi-trash3-fill text-danger me-2"></i>Thùng rác hệ thống</h3>
+        <p class="text-muted small mb-0">Nội dung trong thùng rác sẽ tự động xóa vĩnh viễn (bao gồm toàn bộ text và ảnh liên quan) sau <strong>7 ngày</strong> kể từ khi xóa.</p>
+    </div>
+    @if (summary.DeletedStoriesCount > 0 || summary.DeletedChaptersCount > 0)
+    {
+        <form asp-action="CleanupExpired" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn dọn dẹp các mục đã quá 7 ngày ngay bây giờ?');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-danger btn-sm shadow-sm">
+                <i class="bi bi-stars me-1"></i>Dọn dẹp mục hết hạn (>7 ngày)
+            </button>
+        </form>
+    }
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm small mb-3" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm small mb-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Summary Statistics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-md-4">
+        <div class="card border-0 shadow-sm p-3">
+            <div class="d-flex align-items-center">
+                <div class="rounded-3 bg-danger bg-opacity-10 p-3 me-3 text-danger fs-4">
+                    <i class="bi bi-book"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">Truyện trong thùng rác</div>
+                    <h4 class="fw-bold mb-0">@summary.DeletedStoriesCount</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-md-4">
+        <div class="card border-0 shadow-sm p-3">
+            <div class="d-flex align-items-center">
+                <div class="rounded-3 bg-warning bg-opacity-10 p-3 me-3 text-warning fs-4">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">Chương trong thùng rác</div>
+                    <h4 class="fw-bold mb-0">@summary.DeletedChaptersCount</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-md-4">
+        <div class="card border-0 shadow-sm p-3">
+            <div class="d-flex align-items-center">
+                <div class="rounded-3 bg-info bg-opacity-10 p-3 me-3 text-info fs-4">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">Sắp hết hạn (<= 2 ngày)</div>
+                    <h4 class="fw-bold mb-0">@summary.ExpiringSoonCount</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Navigation Tabs -->
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link fw-semibold @(activeTab == "stories" ? "active text-danger" : "text-secondary")" 
+           asp-action="Index" asp-route-tab="stories">
+            <i class="bi bi-book me-1"></i>Truyện đã xóa (@summary.DeletedStoriesCount)
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link fw-semibold @(activeTab == "chapters" ? "active text-danger" : "text-secondary")" 
+           asp-action="Index" asp-route-tab="chapters">
+            <i class="bi bi-file-earmark-text me-1"></i>Chương đã xóa (@summary.DeletedChaptersCount)
+        </a>
+    </li>
+</ul>
+
+@if (activeTab == "stories")
+{
+    var storiesModel = Model as PaginatedList<TrashStoryDto>;
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small">
+                    <tr>
+                        <th style="width: 60px;">Bìa</th>
+                        <th>Tên truyện</th>
+                        <th>Tác giả</th>
+                        <th>Số chương</th>
+                        <th>Ngày chuyển thùng rác</th>
+                        <th>Thời gian còn lại</th>
+                        <th class="text-end pe-3">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (storiesModel == null || storiesModel.Items.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-trash fs-1 text-secondary opacity-50 d-block mb-2"></i>
+                                Thùng rác truyện hiện đang trống.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var story in storiesModel.Items)
+                        {
+                            <tr>
+                                <td>
+                                    <img src="@(string.IsNullOrEmpty(story.CoverImageUrl) ? "/images/default-cover.webp" : story.CoverImageUrl)" 
+                                         class="rounded" width="40" height="55" style="object-fit: cover;" 
+                                         onerror="this.onerror=null; this.src='/images/default-cover.webp';" />
+                                </td>
+                                <td>
+                                    <div class="fw-bold">@story.Title</div>
+                                    <small class="text-muted">Slug: @story.Slug</small>
+                                </td>
+                                <td class="small">@story.AuthorName</td>
+                                <td>
+                                    <span class="badge bg-secondary-subtle text-secondary small">
+                                        @story.ChapterCount chương
+                                    </span>
+                                </td>
+                                <td class="small">
+                                    @(story.DeletedAt?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")
+                                </td>
+                                <td>
+                                    @if (story.IsExpired)
+                                    {
+                                        <span class="badge bg-danger">Hết hạn (Chờ tự xóa)</span>
+                                    }
+                                    else if (story.DaysRemaining <= 2)
+                                    {
+                                        <span class="badge bg-warning text-dark">Còn @story.DaysRemaining ngày</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success-subtle text-success">Còn @story.DaysRemaining ngày</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-3">
+                                    <div class="btn-group btn-group-sm">
+                                        <form asp-action="RestoreStory" asp-route-id="@story.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-success btn-sm" title="Khôi phục truyện này">
+                                                <i class="bi bi-arrow-counterclockwise me-1"></i>Khôi phục
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-outline-danger btn-sm ms-1" 
+                                                data-bs-toggle="modal" data-bs-target="#deleteStoryModal-@story.Id" title="Xóa vĩnh viễn ngay lập tức">
+                                            <i class="bi bi-x-octagon me-1"></i>Xóa vĩnh viễn
+                                        </button>
+                                    </div>
+
+                                    <!-- Delete Modal -->
+                                    <div class="modal fade text-start" id="deleteStoryModal-@story.Id" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header border-0 pb-0">
+                                                    <h5 class="modal-title text-danger fw-bold">
+                                                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Xác nhận xóa vĩnh viễn truyện
+                                                    </h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body small">
+                                                    <p class="mb-2">Bạn có chắc chắn muốn xóa vĩnh viễn bộ truyện: <strong>@story.Title</strong>?</p>
+                                                    <div class="alert alert-danger small p-2 mb-0">
+                                                        <i class="bi bi-info-circle me-1"></i>
+                                                        <strong>Cảnh báo:</strong> Thao tác này sẽ xóa <strong>hoàn toàn và không thể khôi phục</strong>:
+                                                        <ul class="mb-0 mt-1 ps-3">
+                                                            <li>Toàn bộ thông tin bộ truyện và các thể loại liên kết</li>
+                                                            <li>Tất cả @story.ChapterCount chương nội dung</li>
+                                                            <li>Toàn bộ ảnh bìa và các ảnh chèn trong chương trên máy chủ</li>
+                                                            <li>Toàn bộ bình luận, đánh giá và lịch sử đọc</li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer border-0 pt-0">
+                                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                                                    <form asp-action="PermanentDeleteStory" asp-route-id="@story.Id" method="post">
+                                                        @Html.AntiForgeryToken()
+                                                        <button type="submit" class="btn btn-danger btn-sm">
+                                                            <i class="bi bi-trash-fill me-1"></i>Xác nhận xóa vĩnh viễn
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (storiesModel != null && storiesModel.TotalPages > 1)
+        {
+            <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center py-3">
+                <small class="text-muted">Trang @storiesModel.PageIndex / @storiesModel.TotalPages (Tổng @storiesModel.TotalCount truyện)</small>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item @(!storiesModel.HasPreviousPage ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-tab="stories" asp-route-pageIndex="@(storiesModel.PageIndex - 1)">Trước</a>
+                        </li>
+                        @for (int p = 1; p <= storiesModel.TotalPages; p++)
+                        {
+                            <li class="page-item @(p == storiesModel.PageIndex ? "active" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-tab="stories" asp-route-pageIndex="@p">@p</a>
+                            </li>
+                        }
+                        <li class="page-item @(!storiesModel.HasNextPage ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-tab="stories" asp-route-pageIndex="@(storiesModel.PageIndex + 1)">Sau</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+}
+else
+{
+    var chaptersModel = Model as PaginatedList<TrashChapterDto>;
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small">
+                    <tr>
+                        <th>Tên truyện</th>
+                        <th>Chương số</th>
+                        <th>Tiêu đề chương</th>
+                        <th>Ngày chuyển thùng rác</th>
+                        <th>Thời gian còn lại</th>
+                        <th class="text-end pe-3">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (chaptersModel == null || chaptersModel.Items.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-trash fs-1 text-secondary opacity-50 d-block mb-2"></i>
+                                Thùng rác chương hiện đang trống.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var ch in chaptersModel.Items)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="fw-semibold text-primary">@ch.StoryTitle</span>
+                                </td>
+                                <td class="fw-bold">
+                                    Chương @((ch.ChapterNumber % 1 == 0) ? ((int)ch.ChapterNumber).ToString() : ch.ChapterNumber.ToString("0.##"))
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">@ch.Title</div>
+                                    <small class="text-muted">Slug: @ch.Slug</small>
+                                </td>
+                                <td class="small">
+                                    @(ch.DeletedAt?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")
+                                </td>
+                                <td>
+                                    @if (ch.IsExpired)
+                                    {
+                                        <span class="badge bg-danger">Hết hạn (Chờ tự xóa)</span>
+                                    }
+                                    else if (ch.DaysRemaining <= 2)
+                                    {
+                                        <span class="badge bg-warning text-dark">Còn @ch.DaysRemaining ngày</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success-subtle text-success">Còn @ch.DaysRemaining ngày</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-3">
+                                    <div class="btn-group btn-group-sm">
+                                        <form asp-action="RestoreChapter" asp-route-id="@ch.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-success btn-sm" title="Khôi phục chương này">
+                                                <i class="bi bi-arrow-counterclockwise me-1"></i>Khôi phục
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-outline-danger btn-sm ms-1" 
+                                                data-bs-toggle="modal" data-bs-target="#deleteChapterModal-@ch.Id" title="Xóa vĩnh viễn ngay lập tức">
+                                            <i class="bi bi-x-octagon me-1"></i>Xóa vĩnh viễn
+                                        </button>
+                                    </div>
+
+                                    <!-- Delete Chapter Modal -->
+                                    <div class="modal fade text-start" id="deleteChapterModal-@ch.Id" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header border-0 pb-0">
+                                                    <h5 class="modal-title text-danger fw-bold">
+                                                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Xác nhận xóa vĩnh viễn chương
+                                                    </h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body small">
+                                                    <p class="mb-2">Bạn có chắc chắn muốn xóa vĩnh viễn: <strong>@ch.Title</strong> thuộc bộ truyện <strong>@ch.StoryTitle</strong>?</p>
+                                                    <div class="alert alert-danger small p-2 mb-0">
+                                                        <i class="bi bi-info-circle me-1"></i>
+                                                        <strong>Cảnh báo:</strong> Thao tác này sẽ xóa <strong>hoàn toàn nội dung chương, toàn bộ ảnh chèn trong chương trên máy chủ, và toàn bộ bình luận</strong> của chương này.
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer border-0 pt-0">
+                                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                                                    <form asp-action="PermanentDeleteChapter" asp-route-id="@ch.Id" method="post">
+                                                        @Html.AntiForgeryToken()
+                                                        <button type="submit" class="btn btn-danger btn-sm">
+                                                            <i class="bi bi-trash-fill me-1"></i>Xác nhận xóa vĩnh viễn
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (chaptersModel != null && chaptersModel.TotalPages > 1)
+        {
+            <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center py-3">
+                <small class="text-muted">Trang @chaptersModel.PageIndex / @chaptersModel.TotalPages (Tổng @chaptersModel.TotalCount chương)</small>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item @(!chaptersModel.HasPreviousPage ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-tab="chapters" asp-route-pageIndex="@(chaptersModel.PageIndex - 1)">Trước</a>
+                        </li>
+                        @for (int p = 1; p <= chaptersModel.TotalPages; p++)
+                        {
+                            <li class="page-item @(p == chaptersModel.PageIndex ? "active" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-tab="chapters" asp-route-pageIndex="@p">@p</a>
+                            </li>
+                        }
+                        <li class="page-item @(!chaptersModel.HasNextPage ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-tab="chapters" asp-route-pageIndex="@(chaptersModel.PageIndex + 1)">Sau</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+}
+

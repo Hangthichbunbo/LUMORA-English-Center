@@ -1,0 +1,47 @@
+@using StoryHub.Application.Interfaces
+@inject IAdvertisementService AdService
+@model (AdPlacement Placement, int? StoryId, string? CategorySlug)
+
+@{
+    var ad = await AdService.GetActiveAdForPlacementAsync(Model.Placement, Model.StoryId, Model.CategorySlug);
+}
+
+@if (ad != null)
+{
+    <div class="ad-container text-center my-3" data-ad-id="@ad.Id">
+        <span class="badge bg-secondary-subtle text-secondary mb-1 d-inline-block small" style="font-size: 0.65rem;">Quảng cáo</span>
+        @if (ad.AdType == AdType.Image && !string.IsNullOrEmpty(ad.ImageUrl))
+        {
+            <div class="ad-banner">
+                <a href="@ad.DestinationUrl" 
+                   target="@(ad.OpenInNewTab ? "_blank" : "_self")" 
+                   rel="noopener noreferrer sponsored"
+                   class="d-inline-block text-decoration-none">
+                    <img src="@ad.ImageUrl" alt="@ad.Name" class="img-fluid rounded shadow-sm" style="max-height: 250px; object-fit: contain;" onerror="this.onerror=null; this.closest('.ad-container')?.remove();" />
+                </a>
+            </div>
+        }
+        else if (ad.AdType == AdType.SafeHtml && !string.IsNullOrEmpty(ad.HtmlContent))
+        {
+            <div class="ad-html-content d-inline-block p-2 rounded border bg-light-subtle">
+                @Html.Raw(ad.HtmlContent)
+            </div>
+        }
+        else if (ad.AdType == AdType.Text || ad.AdType == AdType.InternalPromotion)
+        {
+            <div class="alert alert-info d-flex align-items-center justify-content-between p-2 mb-0 shadow-sm">
+                <div>
+                    <i class="bi bi-megaphone-fill me-2 text-primary"></i>
+                    <span>@ad.HtmlContent</span>
+                </div>
+                @if (!string.IsNullOrEmpty(ad.DestinationUrl))
+                {
+                    <a href="@ad.DestinationUrl" 
+                       target="@(ad.OpenInNewTab ? "_blank" : "_self")" 
+                       rel="noopener noreferrer sponsored" 
+                       class="btn btn-sm btn-primary ms-3">Xem ngay</a>
+                }
+            </div>
+        }
+    </div>
+}

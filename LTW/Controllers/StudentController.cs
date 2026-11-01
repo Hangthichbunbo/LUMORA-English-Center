@@ -71,14 +71,10 @@ namespace LTW.Controllers
             // 5. Recent Submissions & Scores
             var recentSubmissions = await _context.ExerciseSubmissions
                 .Include(es => es.Exercise)
-                    .ThenInclude(ex => ex!.Questions)
-                .Include(es => es.Exercise)
                     .ThenInclude(ex => ex!.Lesson)
-                        .ThenInclude(l => l!.Chapter)
-                            .ThenInclude(ch => ch!.Course)
                 .Where(es => es.StudentId == user.Id)
                 .OrderByDescending(es => es.SubmittedAt)
-                .Take(6)
+                .Take(4)
                 .ToListAsync();
 
             // 6. Placement Test Result
@@ -144,22 +140,15 @@ namespace LTW.Controllers
                     .ThenInclude(ch => ch!.Course)
                         .ThenInclude(c => c!.Chapters)
                             .ThenInclude(ch2 => ch2.Lessons)
-                                .ThenInclude(l2 => l2.Exercises)
                 .Include(l => l.Exercises)
-                    .ThenInclude(ex => ex.Questions)
                 .FirstOrDefaultAsync(l => l.LessonId == id);
 
             if (lesson == null) return NotFound();
 
             var courseId = lesson.Chapter!.CourseId;
 
-            bool isTeacher = await _userManager.IsInRoleAsync(user, "Teacher") || user.RoleName == "Teacher";
-            bool isAdmin = await _userManager.IsInRoleAsync(user, "Admin") || user.RoleName == "Admin";
-            bool isCourseTeacher = lesson.Chapter.Course?.TeacherId == user.Id;
-
-            // Check enrollment or free preview or teacher privilege
-            bool isEnrolled = isTeacher || isAdmin || isCourseTeacher || 
-                await _context.Enrollments.AnyAsync(e => e.StudentId == user.Id && e.CourseId == courseId && e.PaymentStatus == "Completed");
+            // Check enrollment or free preview
+            bool isEnrolled = await _context.Enrollments.AnyAsync(e => e.StudentId == user.Id && e.CourseId == courseId && e.PaymentStatus == "Completed");
 
             if (!isEnrolled && !lesson.IsFreePreview)
             {
@@ -289,11 +278,7 @@ namespace LTW.Controllers
             if (exercise == null) return NotFound();
 
             int totalQ = exercise.Questions.Count;
-            decimal totalMcPoints = 0m;
-            decimal earnedMcPoints = 0m;
-            int mcCount = 0;
-            int mcCorrect = 0;
-            bool hasWriting = false;
+            int correctQ = 0;
             var answersLog = new Dictionary<string, string>();
 
             foreach (var q in exercise.Questions)
@@ -302,52 +287,16 @@ namespace LTW.Controllers
                 string ans = form[key].ToString().Trim();
                 answersLog[key] = ans;
 
-                decimal qPoints = q.Points > 0 ? q.Points : 10m;
-                bool isEssay = q.Format == QuestionFormat.Writing || q.Format == QuestionFormat.Speaking;
-
-                if (!isEssay)
+                if (!string.IsNullOrEmpty(ans) && q.CorrectAnswer.Trim().StartsWith(ans.Substring(0, Math.Min(2, ans.Length))))
                 {
-                    mcCount++;
-                    totalMcPoints += qPoints;
-
-                    if (!string.IsNullOrEmpty(ans) && !string.IsNullOrEmpty(q.CorrectAnswer))
-                    {
-                        bool isCorrect = false;
-                        if (q.Format == QuestionFormat.MultipleChoice || q.Format == QuestionFormat.TrueFalse)
-                        {
-                            isCorrect = q.CorrectAnswer.Trim().StartsWith(ans.Substring(0, Math.Min(2, ans.Length)), StringComparison.OrdinalIgnoreCase)
-                                     || string.Equals(q.CorrectAnswer.Trim(), ans, StringComparison.OrdinalIgnoreCase);
-                        }
-                        else
-                        {
-                            isCorrect = string.Equals(q.CorrectAnswer.Trim(), ans, StringComparison.OrdinalIgnoreCase);
-                        }
-
-                        if (isCorrect)
-                        {
-                            mcCorrect++;
-                            earnedMcPoints += qPoints;
-                        }
-                    }
-                }
-                else
-                {
-                    hasWriting = true;
+                    correctQ++;
                 }
             }
 
-            decimal autoScore = earnedMcPoints;
+            decimal autoScore = totalQ > 0 ? Math.Round((decimal)correctQ / totalQ * 10.0m, 1) : 10.0m;
 
             var existingSubmission = await _context.ExerciseSubmissions
                 .FirstOrDefaultAsync(s => s.ExerciseId == exerciseId && s.StudentId == user.Id);
-
-            string earnedStr = (autoScore % 1 == 0) ? ((int)autoScore).ToString() : autoScore.ToString("F1");
-            string totalStr = (totalMcPoints % 1 == 0) ? ((int)totalMcPoints).ToString() : totalMcPoints.ToString("F1");
-            string mcScoreDisplay = totalMcPoints > 0 ? $"{earnedStr}/{totalStr}" : earnedStr;
-
-            string feedback = hasWriting 
-                ? "Đã nộp bài thành công! Phần câu hỏi tự luận đang chờ giảng viên chấm điểm chi tiết." 
-                : (totalMcPoints > 0 && autoScore >= (totalMcPoints * 0.8m) ? "Hoàn thành xuất sắc bài tập!" : "Đạt yêu cầu. Hãy xem lại các câu trả lời chưa đúng.");
 
             if (existingSubmission == null)
             {
@@ -360,7 +309,7 @@ namespace LTW.Controllers
                     TotalScore = autoScore,
                     TeacherScore = null,
                     AnswersJson = JsonSerializer.Serialize(answersLog),
-                    TeacherComment = feedback
+                    TeacherComment = autoScore >= 8.0m ? "Hoàn thành xuất sắc bài tập!" : "Đạt yêu cầu. Hãy xem lại các câu trả lời chưa đúng."
                 };
                 _context.ExerciseSubmissions.Add(submission);
             }
@@ -369,19 +318,15 @@ namespace LTW.Controllers
                 existingSubmission.SubmittedAt = DateTime.Now;
                 existingSubmission.AutoScore = autoScore;
                 existingSubmission.TotalScore = autoScore;
-                existingSubmission.TeacherScore = null;
                 existingSubmission.AnswersJson = JsonSerializer.Serialize(answersLog);
-                existingSubmission.TeacherComment = feedback;
             }
 
             // Notification
             var notif = new Notification
             {
                 UserId = user.Id,
-                Title = "Bài tập đã được ghi nhận nộp bài",
-                Content = hasWriting 
-                    ? $"Bài tập '{exercise.Title}' đã nộp thành công (Điểm trắc nghiệm: {mcScoreDisplay}, đang chờ giảng viên chấm phần tự luận)." 
-                    : $"Bạn đạt {mcScoreDisplay} trong bài tập '{exercise.Title}'.",
+                Title = "Bài tập đã được chấm điểm tự động",
+                Content = $"Bạn đạt {autoScore:F1}/10 trong bài tập '{exercise.Title}'.",
                 Type = "ExerciseDue",
                 LinkUrl = "/Student/Exercise/" + exerciseId,
                 IsRead = false,
@@ -391,9 +336,7 @@ namespace LTW.Controllers
 
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = hasWriting
-                ? $"Nộp bài thành công! Điểm trắc nghiệm: {mcScoreDisplay}. Phần tự luận đang chờ GV chấm."
-                : $"Nộp bài thành công! Điểm trắc nghiệm: {mcScoreDisplay}.";
+            TempData["SuccessMessage"] = $"Nộp bài thành công! Điểm của bạn: {autoScore:F1}/10.";
             return RedirectToAction(nameof(Exercise), new { id = exerciseId });
         }
 
@@ -403,22 +346,6 @@ namespace LTW.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
-
-            bool isTeacher = await _userManager.IsInRoleAsync(user, "Teacher") || user.RoleName == "Teacher";
-            bool isAdmin = await _userManager.IsInRoleAsync(user, "Admin") || user.RoleName == "Admin";
-
-            if (isTeacher || isAdmin)
-            {
-                var myTaughtClasses = await _context.LiveClasses
-                    .Include(lc => lc.Teacher)
-                    .Include(lc => lc.Course)
-                    .Where(lc => isAdmin || lc.TeacherId == user.Id)
-                    .OrderBy(lc => lc.ScheduledDate)
-                    .ThenBy(lc => lc.StartTime)
-                    .ToListAsync();
-
-                return View(myTaughtClasses);
-            }
 
             var enrolledCourseIds = await _context.Enrollments
                 .Where(e => e.StudentId == user.Id && e.PaymentStatus == "Completed")

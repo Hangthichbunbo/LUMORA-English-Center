@@ -1,38 +1,25 @@
-@using System.Text.Encodings.Web
 @model IEnumerable<LTW.Models.Exercise>
 
 @{
     ViewData["Title"] = "Quản Lý Bài Tập - Giảng Viên LUMORA";
+    var totalExercises = Model?.Count() ?? 0;
+    var totalSubmissions = Model?.Sum(e => e.Submissions?.Count ?? 0) ?? 0;
 }
 
-<partial name="_TeacherPortalHeader" />
+<!-- Unified Teacher Header -->
+<partial name="_TeacherHeader" />
 
-<div class="container-fluid px-lg-5 pb-4">
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm mb-4 d-flex align-items-center" role="alert">
-            <i class="bi bi-check-circle-fill fs-5 me-2 text-success"></i>
-            <div><strong>Thành công!</strong> @TempData["SuccessMessage"]</div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm mb-4 d-flex align-items-center" role="alert">
-            <i class="bi bi-exclamation-triangle-fill fs-5 me-2 text-danger"></i>
-            <div><strong>Lỗi!</strong> @TempData["ErrorMessage"]</div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    <div class="d-flex align-items-center justify-content-between mb-4">
+<div class="container-fluid px-lg-5 py-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
         <div>
-            <h3 class="fw-bold text-dark m-0"><i class="bi bi-clipboard-check me-2 text-primary"></i>Quản Lý Bài Tập (Exercises)</h3>
+            <h4 class="fw-bold text-dark m-0"><i class="bi bi-clipboard-check me-2 text-primary"></i>Quản Lý Bài Tập (Exercises)</h4>
             <p class="text-muted small m-0">Tạo câu hỏi, thiết lập đáp án và kiểm tra lượt nộp bài của học viên</p>
         </div>
-        <div>
-            <a asp-action="CreateExercise" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold shadow-sm" style="background-color: #00A896; border-color: #00A896;">
+        <div class="d-flex gap-2">
+            <span class="badge bg-white text-secondary border rounded-pill px-3 py-2 shadow-sm">
+                Tổng: <strong class="text-dark">@totalExercises</strong> bài tập • <strong class="text-primary">@totalSubmissions</strong> lượt nộp
+            </span>
+            <a asp-action="CreateExercise" class="btn btn-lumora-secondary btn-sm rounded-pill px-3 fw-semibold shadow-sm text-white">
                 <i class="bi bi-plus-circle me-1"></i> Tạo Bài Tập Mới
             </a>
         </div>
@@ -44,13 +31,12 @@
                 <thead class="bg-light text-secondary small">
                     <tr>
                         <th class="ps-4">Tên Bài Tập</th>
-                        <th>Khóa Học & Chương</th>
                         <th>Bài Học Trực Thuộc</th>
                         <th>Thời Gian</th>
                         <th>Điểm Đạt</th>
-                        <th>Số Câu Hỏi</th>
-                        <th>Lượt Nộp</th>
-                        <th class="text-end pe-4">Thao Tác</th>
+                        <th>Bộ Câu Hỏi</th>
+                        <th>Lượt Nộp Bài</th>
+                        <th class="text-end pe-4 text-nowrap">Thao Tác</th>
                     </tr>
                 </thead>
                 <tbody class="small">
@@ -58,55 +44,48 @@
                     {
                         foreach (var ex in Model)
                         {
+                            var subsCount = ex.Submissions?.Count ?? 0;
                             <tr>
                                 <td class="ps-4">
                                     <div class="fw-bold text-dark">@ex.Title</div>
-                                    <div class="text-muted" style="font-size: 11px;">@ex.Description</div>
+                                    <div class="text-muted text-truncate" style="max-width: 250px; font-size: 11px;">
+                                        @(string.IsNullOrEmpty(ex.Description) ? "Luyện tập củng cố kiến thức theo bài học" : ex.Description)
+                                    </div>
                                 </td>
                                 <td>
-                                    <a asp-controller="Course" asp-action="Detail" asp-route-id="@ex.Lesson?.Chapter?.CourseId" target="_blank" class="fw-semibold text-primary text-decoration-none" title="Xem khóa học">
-                                        @(ex.Lesson?.Chapter?.Course?.Title ?? "Khóa học") <i class="bi bi-box-arrow-up-right small ms-1"></i>
-                                    </a>
-                                    <div class="text-muted" style="font-size: 11px;">Chương @ex.Lesson?.Chapter?.OrderIndex: @ex.Lesson?.Chapter?.Title</div>
-                                </td>
-                                <td>
-                                    <a asp-controller="Student" asp-action="Lesson" asp-route-id="@ex.LessonId" target="_blank" class="text-decoration-none text-dark fw-semibold" title="Xem bài học">
-                                        @ex.Lesson?.Title
-                                    </a>
-                                </td>
-                                <td>@ex.TimeLimitMinutes phút</td>
-                                <td>@ex.PassingScore/100</td>
-                                <td>
-                                    <div>@(ex.Questions?.Count ?? 0) câu</div>
-                                    @if (ex.HasWriting)
+                                    @if (ex.Lesson != null)
                                     {
-                                        <span class="badge bg-info bg-opacity-25 text-dark" style="font-size: 10px;">Có tự luận</span>
+                                        <div class="fw-semibold text-dark">@ex.Lesson.Title</div>
+                                        <div class="text-muted" style="font-size: 11px;">Khóa: @(ex.Lesson.Chapter?.Course?.Title ?? "-")</div>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-light text-secondary border" style="font-size: 10px;">Trắc nghiệm</span>
+                                        <span class="text-muted">-</span>
                                     }
                                 </td>
-                                <td>
-                                    <a asp-action="Assessments" class="text-decoration-none">
-                                        <span class="badge bg-light text-dark border">@(ex.Submissions?.Count ?? 0) lượt nộp</span>
-                                    </a>
+                                <td class="text-nowrap"><i class="bi bi-stopwatch me-1 text-secondary"></i>@ex.TimeLimitMinutes phút</td>
+                                <td class="text-nowrap"><span class="badge bg-light text-dark border">@ex.PassingScore / 100</span></td>
+                                <td class="text-nowrap">
+                                    <span class="badge bg-info bg-opacity-10 text-info">
+                                        <i class="bi bi-question-circle me-1"></i>@(ex.Questions?.Count ?? 0) câu hỏi
+                                    </span>
                                 </td>
-                                <td class="text-end pe-4">
-                                    <div class="d-flex justify-content-end gap-1 flex-wrap">
-                                        <a asp-controller="Student" asp-action="Exercise" asp-route-id="@ex.ExerciseId" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-2" title="Làm thử bài tập">
-                                            <i class="bi bi-eye me-1"></i> Làm Thử
+                                <td class="text-nowrap">
+                                    @if (subsCount > 0)
+                                    {
+                                        <a asp-action="Assessments" class="badge bg-success bg-opacity-10 text-success text-decoration-none py-1 px-2">
+                                            <i class="bi bi-people me-1"></i>@subsCount lượt nộp (Chấm ngay)
                                         </a>
-                                        <a asp-action="EditExercise" asp-route-id="@ex.ExerciseId" class="btn btn-outline-warning text-dark btn-sm rounded-pill px-2" title="Chỉnh sửa bài tập & bộ câu hỏi">
-                                            <i class="bi bi-pencil-square me-1"></i> Sửa
-                                        </a>
-                                        <a asp-action="Assessments" class="btn btn-outline-secondary btn-sm rounded-pill px-2" title="Chấm điểm học viên nộp bài này">
-                                            <i class="bi bi-check2-square"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-2" onclick="openDeleteExerciseModal(@ex.ExerciseId, '@Html.Raw(JavaScriptEncoder.Default.Encode(ex.Title ?? ""))', '@Html.Raw(JavaScriptEncoder.Default.Encode(ex.Lesson?.Title ?? ""))', @(ex.Submissions?.Count ?? 0))" title="Xóa bài tập">
-                                            <i class="bi bi-trash3"></i>
-                                        </button>
-                                    </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted" style="font-size: 11px;">Chưa có lượt nộp</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4 text-nowrap">
+                                    <a asp-controller="Student" asp-action="Exercise" asp-route-id="@ex.ExerciseId" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3" title="Xem giao diện làm bài">
+                                        <i class="bi bi-play-circle me-1"></i> Làm Thử
+                                    </a>
                                 </td>
                             </tr>
                         }
@@ -114,7 +93,14 @@
                     else
                     {
                         <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">Chưa có bài tập nào. Bấm 'Tạo Bài Tập Mới' để bắt đầu.</td>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-clipboard-x display-6 d-block mb-2 text-secondary"></i>
+                                <h6 class="fw-bold text-dark">Chưa có bài tập nào</h6>
+                                <p class="small text-muted mb-3">Tạo bài tập đầu tiên để học viên rèn luyện và nộp bài chấm điểm.</p>
+                                <a asp-action="CreateExercise" class="btn btn-lumora-secondary btn-sm rounded-pill px-4 text-white">
+                                    <i class="bi bi-plus-circle me-1"></i> Tạo Bài Tập Mới
+                                </a>
+                            </td>
                         </tr>
                     }
                 </tbody>
@@ -122,60 +108,3 @@
         </div>
     </div>
 </div>
-
-<!-- Modal Xác Nhận Xóa Bài Tập -->
-<div class="modal fade" id="deleteExerciseModal" tabindex="-1" aria-labelledby="deleteExerciseModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow rounded-4">
-            <div class="modal-header border-bottom-0 pb-0">
-                <h5 class="modal-title fw-bold text-danger d-flex align-items-center" id="deleteExerciseModalLabel">
-                    <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i> Xác Nhận Xóa Bài Tập
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form asp-action="DeleteExercise" method="post" id="deleteExerciseForm">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="id" id="deleteExerciseId" />
-                <div class="modal-body py-3">
-                    <p class="text-secondary mb-2">Bạn có chắc chắn muốn xóa bài tập sau khỏi hệ thống?</p>
-                    <div class="p-3 bg-light rounded-3 border mb-3">
-                        <div class="fw-bold text-dark fs-6" id="deleteExerciseTitle"></div>
-                        <div class="text-muted small mt-1" id="deleteExerciseLesson"></div>
-                        <div class="text-danger small mt-2" id="deleteExerciseWarning" style="display: none;">
-                            <i class="bi bi-info-circle-fill me-1"></i> Lưu ý: Bài tập này đã có lượt nộp của học viên. Xóa bài tập sẽ xóa vĩnh viễn bài làm và điểm số liên quan.
-                        </div>
-                    </div>
-                    <div class="text-muted small">Hành động này không thể hoàn tác sau khi thực hiện.</div>
-                </div>
-                <div class="modal-footer border-top-0 pt-0">
-                    <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Hủy bỏ</button>
-                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-semibold shadow-sm">
-                        <i class="bi bi-trash3 me-1"></i> Xóa Bài Tập
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    <script>
-        function openDeleteExerciseModal(exerciseId, exerciseTitle, lessonTitle, submissionCount) {
-            document.getElementById('deleteExerciseId').value = exerciseId;
-            document.getElementById('deleteExerciseTitle').textContent = exerciseTitle;
-            document.getElementById('deleteExerciseLesson').textContent = 'Bài học: ' + lessonTitle;
-            
-            var warningEl = document.getElementById('deleteExerciseWarning');
-            if (submissionCount > 0) {
-                warningEl.style.display = 'block';
-                warningEl.innerHTML = '<i class="bi bi-info-circle-fill me-1"></i> Lưu ý: Bài tập này đang có <strong>' + submissionCount + ' lượt nộp bài</strong> của học viên. Xóa bài tập sẽ đồng thời xóa toàn bộ câu trả lời và kết quả chấm điểm.';
-            } else {
-                warningEl.style.display = 'none';
-            }
-
-            var modal = new bootstrap.Modal(document.getElementById('deleteExerciseModal'));
-            modal.show();
-        }
-    </script>
-}
-

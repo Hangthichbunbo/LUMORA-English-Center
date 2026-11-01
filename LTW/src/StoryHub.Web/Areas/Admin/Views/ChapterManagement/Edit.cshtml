@@ -1,0 +1,244 @@
+@model UpdateChapterDto
+@{
+    ViewData["Title"] = "Chỉnh sửa: " + Model.Title;
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Chỉnh sửa chương</h3>
+        <p class="text-muted small mb-0">Truyện: <strong>@ViewBag.StoryTitle</strong></p>
+    </div>
+    <a asp-action="Index" asp-route-storyId="@Model.StoryId" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Về danh sách chương
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm p-4">
+    <form asp-action="Edit" method="post" id="chapter-edit-form">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="StoryId" />
+        <input type="hidden" asp-for="RowVersion" />
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger small p-2"></div>
+
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label asp-for="ChapterNumber" class="form-label small fw-bold">Số thứ tự chương (*)</label>
+                <input type="number" step="1" min="1" class="form-control" id="ChapterNumber" name="ChapterNumber" 
+                       value="@((int)Math.Max(1, Math.Round(Model.ChapterNumber)))" required />
+                <span asp-validation-for="ChapterNumber" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-5">
+                <label asp-for="Title" class="form-label small fw-bold">Tiêu đề chương (*)</label>
+                <input asp-for="Title" class="form-control" required maxlength="250" />
+                <span asp-validation-for="Title" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="Slug" class="form-label small fw-bold">Slug chương (*)</label>
+                <input asp-for="Slug" class="form-control" required maxlength="260" />
+                <span asp-validation-for="Slug" class="text-danger small"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="PublishStatus" class="form-label small fw-bold">Trạng thái phát hành</label>
+                <select asp-for="PublishStatus" class="form-select form-select-sm" style="max-width: 250px;">
+                    <option value="@PublishStatus.Published">Xuất bản công khai</option>
+                    <option value="@PublishStatus.Draft">Bản nháp</option>
+                </select>
+            </div>
+
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label asp-for="Content" class="form-label small fw-bold mb-0">Nội dung chương (*)</label>
+                    <span class="text-muted small"><i class="bi bi-file-earmark-word text-primary me-1"></i>Hỗ trợ soạn thảo như Word hoặc Copy/Paste trực tiếp</span>
+                </div>
+                <textarea asp-for="Content" class="form-control" rows="18"></textarea>
+                <span asp-validation-for="Content" class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+            <a asp-action="Index" asp-route-storyId="@Model.StoryId" class="btn btn-secondary px-4">Hủy</a>
+            <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-save me-1"></i>Lưu thay đổi
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/tinymce@6.8.3/tinymce.min.js"></script>
+    <script>
+        function initChapterEditor() {
+            if (typeof tinymce === 'undefined') {
+                setTimeout(initChapterEditor, 100);
+                return;
+            }
+
+            const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+
+            tinymce.init({
+                selector: '#Content',
+                height: 600,
+                menubar: 'edit view insert format tools table',
+                plugins: [
+                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                    'searchreplace', 'visualblocks', 'fullscreen',
+                    'table', 'wordcount', 'code'
+                ],
+                toolbar: [
+                    'undo redo | fontfamily fontsize blocks lineheight | removeformat | searchreplace fullscreen preview code',
+                    'bold italic underline strikethrough subscript superscript | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent blockquote | image link table'
+                ],
+                font_family_formats: 'Calibri=calibri,sans-serif; Arial=arial,helvetica,sans-serif; Times New Roman=times new roman,times,serif; Segoe UI=segoe ui,sans-serif; Tahoma=tahoma,arial,helvetica,sans-serif; Roboto=roboto,sans-serif; Georgia=georgia,palatino,serif',
+                font_size_formats: '11pt 12pt 13pt 14pt 16pt 18pt 20pt 24pt 28pt 36pt',
+                line_height_formats: '1 1.15 1.3 1.5 1.8 2 2.5',
+                skin: isDark ? 'oxide-dark' : 'oxide',
+                content_css: isDark ? 'dark' : 'default',
+                content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 16px; line-height: 1.8; padding: 16px; } p { margin-bottom: 1.25rem; } img { max-width: 100%; height: auto; display: block; margin: 1.5rem auto; border-radius: 6px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08); }',
+                branding: false,
+                promotion: false,
+                image_title: true,
+                automatic_uploads: false,
+                relative_urls: false,
+                remove_script_host: false,
+                convert_urls: false,
+                file_picker_types: 'image',
+                file_picker_callback: function (cb, value, meta) {
+                    if (meta.filetype === 'image') {
+                        const input = document.createElement('input');
+                        input.setAttribute('type', 'file');
+                        input.setAttribute('accept', 'image/*');
+                        input.onchange = function () {
+                            const file = this.files[0];
+                            if (!file) return;
+
+                            if (file.size > 1024 * 1024) {
+                                alert('Dung lượng ảnh (' + (file.size / (1024 * 1024)).toFixed(2) + ' MB) vượt quá giới hạn tối đa 1 MB! Vui lòng chọn ảnh nhỏ hơn.');
+                                return;
+                            }
+
+                            const reader = new FileReader();
+                            reader.onload = function () {
+                                const id = 'blobid' + (new Date()).getTime();
+                                const blobCache = tinymce.activeEditor.editorUpload.blobCache;
+                                const base64 = reader.result.split(',')[1];
+                                const blobInfo = blobCache.create(id, file, base64);
+                                blobCache.add(blobInfo);
+
+                                cb(blobInfo.blobUri(), { title: file.name, alt: file.name });
+                            };
+                            reader.readAsDataURL(file);
+                        };
+                        input.click();
+                    }
+                },
+                paste_data_images: true,
+                images_upload_handler: function (blobInfo, progress) {
+                    return new Promise((resolve, reject) => {
+                        const blob = blobInfo.blob();
+                        if (blob && blob.size > 1024 * 1024) {
+                            reject('Dung lượng ảnh (' + (blob.size / (1024 * 1024)).toFixed(2) + ' MB) vượt quá giới hạn tối đa 1 MB. Vui lòng nén hoặc chọn ảnh nhỏ hơn.');
+                            return;
+                        }
+
+                        const xhr = new XMLHttpRequest();
+                        xhr.withCredentials = false;
+                        xhr.open('POST', '/Admin/ChapterManagement/UploadImage');
+
+                        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                        if (token) {
+                            xhr.setRequestHeader('X-XSRF-TOKEN', token);
+                        }
+
+                        xhr.upload.onprogress = (e) => {
+                            if (e.lengthComputable) {
+                                progress(e.loaded / e.total * 100);
+                            }
+                        };
+
+                        xhr.onload = () => {
+                            if (xhr.status < 200 || xhr.status >= 300) {
+                                let errorMsg = 'Lỗi HTTP ' + xhr.status;
+                                try {
+                                    const errJson = JSON.parse(xhr.responseText);
+                                    if (errJson && errJson.message) errorMsg = errJson.message;
+                                } catch (_) {}
+                                reject(errorMsg);
+                                return;
+                            }
+
+                            try {
+                                const json = JSON.parse(xhr.responseText);
+                                if (!json || typeof json.location != 'string') {
+                                    reject('Phản hồi từ máy chủ không hợp lệ.');
+                                    return;
+                                }
+                                resolve(json.location);
+                            } catch (_) {
+                                reject('Lỗi xử lý phản hồi tải ảnh.');
+                            }
+                        };
+
+                        xhr.onerror = () => {
+                            reject('Lỗi kết nối khi tải ảnh.');
+                        };
+
+                        const formData = new FormData();
+                        formData.append('file', blobInfo.blob(), blobInfo.filename());
+                        if (token) {
+                            formData.append('__RequestVerificationToken', token);
+                        }
+                        xhr.send(formData);
+                    });
+                },
+                setup: function (editor) {
+                    editor.on('change keyup NodeChange', function () {
+                        editor.save();
+                    });
+                }
+            });
+
+            const form = document.getElementById('chapter-edit-form');
+            if (form) {
+                let isSubmitting = false;
+                form.addEventListener('submit', function (e) {
+                    if (isSubmitting) return;
+
+                    if (window.tinymce && tinymce.activeEditor) {
+                        e.preventDefault();
+                        isSubmitting = true;
+
+                        const submitBtn = form.querySelector('button[type="submit"]');
+                        if (submitBtn) {
+                            submitBtn.disabled = true;
+                            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang lưu...';
+                        }
+
+                        tinymce.activeEditor.uploadImages().then(() => {
+                            tinymce.triggerSave();
+                            form.submit();
+                        }).catch(err => {
+                            isSubmitting = false;
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = '<i class="bi bi-save me-1"></i>Lưu thay đổi';
+                            }
+                            alert('Lỗi tải ảnh lên máy chủ: ' + err);
+                        });
+                    }
+                });
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initChapterEditor);
+        } else {
+            initChapterEditor();
+        }
+    </script>
+}
