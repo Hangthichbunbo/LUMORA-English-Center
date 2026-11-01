@@ -2,24 +2,15 @@
 
 @{
     ViewData["Title"] = "Lớp Học Phụ Trách - Giảng Viên LUMORA";
-    var totalClasses = Model?.Count() ?? 0;
-    var publicClasses = Model?.Count(c => c.IsPublic) ?? 0;
-    var privateClasses = totalClasses - publicClasses;
 }
 
-<!-- Unified Teacher Header -->
-<partial name="_TeacherHeader" />
+<partial name="_TeacherPortalHeader" />
 
-<div class="container-fluid px-lg-5 py-4">
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+<div class="container-fluid px-lg-5 pb-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
-            <h4 class="fw-bold text-dark m-0"><i class="bi bi-camera-video me-2 text-danger"></i>Danh Sách Lớp Phụ Trách</h4>
+            <h3 class="fw-bold text-dark m-0"><i class="bi bi-camera-video me-2 text-primary"></i>Danh Sách Lớp Phụ Trách</h3>
             <p class="text-muted small m-0">Quản lý và điều phối các buổi Live Class trực tuyến cùng học viên</p>
-        </div>
-        <div class="d-flex gap-2">
-            <span class="badge bg-white text-secondary border rounded-pill px-3 py-2 shadow-sm">
-                Tổng số: <strong class="text-dark">@totalClasses</strong> lớp (@publicClasses Public • @privateClasses Private)
-            </span>
         </div>
     </div>
 
@@ -30,10 +21,10 @@
                     <tr>
                         <th class="ps-4">Tên Lớp Học</th>
                         <th>Khóa Học</th>
-                        <th>Lịch Học</th>
+                        <th>Thời Gian</th>
                         <th>Loại Lớp</th>
-                        <th>Sĩ Số Tham Gia</th>
-                        <th class="text-end pe-4 text-nowrap">Hành Động</th>
+                        <th>Sĩ Số Đã Vào</th>
+                        <th class="text-end pe-4">Hành Động</th>
                     </tr>
                 </thead>
                 <tbody class="small">
@@ -41,46 +32,24 @@
                     {
                         foreach (var cls in Model)
                         {
-                            var studentCount = cls.ClassStudents?.Count ?? 0;
-                            var percent = cls.Capacity > 0 ? Math.Min(100, (int)(studentCount * 100.0 / cls.Capacity)) : 0;
                             <tr>
                                 <td class="ps-4">
                                     <div class="fw-bold text-dark">@cls.ClassName</div>
-                                    <div class="text-muted text-truncate" style="max-width: 280px; font-size: 11px;">
-                                        @(string.IsNullOrEmpty(cls.Description) ? "Buổi học trực tuyến tương tác cùng giảng viên" : cls.Description)
-                                    </div>
+                                    <div class="text-muted" style="font-size: 11px;">@cls.Description</div>
+                                </td>
+                                <td>@(cls.Course?.Title ?? "Lớp Hội Thảo Mở")</td>
+                                <td>
+                                    <div>@cls.ScheduledDate.ToString("dd/MM/yyyy")</div>
+                                    <div class="text-muted" style="font-size: 11px;">@cls.StartTime.ToString(@"hh\:mm") - @cls.EndTime.ToString(@"hh\:mm")</div>
                                 </td>
                                 <td>
-                                    @if (cls.Course != null)
-                                    {
-                                        <a asp-controller="Course" asp-action="Detail" asp-route-id="@cls.CourseId" class="badge bg-light text-dark border text-decoration-none">
-                                            <i class="bi bi-book-half me-1 text-primary"></i>@cls.Course.Title
-                                        </a>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary bg-opacity-10 text-secondary">Hội Thảo Mở Toàn Hệ Thống</span>
-                                    }
-                                </td>
-                                <td class="text-nowrap">
-                                    <div class="fw-semibold text-dark"><i class="bi bi-calendar3 me-1 text-primary"></i>@cls.ScheduledDate.ToString("dd/MM/yyyy")</div>
-                                    <div class="text-muted" style="font-size: 11px;"><i class="bi bi-clock me-1"></i>@cls.StartTime.ToString(@"hh\:mm") - @cls.EndTime.ToString(@"hh\:mm")</div>
-                                </td>
-                                <td>
-                                    <span class="badge @(cls.IsPublic ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger") rounded-pill px-2 py-1 fw-semibold">
-                                        <i class="bi @(cls.IsPublic ? "bi-globe" : "bi-lock-fill") me-1"></i>@(cls.IsPublic ? "Public (Miễn phí)" : "Private (Học viên khóa)")
+                                    <span class="badge @(cls.IsPublic ? "bg-success" : "bg-danger") rounded-pill">
+                                        @(cls.IsPublic ? "Public" : "Private")
                                     </span>
                                 </td>
-                                <td>
-                                    <div class="d-flex align-items-center gap-2" style="min-width: 120px;">
-                                        <div class="progress flex-grow-1" style="height: 6px;">
-                                            <div class="progress-bar bg-info" role="progressbar" style="width: @percent%" aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="100"></div>
-                                        </div>
-                                        <span class="text-muted" style="font-size: 11px;">@studentCount/@cls.Capacity</span>
-                                    </div>
-                                </td>
-                                <td class="text-end pe-4 text-nowrap">
-                                    <a asp-controller="Class" asp-action="Join" asp-route-id="@cls.LiveClassId" class="btn btn-danger btn-sm rounded-pill px-3 fw-semibold shadow-sm">
+                                <td>@(cls.ClassStudents?.Count ?? 0) / @cls.Capacity</td>
+                                <td class="text-end pe-4">
+                                    <a asp-controller="Class" asp-action="Join" asp-route-id="@cls.LiveClassId" class="btn btn-danger btn-sm rounded-pill px-3 fw-semibold">
                                         <i class="bi bi-broadcast me-1"></i> Mở Phòng Giảng
                                     </a>
                                 </td>
@@ -90,11 +59,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">
-                                <i class="bi bi-camera-video-off display-6 d-block mb-2 text-secondary"></i>
-                                <h6 class="fw-bold text-dark">Chưa có lớp học trực tuyến nào</h6>
-                                <p class="small text-muted mb-0">Khi quản trị viên phân công lớp giảng dạy, danh sách sẽ hiển thị tại đây.</p>
-                            </td>
+                            <td colspan="6" class="text-center py-4 text-muted">Chưa có lớp học nào được phân công.</td>
                         </tr>
                     }
                 </tbody>
@@ -102,3 +67,4 @@
         </div>
     </div>
 </div>
+

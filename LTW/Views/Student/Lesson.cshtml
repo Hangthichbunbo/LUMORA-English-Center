@@ -52,10 +52,18 @@
                                                         <i class="bi @(isThisLesson ? "bi-play-circle-fill text-white" : "bi-journal-text text-muted")"></i>
                                                         <span class="text-truncate">@l.Title</span>
                                                     </div>
-                                                    @if (hasCompleted)
-                                                    {
-                                                        <i class="bi bi-check-circle-fill @(isThisLesson ? "text-white" : "text-success") fs-6 ms-1"></i>
-                                                    }
+                                                    <div class="d-flex align-items-center gap-1">
+                                                        @if (l.Exercises != null && l.Exercises.Any())
+                                                        {
+                                                            <span class="badge @(isThisLesson ? "bg-white text-primary" : "bg-warning bg-opacity-25 text-dark") rounded-pill" style="font-size: 10px;">
+                                                                <i class="bi bi-pencil"></i> @l.Exercises.Count
+                                                            </span>
+                                                        }
+                                                        @if (hasCompleted)
+                                                        {
+                                                            <i class="bi bi-check-circle-fill @(isThisLesson ? "text-white" : "text-success") fs-6 ms-1"></i>
+                                                        }
+                                                    </div>
                                                 </a>
                                             }
                                         </div>
@@ -185,18 +193,37 @@
                 <!-- Lesson Exercises Callout -->
                 @if (Model.Exercises != null && Model.Exercises.Any())
                 {
-                    <div class="p-4 bg-warning bg-opacity-10 rounded-4 border border-warning border-opacity-25 mb-5 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-                        <div>
-                            <span class="badge bg-warning text-dark fw-bold mb-2">BÀI TẬP BẮT BUỘC</span>
-                            <h5 class="fw-bold text-dark mb-1">Thực Hành Củng Cố Kiến Thức</h5>
+                    <div class="p-4 bg-warning bg-opacity-10 rounded-4 border border-warning border-opacity-25 mb-5">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                            <div>
+                                <span class="badge bg-warning text-dark fw-bold mb-1">BÀI TẬP THỰC HÀNH</span>
+                                <h5 class="fw-bold text-dark m-0">Bài Tập Củng Cố Cho Bài Học Này (@Model.Exercises.Count bài)</h5>
+                            </div>
                             <small class="text-secondary">Hoàn thành bài tập để hệ thống ghi nhận kết quả và mở khóa bài học kế tiếp.</small>
                         </div>
-                        <div>
+                        <div class="d-flex flex-column gap-2">
                             @foreach (var ex in Model.Exercises)
                             {
-                                <a asp-action="Exercise" asp-route-id="@ex.ExerciseId" class="btn btn-warning py-2 px-4 rounded-pill fw-bold text-dark shadow-sm">
-                                    <i class="bi bi-pencil-square me-1"></i> Làm Bài Tập Ngay
-                                </a>
+                                <div class="p-3 bg-white rounded-3 border d-flex flex-wrap align-items-center justify-content-between gap-3 shadow-none">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-clipboard-check text-warning fs-4"></i>
+                                        <div>
+                                            <h6 class="fw-bold text-dark mb-0">@ex.Title</h6>
+                                            <div class="text-muted small">
+                                                <span><i class="bi bi-question-circle me-1"></i>@(ex.Questions?.Count ?? 0) câu hỏi</span> • 
+                                                <span><i class="bi bi-clock me-1"></i>@ex.TimeLimitMinutes phút</span> • 
+                                                <span>Điểm đạt: @ex.PassingScore/100</span>
+                                                @if (ex.HasWriting)
+                                                {
+                                                    <span class="badge bg-info bg-opacity-25 text-dark ms-1">Có câu tự luận</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <a asp-action="Exercise" asp-route-id="@ex.ExerciseId" class="btn btn-warning py-2 px-4 rounded-pill fw-bold text-dark shadow-sm">
+                                        <i class="bi bi-pencil-square me-1"></i> Làm Bài Tập Này
+                                    </a>
+                                </div>
                             }
                         </div>
                     </div>

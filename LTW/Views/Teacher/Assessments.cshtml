@@ -2,47 +2,31 @@
 
 @{
     ViewData["Title"] = "Chấm Điểm & Đánh Giá Bài Nộp - Giảng Viên LUMORA";
-    var totalSubmissions = Model?.Count() ?? 0;
-    var pendingCount = Model?.Count(s => !s.TeacherScore.HasValue) ?? 0;
-    var completedCount = totalSubmissions - pendingCount;
 }
 
-<!-- Unified Teacher Header -->
-<partial name="_TeacherHeader" />
+<partial name="_TeacherPortalHeader" />
 
-<div class="container-fluid px-lg-5 py-4">
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+<div class="container-fluid px-lg-5 pb-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
-            <h4 class="fw-bold text-dark m-0"><i class="bi bi-check2-square me-2 text-warning"></i>Đánh Giá & Chấm Điểm Bài Tập</h4>
-            <p class="text-muted small m-0">Nhập điểm số và phản hồi chi tiết cho các bài tập học viên đã nộp</p>
-        </div>
-        <!-- Status Filter Buttons -->
-        <div class="btn-group rounded-pill p-1 bg-white border shadow-sm" role="group" id="filterButtonGroup">
-            <button type="button" class="btn btn-sm rounded-pill px-3 active fw-semibold btn-lumora-secondary text-white" onclick="filterAssessments('all', this)">
-                Tất cả (@totalSubmissions)
-            </button>
-            <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold text-secondary" onclick="filterAssessments('pending', this)">
-                <i class="bi bi-hourglass-split text-warning me-1"></i>Chờ chấm (@pendingCount)
-            </button>
-            <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold text-secondary" onclick="filterAssessments('graded', this)">
-                <i class="bi bi-check-circle text-success me-1"></i>Đã chấm (@completedCount)
-            </button>
+            <h3 class="fw-bold text-dark m-0"><i class="bi bi-check2-square me-2 text-warning"></i>Đánh Giá & Chấm Điểm Bài Tập</h3>
+            <p class="text-muted small m-0">Nhập điểm số và phản hồi chi tiết cho bài làm Writing, Speaking và các bài tập học viên nộp</p>
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="assessmentsTable">
+            <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light text-secondary small">
                     <tr>
                         <th class="ps-4">Học Viên</th>
-                        <th>Bài Tập / Bài Học</th>
+                        <th>Bài Tập & Khóa Học</th>
                         <th>Ngày Nộp</th>
-                        <th>Điểm Tự Động</th>
-                        <th>Điểm GV Chấm</th>
+                        <th>Điểm Trắc Nghiệm</th>
+                        <th>Điểm Tự Luận</th>
                         <th>Tổng Điểm</th>
-                        <th>Nhận Xét Của GV</th>
-                        <th class="text-end pe-4 text-nowrap">Thao Tác</th>
+                        <th>Nhận Xét</th>
+                        <th class="text-end pe-4">Thao Tác</th>
                     </tr>
                 </thead>
                 <tbody class="small">
@@ -51,69 +35,136 @@
                         foreach (var sub in Model)
                         {
                             var modalId = "gradeModal_" + sub.SubmissionId;
-                            var isPending = !sub.TeacherScore.HasValue;
-                            <tr class="assessment-row @(isPending ? "status-pending" : "status-graded")">
+                            bool hasWriting = sub.HasWriting;
+                            <tr>
                                 <td class="ps-4">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <img src="@(string.IsNullOrEmpty(sub.Student?.AvatarUrl) ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" : sub.Student.AvatarUrl)" 
-                                             class="rounded-circle shadow-sm flex-shrink-0" style="width: 36px; height: 36px; object-fit: cover;" alt="Avatar" />
-                                        <div>
-                                            <div class="fw-bold text-dark">@(sub.Student?.FullName ?? "Học viên")</div>
-                                            <div class="text-muted" style="font-size: 11px;">@sub.Student?.Email</div>
-                                        </div>
-                                    </div>
+                                    <div class="fw-bold text-dark">@(sub.Student?.FullName ?? "Học viên")</div>
+                                    <div class="text-muted" style="font-size: 11px;">@sub.Student?.Email</div>
                                 </td>
                                 <td>
                                     <div class="fw-semibold text-dark">@sub.Exercise?.Title</div>
                                     <div class="text-muted" style="font-size: 11px;">
-                                        <i class="bi bi-journal-text me-1"></i>@(sub.Exercise?.Lesson?.Title ?? "-")
+                                        @(sub.Exercise?.Lesson?.Chapter?.Course?.Title ?? "Khóa học") > @sub.Exercise?.Lesson?.Title
                                     </div>
                                 </td>
-                                <td class="text-nowrap text-secondary">
-                                    <i class="bi bi-clock me-1"></i>@sub.SubmittedAt.ToString("HH:mm - dd/MM/yyyy")
-                                </td>
-                                <td class="text-nowrap">
-                                    <span class="badge bg-light text-dark border font-monospace">@sub.AutoScore.ToString("F1") / 10</span>
-                                </td>
-                                <td class="text-nowrap">
-                                    @if (sub.TeacherScore.HasValue)
+                                <td>@sub.SubmittedAt.ToString("HH:mm - dd/MM/yyyy")</td>
+                                <td><span class="badge bg-light text-dark border">@sub.McScoreDisplay</span></td>
+                                <td>
+                                    @if (hasWriting)
                                     {
-                                        <span class="badge bg-success bg-opacity-10 text-success fw-bold font-monospace">
-                                            <i class="bi bi-check-circle me-1"></i>@sub.TeacherScore.Value.ToString("F1") / 10
-                                        </span>
+                                        if (sub.TeacherScore.HasValue)
+                                        {
+                                            <span class="badge bg-success bg-opacity-10 text-success fw-bold">@sub.TeacherScore.Value.ToString("G29") điểm</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark fw-bold">Chờ GV chấm</span>
+                                        }
                                     }
                                     else
                                     {
-                                        <span class="badge bg-warning bg-opacity-10 text-warning fw-bold">
-                                            <i class="bi bi-hourglass-split me-1"></i>Chưa chấm
-                                        </span>
+                                        <span class="badge bg-light text-muted">Không có</span>
                                     }
                                 </td>
-                                <td class="text-nowrap">
-                                    <strong class="text-primary fs-6 font-monospace">@sub.TotalScore.ToString("F1")</strong>
-                                </td>
-                                <td style="max-width: 220px;">
-                                    <span class="text-truncate d-inline-block text-secondary" style="max-width: 220px;" title="@sub.TeacherComment">
+                                <td><strong class="text-primary fs-6">@sub.TotalScore.ToString("G29")</strong></td>
+                                <td style="max-width: 200px;">
+                                    <span class="text-truncate d-inline-block text-secondary" style="max-width: 200px;">
                                         @(string.IsNullOrEmpty(sub.TeacherComment) ? "(Chưa có nhận xét)" : sub.TeacherComment)
                                     </span>
                                 </td>
-                                <td class="text-end pe-4 text-nowrap">
-                                    <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold shadow-sm @(isPending ? "btn-warning text-dark" : "btn-outline-primary")" 
-                                            data-bs-toggle="modal" data-bs-target="#@modalId">
-                                        <i class="bi bi-pencil-fill me-1"></i> @(isPending ? "Chấm Điểm" : "Sửa Điểm")
+                                <td class="text-end pe-4">
+                                    <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold shadow-sm" 
+                                            data-bs-toggle="modal" data-bs-target="#@modalId" style="background-color: #00A896; border-color: #00A896;">
+                                        <i class="bi bi-pencil-fill me-1"></i> Chấm Điểm
                                     </button>
                                 </td>
                             </tr>
+
+                            <!-- Grading Modal for this submission -->
+                            <div class="modal fade" id="@modalId" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content border-0 shadow-lg rounded-4 p-3">
+                                        <div class="modal-header border-0 pb-0">
+                                            <h5 class="modal-title fw-bold text-dark">Chấm Điểm & Nhận Xét Bài Nộp</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form asp-action="GradeSubmission" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="submissionId" value="@sub.SubmissionId" />
+
+                                            <div class="modal-body">
+                                                <div class="p-3 bg-light rounded-3 mb-3 small">
+                                                    <div>Học viên: <strong>@sub.Student?.FullName</strong></div>
+                                                    <div>Bài tập: <strong>@sub.Exercise?.Title</strong></div>
+                                                    <div>Điểm trắc nghiệm (Tự chấm theo đáp án cố định): <strong class="text-primary">@sub.McScoreDisplay</strong></div>
+                                                    <div>Hình thức: <strong>@(hasWriting ? "Có câu hỏi tự luận (Writing/Speaking)" : "Chỉ có trắc nghiệm")</strong></div>
+                                                </div>
+
+                                                <!-- Chi tiết câu trả lời học viên (đặc biệt là bài tự luận) -->
+                                                @if (!string.IsNullOrEmpty(sub.AnswersJson))
+                                                {
+                                                    Dictionary<string, string>? answersMap = null;
+                                                    try { answersMap = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(sub.AnswersJson); } catch { }
+                                                    if (answersMap != null && sub.Exercise?.Questions != null && sub.Exercise.Questions.Any())
+                                                    {
+                                                        <div class="mb-3">
+                                                            <label class="form-label small fw-semibold text-dark"><i class="bi bi-file-earmark-text me-1 text-primary"></i>Bài làm nộp của học viên:</label>
+                                                            <div class="p-3 border rounded-3 bg-white" style="max-height: 220px; overflow-y: auto;">
+                                                                @{ int qNum = 0; }
+                                                                @foreach (var q in sub.Exercise.Questions)
+                                                                {
+                                                                    qNum++;
+                                                                    var a = answersMap.GetValueOrDefault($"q_{q.QuestionId}");
+                                                                    <div class="mb-2 pb-2 @(qNum < sub.Exercise.Questions.Count ? "border-bottom" : "") small">
+                                                                        <div class="fw-bold text-dark">Câu @qNum (@q.Format): @q.Content</div>
+                                                                        <div class="mt-1 text-secondary">
+                                                                            <span class="badge bg-secondary me-1">Học viên trả lời:</span>
+                                                                            <span class="text-dark fw-semibold">@(string.IsNullOrWhiteSpace(a) ? "(Chưa trả lời)" : a)</span>
+                                                                        </div>
+                                                                        @if (!string.IsNullOrEmpty(q.CorrectAnswer))
+                                                                        {
+                                                                            <div class="text-success mt-1" style="font-size: 11px;">
+                                                                                <i class="bi bi-check2-circle me-1"></i>Đáp án mẫu / Gợi ý: @q.CorrectAnswer
+                                                                            </div>
+                                                                        }
+                                                                    </div>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                }
+
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-semibold text-secondary">Điểm Giảng Viên Chấm (Phần Tự Luận)</label>
+                                                    <input type="number" step="0.5" min="0" max="100" name="teacherScore" 
+                                                           value="@(sub.TeacherScore ?? 0)" class="form-control" required />
+                                                    <small class="text-muted d-block mt-1">
+                                                        <i class="bi bi-calculator me-1"></i>Tổng điểm học viên = Điểm trắc nghiệm (@sub.AutoScore) + Điểm tự luận GV chấm
+                                                    </small>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-semibold text-secondary">Lời Nhận Xét & Góp Ý Chi Tiết</label>
+                                                    <textarea name="teacherComment" class="form-control" rows="4" 
+                                                              placeholder="Nhận xét ưu điểm, chỉ ra các lỗi ngữ pháp/từ vựng cần cải thiện...">@(sub.TeacherComment ?? "")</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-0 pt-0">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Đóng</button>
+                                                <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm" style="background-color: #00A896; border-color: #00A896;">
+                                                    <i class="bi bi-check2 me-1"></i> Lưu Đánh Giá
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         }
                     }
                     else
                     {
                         <tr>
-                            <td colspan="8" class="text-center py-5 text-muted">
-                                <i class="bi bi-clipboard2-check display-6 d-block mb-2 text-secondary"></i>
-                                <h6 class="fw-bold text-dark">Chưa có bài nộp nào</h6>
-                                <p class="small text-muted mb-0">Khi học viên hoàn thành và gửi bài tập, danh sách bài nộp sẽ hiển thị tại đây.</p>
-                            </td>
+                            <td colspan="8" class="text-center py-4 text-muted">Chưa có bài nộp nào cần chấm điểm.</td>
                         </tr>
                     }
                 </tbody>
@@ -122,121 +173,3 @@
     </div>
 </div>
 
-<!-- ====================================================================
-     GRADING MODALS CONTAINER (Cleanly located OUTSIDE table elements)
-     ==================================================================== -->
-<div class="assessment-modals">
-    @if (Model != null && Model.Any())
-    {
-        foreach (var sub in Model)
-        {
-            var modalId = "gradeModal_" + sub.SubmissionId;
-            <div class="modal fade" id="@modalId" tabindex="-1" aria-labelledby="@(modalId)_label" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-lg">
-                    <div class="modal-content border-0 shadow-lg rounded-4 p-3">
-                        <div class="modal-header border-0 pb-0">
-                            <div>
-                                <h5 class="modal-title fw-bold text-dark" id="@(modalId)_label">
-                                    <i class="bi bi-pencil-square me-2 text-primary"></i>Đánh Giá & Chấm Điểm Bài Nộp
-                                </h5>
-                                <p class="text-muted small m-0">Nhập điểm số và phản hồi chi tiết để học viên cải thiện kỹ năng</p>
-                            </div>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <form asp-action="GradeSubmission" method="post">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="submissionId" value="@sub.SubmissionId" />
-
-                            <div class="modal-body">
-                                <!-- Student & Exercise Summary Card -->
-                                <div class="p-3 bg-light rounded-4 mb-3">
-                                    <div class="row g-2 small">
-                                        <div class="col-sm-6">
-                                            <span class="text-secondary">Học viên:</span> 
-                                            <strong class="text-dark">@(sub.Student?.FullName ?? "Học viên")</strong> 
-                                            <span class="text-muted">(@sub.Student?.Email)</span>
-                                        </div>
-                                        <div class="col-sm-6">
-                                            <span class="text-secondary">Bài tập:</span> 
-                                            <strong class="text-dark">@sub.Exercise?.Title</strong>
-                                        </div>
-                                        <div class="col-sm-6">
-                                            <span class="text-secondary">Thời gian nộp:</span> 
-                                            <span class="text-dark">@sub.SubmittedAt.ToString("HH:mm - dd/MM/yyyy")</span>
-                                        </div>
-                                        <div class="col-sm-6">
-                                            <span class="text-secondary">Điểm trắc nghiệm tự động:</span> 
-                                            <span class="badge bg-primary bg-opacity-10 text-primary font-monospace fw-bold">@sub.AutoScore.ToString("F1") / 10</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row g-3 mb-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label small fw-semibold text-secondary">
-                                            Điểm Giảng Viên Chấm (Thang điểm 10) <span class="text-danger">*</span>
-                                        </label>
-                                        <div class="input-group">
-                                            <input type="number" step="0.1" min="0" max="10" name="teacherScore" 
-                                                   value="@(sub.TeacherScore ?? sub.AutoScore)" class="form-control font-monospace fw-bold" required />
-                                            <span class="input-group-text">/ 10</span>
-                                        </div>
-                                        <div class="form-text" style="font-size: 11px;">
-                                            Tổng điểm hiển thị sẽ được tính: (Điểm tự chấm + Điểm GV) / 2
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label small fw-semibold text-secondary">Điểm tự động tham khảo</label>
-                                        <input type="text" class="form-control font-monospace bg-light" value="@sub.AutoScore.ToString("F1") / 10" disabled />
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label small fw-semibold text-secondary">
-                                        Lời Nhận Xét & Góp Ý Chi Tiết Cho Học Viên
-                                    </label>
-                                    <textarea name="teacherComment" class="form-control" rows="4" 
-                                              placeholder="Nhận xét cụ thể ưu điểm bài làm, chỉ ra các lỗi ngữ pháp, cấu trúc câu hoặc từ vựng cần trau dồi...">@(sub.TeacherComment ?? "")</textarea>
-                                </div>
-                            </div>
-                            <div class="modal-footer border-0 pt-0">
-                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Đóng</button>
-                                <button type="submit" class="btn btn-lumora-secondary btn-sm rounded-pill px-4 fw-bold shadow-sm text-white">
-                                    <i class="bi bi-check2 me-1"></i> Lưu Đánh Giá & Điểm Số
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        }
-    }
-</div>
-
-@section Scripts {
-    <script>
-        function filterAssessments(type, btn) {
-            // Update active button styling
-            var group = document.getElementById('filterButtonGroup');
-            var buttons = group.querySelectorAll('button');
-            buttons.forEach(function(b) {
-                b.classList.remove('active', 'btn-lumora-secondary', 'text-white');
-                b.classList.add('text-secondary');
-            });
-            btn.classList.add('active', 'btn-lumora-secondary', 'text-white');
-            btn.classList.remove('text-secondary');
-
-            // Filter rows
-            var rows = document.querySelectorAll('.assessment-row');
-            rows.forEach(function(row) {
-                if (type === 'all') {
-                    row.style.display = '';
-                } else if (type === 'pending') {
-                    row.style.display = row.classList.contains('status-pending') ? '' : 'none';
-                } else if (type === 'graded') {
-                    row.style.display = row.classList.contains('status-graded') ? '' : 'none';
-                }
-            });
-        }
-    </script>
-}

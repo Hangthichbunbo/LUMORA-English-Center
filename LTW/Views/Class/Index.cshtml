@@ -4,6 +4,8 @@
     ViewData["Title"] = "Lịch Học & Lớp Trực Tuyến - LUMORA English Center";
     var filter = ViewBag.CurrentFilter as string ?? "All";
     var enrolledCourseIds = ViewBag.EnrolledCourseIds as List<int> ?? new List<int>();
+    bool isTeacher = ViewBag.IsTeacher == true || User.IsInRole("Teacher") || User.IsInRole("Admin");
+    string? currentUserId = ViewBag.CurrentUserId as string;
 }
 
 <div class="py-5 bg-lumora-header text-white">
@@ -44,7 +46,7 @@
             @foreach (var item in Model)
             {
                 bool isEnrolledInCourse = item.CourseId != null && enrolledCourseIds.Contains(item.CourseId.Value);
-                bool canJoin = item.IsPublic || isEnrolledInCourse;
+                bool canJoin = item.IsPublic || isEnrolledInCourse || isTeacher;
 
                 <div class="col-lg-6">
                     <div class="card h-100 border-0 shadow-sm rounded-4 p-4 d-flex flex-column bg-white">
@@ -112,7 +114,7 @@
                             @if (canJoin)
                             {
                                 <a asp-action="Join" asp-route-id="@item.LiveClassId" class="btn btn-lumora-secondary text-white px-4 py-2 rounded-pill fw-bold shadow-sm">
-                                    <i class="bi bi-broadcast me-1"></i> Vào Lớp Trực Tuyến
+                                    <i class="bi bi-broadcast me-1"></i> @(isTeacher ? "Vào Giảng Lớp" : "Vào Lớp Trực Tuyến")
                                 </a>
                             }
                             else
