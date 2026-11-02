@@ -27,7 +27,8 @@ namespace LTW.Models
         public int TimeLimitMinutes { get; set; } = 30;
 
         [Display(Name = "Điểm đạt (trên 100)")]
-        public int PassingScore { get; set; } = 70;
+        [Column(TypeName = "decimal(5,2)")]
+        public decimal PassingScore { get; set; } = 70m;
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 

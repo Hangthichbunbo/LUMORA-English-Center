@@ -110,7 +110,7 @@
                 </div>
                 <div class="col-md-6">
                     <label asp-for="PassingScore" class="form-label small fw-semibold text-secondary"></label>
-                    <input asp-for="PassingScore" class="form-control" type="number" min="0" max="100" />
+                    <input asp-for="PassingScore" class="form-control" type="number" step="any" min="0" max="100" />
                 </div>
                 <div class="col-12">
                     <label asp-for="Description" class="form-label small fw-semibold text-secondary"></label>
@@ -209,7 +209,7 @@
                                 </div>
                                 <div class="d-flex align-items-center gap-1 ms-1">
                                     <label class="small fw-semibold text-secondary me-1">Điểm:</label>
-                                    <input type="number" step="0.5" min="0.5" max="100" class="form-control form-control-sm text-center q-points-input" style="width: 65px;" name="questions[@qIdx].Points" value="@q.Points" />
+                                    <input type="number" step="any" min="0" max="100" class="form-control form-control-sm text-center q-points-input" style="width: 70px;" name="questions[@qIdx].Points" value="@(q.Points.ToString("G", System.Globalization.CultureInfo.InvariantCulture))" />
                                 </div>
                             </div>
                             <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1 btn-remove-q" onclick="removeQuestion(this)" title="Xóa câu hỏi">
@@ -417,7 +417,7 @@
                         </div>
                         <div class="d-flex align-items-center gap-1 ms-1">
                             <label class="small fw-semibold text-secondary me-1">Điểm:</label>
-                            <input type="number" step="0.5" min="0.5" max="100" class="form-control form-control-sm text-center q-points-input" style="width: 65px;" name="questions[${newIndex}].Points" value="10" />
+                            <input type="number" step="any" min="0" max="100" class="form-control form-control-sm text-center q-points-input" style="width: 70px;" name="questions[${newIndex}].Points" value="10" />
                         </div>
                     </div>
                     <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1 btn-remove-q" onclick="removeQuestion(this)" title="Xóa câu hỏi">
@@ -712,14 +712,43 @@
                     cards.forEach(function (card) {
                         var formatSelect = card.querySelector('.q-format-select');
                         var isWriting = formatSelect && formatSelect.value === 'Writing';
+                        var correctMc = card.querySelector('.q-correct-mc');
+                        var writingRubric = card.querySelector('.q-writing-rubric');
+                        var rubricVal = writingRubric ? writingRubric.value.trim() : '';
+
                         if (isWriting) {
-                            var correctMc = card.querySelector('.q-correct-mc');
                             if (correctMc) {
-                                correctMc.disabled = true;
+                                correctMc.disabled = false;
+                                var val = rubricVal ? rubricVal : 'Tự luận - Giảng viên chấm điểm theo rubric';
+                                var opt = correctMc.querySelector('option[value="' + CSS.escape(val) + '"]');
+                                if (!opt) {
+                                    opt = document.createElement('option');
+                                    opt.value = val;
+                                    opt.textContent = val;
+                                    correctMc.appendChild(opt);
+                                }
+                                correctMc.value = val;
                             }
+                        } else {
+                            if (correctMc) correctMc.disabled = false;
+                        }
+                    });
+
+                    // Normalize float comma to dot for Points and PassingScore
+                    document.querySelectorAll('.q-points-input, #PassingScore').forEach(function(inp) {
+                        if (inp && inp.value && inp.value.includes(',')) {
+                            inp.value = inp.value.replace(',', '.');
                         }
                     });
                 });
+            }
+        });
+        // Auto replace comma with dot for float numbers
+        document.addEventListener('input', function(e) {
+            if (e.target && (e.target.classList.contains('q-points-input') || e.target.id === 'PassingScore')) {
+                if (e.target.value.includes(',')) {
+                    e.target.value = e.target.value.replace(',', '.');
+                }
             }
         });
     </script>

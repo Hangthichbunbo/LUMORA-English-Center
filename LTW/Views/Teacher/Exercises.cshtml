@@ -75,12 +75,16 @@
                                     </a>
                                 </td>
                                 <td>@ex.TimeLimitMinutes phút</td>
-                                <td>@ex.PassingScore/100</td>
+                                <td>@((ex.PassingScore % 1 == 0) ? ((int)ex.PassingScore).ToString() : ex.PassingScore.ToString("F1", System.Globalization.CultureInfo.InvariantCulture))/100</td>
                                 <td>
                                     <div>@(ex.Questions?.Count ?? 0) câu</div>
-                                    @if (ex.HasWriting)
+                                    @if (ex.HasWriting && ex.HasMultipleChoice)
                                     {
-                                        <span class="badge bg-info bg-opacity-25 text-dark" style="font-size: 10px;">Có tự luận</span>
+                                        <span class="badge bg-warning bg-opacity-25 text-dark" style="font-size: 10px;">Hỗn hợp (TN & TL)</span>
+                                    }
+                                    else if (ex.HasWriting)
+                                    {
+                                        <span class="badge bg-info text-white" style="font-size: 10px;">Tự luận</span>
                                     }
                                     else
                                     {

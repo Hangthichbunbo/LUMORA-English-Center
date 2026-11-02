@@ -433,7 +433,10 @@ namespace LTW.Controllers
             int? courseId,
             bool isNewChapter = false,
             string? newChapterTitle = null,
-            int? newChapterOrder = null)
+            int? newChapterOrder = null,
+            bool isRenameChapter = false,
+            string? renameChapterTitle = null,
+            int? renameChapterOrder = null)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
@@ -519,11 +522,22 @@ namespace LTW.Controllers
                     {
                         ModelState.AddModelError("ChapterId", "Chương học không tồn tại hoặc bạn không có quyền quản lý");
                     }
+                    else if (isRenameChapter && !string.IsNullOrWhiteSpace(renameChapterTitle))
+                    {
+                        chapter.Title = renameChapterTitle.Trim();
+                        if (renameChapterOrder.HasValue && renameChapterOrder.Value > 0)
+                        {
+                            chapter.OrderIndex = renameChapterOrder.Value;
+                        }
+                        await _context.SaveChangesAsync();
+                    }
                 }
             }
 
             if (ModelState.IsValid)
             {
+                var oldChapterId = existingLesson.ChapterId;
+
                 existingLesson.Title = lesson.Title.Trim();
                 existingLesson.ChapterId = lesson.ChapterId;
                 existingLesson.OrderIndex = lesson.OrderIndex > 0 ? lesson.OrderIndex : 1;
@@ -536,6 +550,21 @@ namespace LTW.Controllers
                 existingLesson.IsFreePreview = lesson.IsFreePreview;
 
                 await _context.SaveChangesAsync();
+
+                // Nếu chuyển bài học sang chương khác và chương cũ không còn bài nào, xóa chương cũ
+                if (oldChapterId != existingLesson.ChapterId)
+                {
+                    var hasOtherLessons = await _context.Lessons.AnyAsync(l => l.ChapterId == oldChapterId && l.LessonId != existingLesson.LessonId);
+                    if (!hasOtherLessons)
+                    {
+                        var orphanedChapter = await _context.Chapters.FindAsync(oldChapterId);
+                        if (orphanedChapter != null)
+                        {
+                            _context.Chapters.Remove(orphanedChapter);
+                            await _context.SaveChangesAsync();
+                        }
+                    }
+                }
 
                 TempData["SuccessMessage"] = $"Cập nhật bài học '{existingLesson.Title}' thành công!";
                 return RedirectToAction(nameof(Lessons));
@@ -614,8 +643,21 @@ namespace LTW.Controllers
                 _context.LessonProgresses.RemoveRange(lesson.LessonProgresses);
             }
 
+            var deletedChapterId = lesson.ChapterId;
             _context.Lessons.Remove(lesson);
             await _context.SaveChangesAsync();
+
+            // Tự động xóa chương trong database nếu chương không còn bài học nào
+            var remainingLessons = await _context.Lessons.AnyAsync(l => l.ChapterId == deletedChapterId);
+            if (!remainingLessons)
+            {
+                var orphanedChapter = await _context.Chapters.FindAsync(deletedChapterId);
+                if (orphanedChapter != null)
+                {
+                    _context.Chapters.Remove(orphanedChapter);
+                    await _context.SaveChangesAsync();
+                }
+            }
 
             TempData["SuccessMessage"] = $"Đã xóa bài học '{lessonTitle}' thành công!";
             return RedirectToAction(nameof(Lessons));
@@ -724,6 +766,12 @@ namespace LTW.Controllers
             ModelState.Remove("Submissions");
             ModelState.Remove("Description");
 
+            var questionKeys = ModelState.Keys.Where(k => k.StartsWith("questions", StringComparison.OrdinalIgnoreCase) || k.StartsWith("Questions", StringComparison.OrdinalIgnoreCase)).ToList();
+            foreach (var k in questionKeys)
+            {
+                ModelState.Remove(k);
+            }
+
             if (exercise.LessonId <= 0)
             {
                 ModelState.AddModelError("LessonId", "Vui lòng chọn bài học trực thuộc");
@@ -749,7 +797,9 @@ namespace LTW.Controllers
             {
                 exercise.CreatedAt = DateTime.Now;
                 exercise.TimeLimitMinutes = exercise.TimeLimitMinutes > 0 ? exercise.TimeLimitMinutes : 20;
-                exercise.PassingScore = exercise.PassingScore >= 0 ? exercise.PassingScore : 70;
+                exercise.PassingScore = exercise.PassingScore >= 0 ? exercise.PassingScore : 70m;
+                exercise.Questions?.Clear();
+                exercise.Submissions?.Clear();
                 _context.Exercises.Add(exercise);
                 await _context.SaveChangesAsync();
 
@@ -798,6 +848,7 @@ namespace LTW.Controllers
                         }
                         else
                         {
+                            format = QuestionFormat.Writing;
                             if (string.IsNullOrWhiteSpace(correctAnswer))
                             {
                                 correctAnswer = "Tự luận - Giảng viên chấm điểm theo rubric";
@@ -807,21 +858,21 @@ namespace LTW.Controllers
                         var q = new ExerciseQuestion
                         {
                             ExerciseId = exercise.ExerciseId,
-                            Skill = qItem.Skill != 0 ? qItem.Skill : SkillType.Reading,
+                            Skill = qItem.Skill != 0 ? qItem.Skill : (isWriting ? SkillType.Writing : SkillType.Reading),
                             Format = format,
                             Content = qItem.Content.Trim(),
                             OptionsJson = optionsJson,
                             CorrectAnswer = correctAnswer,
                             Explanation = qItem.Explanation,
-                            Points = qItem.Points > 0 ? qItem.Points : 10
+                            Points = qItem.Points > 0 ? qItem.Points : 10m
                         };
                         _context.ExerciseQuestions.Add(q);
                         questionsAdded++;
                     }
                 }
 
-                // 2. Fallback to single question parameters if questions list was empty
-                if (questionsAdded == 0 && !string.IsNullOrWhiteSpace(questionContent))
+                // 2. Fallback to single question parameters ONLY if questions list was empty
+                if (questionsAdded == 0 && (questions == null || !questions.Any()) && !string.IsNullOrWhiteSpace(questionContent))
                 {
                     var options = new[] { $"A. {optA}", $"B. {optB}", $"C. {optC}", $"D. {optD}" };
                     var q = new ExerciseQuestion
@@ -1009,8 +1060,8 @@ namespace LTW.Controllers
             ModelState.Remove("Submissions");
             ModelState.Remove("Description");
 
-            var questionKeys = ModelState.Keys.Where(k => k.StartsWith("questions", StringComparison.OrdinalIgnoreCase)).ToList();
-            foreach (var k in questionKeys)
+            var editQuestionKeys = ModelState.Keys.Where(k => k.StartsWith("questions", StringComparison.OrdinalIgnoreCase) || k.StartsWith("Questions", StringComparison.OrdinalIgnoreCase)).ToList();
+            foreach (var k in editQuestionKeys)
             {
                 ModelState.Remove(k);
             }
@@ -1046,7 +1097,7 @@ namespace LTW.Controllers
                 existingExercise.Title = exercise.Title.Trim();
                 existingExercise.Description = exercise.Description;
                 existingExercise.TimeLimitMinutes = exercise.TimeLimitMinutes > 0 ? exercise.TimeLimitMinutes : 20;
-                existingExercise.PassingScore = exercise.PassingScore >= 0 ? exercise.PassingScore : 70;
+                existingExercise.PassingScore = exercise.PassingScore >= 0 ? exercise.PassingScore : 70m;
                 existingExercise.LessonId = exercise.LessonId;
 
                 // Update Questions: remove existing questions and replace with updated ones
@@ -1107,13 +1158,13 @@ namespace LTW.Controllers
                         var q = new ExerciseQuestion
                         {
                             ExerciseId = existingExercise.ExerciseId,
-                            Skill = qItem.Skill != 0 ? qItem.Skill : SkillType.Reading,
+                            Skill = qItem.Skill != 0 ? qItem.Skill : (isWriting ? SkillType.Writing : SkillType.Reading),
                             Format = format,
                             Content = qItem.Content.Trim(),
                             OptionsJson = optionsJson,
                             CorrectAnswer = correctAnswer,
                             Explanation = qItem.Explanation,
-                            Points = qItem.Points > 0 ? qItem.Points : 10
+                            Points = qItem.Points > 0 ? qItem.Points : 10m
                         };
                         _context.ExerciseQuestions.Add(q);
                         questionsAdded++;
@@ -1454,6 +1505,78 @@ namespace LTW.Controllers
                 displayText = $"Chương {chapter.OrderIndex}: {chapter.Title}",
                 message = "Tạo chương mới thành công!"
             });
+        }
+
+        // POST: /Teacher/RenameChapter
+        [HttpPost]
+        [Authorize(Roles = "Teacher,Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RenameChapter(int chapterId, string title, int? orderIndex)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            if (chapterId <= 0 || string.IsNullOrWhiteSpace(title))
+            {
+                return Json(new { success = false, message = "Vui lòng chọn chương học và nhập tiêu đề mới." });
+            }
+
+            var isAdmin = User.IsInRole("Admin");
+            var chapter = await _context.Chapters
+                .Include(c => c.Course)
+                .FirstOrDefaultAsync(c => c.ChapterId == chapterId && (c.Course!.TeacherId == user.Id || isAdmin));
+
+            if (chapter == null)
+            {
+                return Json(new { success = false, message = "Chương học không tồn tại hoặc bạn không có quyền chỉnh sửa." });
+            }
+
+            chapter.Title = title.Trim();
+            if (orderIndex.HasValue && orderIndex.Value > 0)
+            {
+                chapter.OrderIndex = orderIndex.Value;
+            }
+
+            await _context.SaveChangesAsync();
+            var displayText = $"Chương {chapter.OrderIndex}: {chapter.Title}";
+            return Json(new {
+                success = true,
+                chapterId = chapter.ChapterId,
+                title = chapter.Title,
+                orderIndex = chapter.OrderIndex,
+                displayText = displayText,
+                message = "Đã cập nhật tên chương thành công!"
+            });
+        }
+
+        // POST: /Teacher/DeleteEmptyChapter
+        [HttpPost]
+        [Authorize(Roles = "Teacher,Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteEmptyChapter(int chapterId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var isAdmin = User.IsInRole("Admin");
+            var chapter = await _context.Chapters
+                .Include(c => c.Course)
+                .Include(c => c.Lessons)
+                .FirstOrDefaultAsync(c => c.ChapterId == chapterId && (c.Course!.TeacherId == user.Id || isAdmin));
+
+            if (chapter == null)
+            {
+                return Json(new { success = false, message = "Chương học không tồn tại hoặc bạn không có quyền xóa." });
+            }
+
+            if (chapter.Lessons != null && chapter.Lessons.Any())
+            {
+                return Json(new { success = false, message = "Không thể xóa vì chương này vẫn còn bài học. Hãy chuyển hoặc xóa các bài học trước." });
+            }
+
+            _context.Chapters.Remove(chapter);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã xóa chương trống thành công khỏi cơ sở dữ liệu." });
         }
     }
 }
