@@ -1791,4 +1791,7 @@ h1, h2, h3, h4, h5, h6 {
     color: #0f172a;
 }
 
-
+.fw-bold.mb-3.text--black,
+.active.text--black {
+    color: rgba(var(--bs-dark-rgb),var(--bs-text-opacity)) !important
+}
