@@ -1,23 +1,25 @@
 @model LTW.Models.LiveClass
 
 @{
-    ViewData["Title"] = "Tạo Lớp Trực Tuyến - Admin LUMORA";
+    ViewData["Title"] = "Tạo Lớp & Xếp Lịch Trực Tuyến - Admin LUMORA";
+    string? from = ViewBag.From as string;
 }
 
 <div class="container py-4" style="max-width: 850px;">
     <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
         <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
             <div>
-                <h3 class="fw-bold text-dark m-0"><i class="bi bi-camera-video me-2 text-primary"></i>Tạo Lớp Học Trực Tuyến</h3>
-                <p class="text-muted small m-0">Xếp lịch giảng dạy, gán giảng viên và phòng học</p>
+                <h3 class="fw-bold text-dark m-0"><i class="bi bi-calendar-plus me-2 text-primary"></i>Tạo Lớp Học & Xếp Lịch Giảng Dạy</h3>
+                <p class="text-muted small m-0">Xếp lịch giảng dạy theo buổi học, phân công giảng viên và tạo link phòng học ảo</p>
             </div>
-            <a asp-action="Classes" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-                <i class="bi bi-arrow-left me-1"></i> Quay Lại
+            <a asp-action="@(from == "schedule" ? "Schedule" : "Classes")" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i> Quay Lại @(from == "schedule" ? "Thời Khóa Biểu" : "Danh Sách Lớp")
             </a>
         </div>
 
         <form asp-action="CreateClass" method="post">
             @Html.AntiForgeryToken()
+            <input type="hidden" name="from" value="@from" />
             <div asp-validation-summary="ModelOnly" class="alert alert-danger small mb-3"></div>
 
             <div class="row g-3 mb-4">

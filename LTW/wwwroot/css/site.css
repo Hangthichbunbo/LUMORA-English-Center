@@ -1110,6 +1110,30 @@ h1, h2, h3, h4, h5, h6 {
     color: #ffffff !important;
 }
 
+/* Footer Campus Map Section */
+.footer-map-section {
+    position: relative;
+}
+
+.campus-switch-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+
+.campus-switch-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    transform: translateX(4px);
+}
+
+.campus-switch-btn.active-campus {
+    background: rgba(0, 168, 150, 0.2) !important;
+    border-color: #00A896 !important;
+    box-shadow: 0 0 12px rgba(0, 168, 150, 0.25);
+}
+
 .footer-bottom-statement {
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     padding-top: 25px;

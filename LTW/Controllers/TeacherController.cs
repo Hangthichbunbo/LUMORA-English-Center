@@ -20,6 +20,28 @@ namespace LTW.Controllers
             _userManager = userManager;
         }
 
+        public static string FormatChapterTitle(int orderIndex, string? title)
+        {
+            if (string.IsNullOrWhiteSpace(title)) return $"Chương {orderIndex}";
+            var trimmed = title.Trim();
+            if (trimmed.StartsWith("Chương", StringComparison.OrdinalIgnoreCase))
+            {
+                return trimmed;
+            }
+            return $"Chương {orderIndex}: {trimmed}";
+        }
+
+        public static string FormatLessonTitle(int orderIndex, string? title)
+        {
+            if (string.IsNullOrWhiteSpace(title)) return $"Bài {orderIndex}";
+            var trimmed = title.Trim();
+            if (trimmed.StartsWith("Bài", StringComparison.OrdinalIgnoreCase))
+            {
+                return trimmed;
+            }
+            return $"Bài {orderIndex}: {trimmed}";
+        }
+
         // ==========================================
         // PUBLIC ACTIONS (Candidates & Visitors)
         // ==========================================
@@ -126,21 +148,31 @@ namespace LTW.Controllers
             var courses = await _context.Courses
                 .Where(c => c.TeacherId == teacherId || isAdmin)
                 .OrderBy(c => c.Title)
-                .Select(c => new TeacherCourseOptionDto
+                .Select(c => new
                 {
-                    CourseId = c.CourseId,
-                    Title = c.Title,
-                    Chapters = c.Chapters.OrderBy(ch => ch.OrderIndex).Select(ch => new TeacherChapterOptionDto
+                    c.CourseId,
+                    c.Title,
+                    Chapters = c.Chapters.OrderBy(ch => ch.OrderIndex).Select(ch => new
                     {
-                        ChapterId = ch.ChapterId,
-                        Title = ch.Title,
-                        OrderIndex = ch.OrderIndex,
-                        DisplayText = $"Chương {ch.OrderIndex}: {ch.Title}"
+                        ch.ChapterId,
+                        ch.Title,
+                        ch.OrderIndex
                     }).ToList()
                 })
                 .ToListAsync();
 
-            return courses;
+            return courses.Select(c => new TeacherCourseOptionDto
+            {
+                CourseId = c.CourseId,
+                Title = c.Title,
+                Chapters = c.Chapters.Select(ch => new TeacherChapterOptionDto
+                {
+                    ChapterId = ch.ChapterId,
+                    Title = ch.Title,
+                    OrderIndex = ch.OrderIndex,
+                    DisplayText = FormatChapterTitle(ch.OrderIndex, ch.Title)
+                }).ToList()
+            }).ToList();
         }
 
         // GET: /Teacher/Dashboard
@@ -303,20 +335,27 @@ namespace LTW.Controllers
                     }
                     else
                     {
-                        var maxOrder = course.Chapters.Any() ? course.Chapters.Max(ch => ch.OrderIndex) : 0;
-                        var order = (newChapterOrder.HasValue && newChapterOrder.Value > 0) ? newChapterOrder.Value : (maxOrder + 1);
-
-                        var createdChapter = new Chapter
+                        if (newChapterOrder.HasValue && newChapterOrder.Value > 0 && course.Chapters.Any(ch => ch.OrderIndex == newChapterOrder.Value))
                         {
-                            CourseId = course.CourseId,
-                            Title = newChapterTitle.Trim(),
-                            OrderIndex = order
-                        };
-                        _context.Chapters.Add(createdChapter);
-                        await _context.SaveChangesAsync();
+                            ModelState.AddModelError("newChapterOrder", $"Thứ tự chương #{newChapterOrder.Value} đã tồn tại trong khóa học này. Vui lòng chọn thứ tự khác.");
+                        }
+                        else
+                        {
+                            var maxOrder = course.Chapters.Any() ? course.Chapters.Max(ch => ch.OrderIndex) : 0;
+                            var order = (newChapterOrder.HasValue && newChapterOrder.Value > 0) ? newChapterOrder.Value : (maxOrder + 1);
 
-                        lesson.ChapterId = createdChapter.ChapterId;
-                        ModelState.Remove("ChapterId");
+                            var createdChapter = new Chapter
+                            {
+                                CourseId = course.CourseId,
+                                Title = newChapterTitle.Trim(),
+                                OrderIndex = order
+                            };
+                            _context.Chapters.Add(createdChapter);
+                            await _context.SaveChangesAsync();
+
+                            lesson.ChapterId = createdChapter.ChapterId;
+                            ModelState.Remove("ChapterId");
+                        }
                     }
                 }
             }
@@ -490,20 +529,27 @@ namespace LTW.Controllers
                     }
                     else
                     {
-                        var maxOrder = course.Chapters.Any() ? course.Chapters.Max(ch => ch.OrderIndex) : 0;
-                        var order = (newChapterOrder.HasValue && newChapterOrder.Value > 0) ? newChapterOrder.Value : (maxOrder + 1);
-
-                        var createdChapter = new Chapter
+                        if (newChapterOrder.HasValue && newChapterOrder.Value > 0 && course.Chapters.Any(ch => ch.OrderIndex == newChapterOrder.Value))
                         {
-                            CourseId = course.CourseId,
-                            Title = newChapterTitle.Trim(),
-                            OrderIndex = order
-                        };
-                        _context.Chapters.Add(createdChapter);
-                        await _context.SaveChangesAsync();
+                            ModelState.AddModelError("newChapterOrder", $"Thứ tự chương #{newChapterOrder.Value} đã tồn tại trong khóa học này. Vui lòng chọn thứ tự khác.");
+                        }
+                        else
+                        {
+                            var maxOrder = course.Chapters.Any() ? course.Chapters.Max(ch => ch.OrderIndex) : 0;
+                            var order = (newChapterOrder.HasValue && newChapterOrder.Value > 0) ? newChapterOrder.Value : (maxOrder + 1);
 
-                        lesson.ChapterId = createdChapter.ChapterId;
-                        ModelState.Remove("ChapterId");
+                            var createdChapter = new Chapter
+                            {
+                                CourseId = course.CourseId,
+                                Title = newChapterTitle.Trim(),
+                                OrderIndex = order
+                            };
+                            _context.Chapters.Add(createdChapter);
+                            await _context.SaveChangesAsync();
+
+                            lesson.ChapterId = createdChapter.ChapterId;
+                            ModelState.Remove("ChapterId");
+                        }
                     }
                 }
             }
@@ -643,21 +689,8 @@ namespace LTW.Controllers
                 _context.LessonProgresses.RemoveRange(lesson.LessonProgresses);
             }
 
-            var deletedChapterId = lesson.ChapterId;
             _context.Lessons.Remove(lesson);
             await _context.SaveChangesAsync();
-
-            // Tự động xóa chương trong database nếu chương không còn bài học nào
-            var remainingLessons = await _context.Lessons.AnyAsync(l => l.ChapterId == deletedChapterId);
-            if (!remainingLessons)
-            {
-                var orphanedChapter = await _context.Chapters.FindAsync(deletedChapterId);
-                if (orphanedChapter != null)
-                {
-                    _context.Chapters.Remove(orphanedChapter);
-                    await _context.SaveChangesAsync();
-                }
-            }
 
             TempData["SuccessMessage"] = $"Đã xóa bài học '{lessonTitle}' thành công!";
             return RedirectToAction(nameof(Lessons));
@@ -693,7 +726,7 @@ namespace LTW.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
-            var coursesHierarchy = await _context.Courses
+            var rawCoursesHierarchy = await _context.Courses
                 .Where(c => c.TeacherId == user.Id || User.IsInRole("Admin"))
                 .OrderBy(c => c.Title)
                 .Select(c => new {
@@ -703,16 +736,31 @@ namespace LTW.Controllers
                         ch.ChapterId,
                         ch.Title,
                         ch.OrderIndex,
-                        DisplayText = $"Chương {ch.OrderIndex}: {ch.Title}",
                         Lessons = ch.Lessons.OrderBy(l => l.OrderIndex).Select(l => new {
                             l.LessonId,
                             l.Title,
-                            l.OrderIndex,
-                            DisplayText = $"Bài {l.OrderIndex}: {l.Title}"
+                            l.OrderIndex
                         }).ToList()
                     }).ToList()
                 })
                 .ToListAsync();
+
+            var coursesHierarchy = rawCoursesHierarchy.Select(c => new {
+                c.CourseId,
+                c.Title,
+                Chapters = c.Chapters.Select(ch => new {
+                    ch.ChapterId,
+                    ch.Title,
+                    ch.OrderIndex,
+                    DisplayText = FormatChapterTitle(ch.OrderIndex, ch.Title),
+                    Lessons = ch.Lessons.Select(l => new {
+                        l.LessonId,
+                        l.Title,
+                        l.OrderIndex,
+                        DisplayText = FormatLessonTitle(l.OrderIndex, l.Title)
+                    }).ToList()
+                }).ToList()
+            }).ToList();
 
             ViewBag.CoursesHierarchy = coursesHierarchy;
             ViewBag.CoursesHierarchyJson = JsonSerializer.Serialize(coursesHierarchy);
@@ -902,7 +950,7 @@ namespace LTW.Controllers
                 TempData["ErrorMessage"] = string.Join("; ", errorList);
             }
 
-            var coursesHierarchy = await _context.Courses
+            var rawCoursesHierarchy = await _context.Courses
                 .Where(c => c.TeacherId == user.Id || isAdmin)
                 .OrderBy(c => c.Title)
                 .Select(c => new {
@@ -912,16 +960,31 @@ namespace LTW.Controllers
                         ch.ChapterId,
                         ch.Title,
                         ch.OrderIndex,
-                        DisplayText = $"Chương {ch.OrderIndex}: {ch.Title}",
                         Lessons = ch.Lessons.OrderBy(l => l.OrderIndex).Select(l => new {
                             l.LessonId,
                             l.Title,
-                            l.OrderIndex,
-                            DisplayText = $"Bài {l.OrderIndex}: {l.Title}"
+                            l.OrderIndex
                         }).ToList()
                     }).ToList()
                 })
                 .ToListAsync();
+
+            var coursesHierarchy = rawCoursesHierarchy.Select(c => new {
+                c.CourseId,
+                c.Title,
+                Chapters = c.Chapters.Select(ch => new {
+                    ch.ChapterId,
+                    ch.Title,
+                    ch.OrderIndex,
+                    DisplayText = FormatChapterTitle(ch.OrderIndex, ch.Title),
+                    Lessons = ch.Lessons.Select(l => new {
+                        l.LessonId,
+                        l.Title,
+                        l.OrderIndex,
+                        DisplayText = FormatLessonTitle(l.OrderIndex, l.Title)
+                    }).ToList()
+                }).ToList()
+            }).ToList();
 
             ViewBag.CoursesHierarchy = coursesHierarchy;
             ViewBag.CoursesHierarchyJson = JsonSerializer.Serialize(coursesHierarchy);
@@ -980,7 +1043,7 @@ namespace LTW.Controllers
                 return RedirectToAction(nameof(Exercises));
             }
 
-            var coursesHierarchy = await _context.Courses
+            var rawCoursesHierarchy = await _context.Courses
                 .Where(c => c.TeacherId == user.Id || isAdmin)
                 .OrderBy(c => c.Title)
                 .Select(c => new {
@@ -990,16 +1053,31 @@ namespace LTW.Controllers
                         ch.ChapterId,
                         ch.Title,
                         ch.OrderIndex,
-                        DisplayText = $"Chương {ch.OrderIndex}: {ch.Title}",
                         Lessons = ch.Lessons.OrderBy(l => l.OrderIndex).Select(l => new {
                             l.LessonId,
                             l.Title,
-                            l.OrderIndex,
-                            DisplayText = $"Bài {l.OrderIndex}: {l.Title}"
+                            l.OrderIndex
                         }).ToList()
                     }).ToList()
                 })
                 .ToListAsync();
+
+            var coursesHierarchy = rawCoursesHierarchy.Select(c => new {
+                c.CourseId,
+                c.Title,
+                Chapters = c.Chapters.Select(ch => new {
+                    ch.ChapterId,
+                    ch.Title,
+                    ch.OrderIndex,
+                    DisplayText = FormatChapterTitle(ch.OrderIndex, ch.Title),
+                    Lessons = ch.Lessons.Select(l => new {
+                        l.LessonId,
+                        l.Title,
+                        l.OrderIndex,
+                        DisplayText = FormatLessonTitle(l.OrderIndex, l.Title)
+                    }).ToList()
+                }).ToList()
+            }).ToList();
 
             ViewBag.CoursesHierarchy = coursesHierarchy;
             ViewBag.CoursesHierarchyJson = JsonSerializer.Serialize(coursesHierarchy);
@@ -1201,7 +1279,7 @@ namespace LTW.Controllers
                 TempData["ErrorMessage"] = string.Join("; ", errorList);
             }
 
-            var coursesHierarchy = await _context.Courses
+            var rawCoursesHierarchy = await _context.Courses
                 .Where(c => c.TeacherId == user.Id || isAdmin)
                 .OrderBy(c => c.Title)
                 .Select(c => new {
@@ -1211,16 +1289,31 @@ namespace LTW.Controllers
                         ch.ChapterId,
                         ch.Title,
                         ch.OrderIndex,
-                        DisplayText = $"Chương {ch.OrderIndex}: {ch.Title}",
                         Lessons = ch.Lessons.OrderBy(l => l.OrderIndex).Select(l => new {
                             l.LessonId,
                             l.Title,
-                            l.OrderIndex,
-                            DisplayText = $"Bài {l.OrderIndex}: {l.Title}"
+                            l.OrderIndex
                         }).ToList()
                     }).ToList()
                 })
                 .ToListAsync();
+
+            var coursesHierarchy = rawCoursesHierarchy.Select(c => new {
+                c.CourseId,
+                c.Title,
+                Chapters = c.Chapters.Select(ch => new {
+                    ch.ChapterId,
+                    ch.Title,
+                    ch.OrderIndex,
+                    DisplayText = FormatChapterTitle(ch.OrderIndex, ch.Title),
+                    Lessons = ch.Lessons.Select(l => new {
+                        l.LessonId,
+                        l.Title,
+                        l.OrderIndex,
+                        DisplayText = FormatLessonTitle(l.OrderIndex, l.Title)
+                    }).ToList()
+                }).ToList()
+            }).ToList();
 
             ViewBag.CoursesHierarchy = coursesHierarchy;
             ViewBag.CoursesHierarchyJson = JsonSerializer.Serialize(coursesHierarchy);
@@ -1425,16 +1518,22 @@ namespace LTW.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
-            var chapters = await _context.Chapters
+            var rawChapters = await _context.Chapters
                 .Where(ch => ch.CourseId == courseId && (ch.Course!.TeacherId == user.Id || User.IsInRole("Admin")))
                 .OrderBy(ch => ch.OrderIndex)
                 .Select(ch => new {
                     ch.ChapterId,
                     ch.Title,
-                    ch.OrderIndex,
-                    displayText = $"Chương {ch.OrderIndex}: {ch.Title}"
+                    ch.OrderIndex
                 })
                 .ToListAsync();
+
+            var chapters = rawChapters.Select(ch => new {
+                ch.ChapterId,
+                ch.Title,
+                ch.OrderIndex,
+                displayText = FormatChapterTitle(ch.OrderIndex, ch.Title)
+            }).ToList();
 
             return Json(chapters);
         }
@@ -1447,16 +1546,22 @@ namespace LTW.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
-            var lessons = await _context.Lessons
+            var rawLessons = await _context.Lessons
                 .Where(l => l.ChapterId == chapterId && (l.Chapter!.Course!.TeacherId == user.Id || User.IsInRole("Admin")))
                 .OrderBy(l => l.OrderIndex)
                 .Select(l => new {
                     l.LessonId,
                     l.Title,
-                    l.OrderIndex,
-                    displayText = $"Bài {l.OrderIndex}: {l.Title}"
+                    l.OrderIndex
                 })
                 .ToListAsync();
+
+            var lessons = rawLessons.Select(l => new {
+                l.LessonId,
+                l.Title,
+                l.OrderIndex,
+                displayText = FormatLessonTitle(l.OrderIndex, l.Title)
+            }).ToList();
 
             return Json(lessons);
         }
@@ -1484,6 +1589,11 @@ namespace LTW.Controllers
                 return Json(new { success = false, message = "Khóa học không tồn tại hoặc bạn không có quyền phụ trách khóa này." });
             }
 
+            if (orderIndex.HasValue && orderIndex.Value > 0 && course.Chapters.Any(ch => ch.OrderIndex == orderIndex.Value))
+            {
+                return Json(new { success = false, message = $"Thứ tự chương #{orderIndex.Value} đã tồn tại trong khóa học này. Vui lòng chọn thứ tự khác." });
+            }
+
             var maxOrder = course.Chapters.Any() ? course.Chapters.Max(ch => ch.OrderIndex) : 0;
             var order = (orderIndex.HasValue && orderIndex.Value > 0) ? orderIndex.Value : (maxOrder + 1);
 
@@ -1497,12 +1607,13 @@ namespace LTW.Controllers
             _context.Chapters.Add(chapter);
             await _context.SaveChangesAsync();
 
+            var displayText = FormatChapterTitle(chapter.OrderIndex, chapter.Title);
             return Json(new {
                 success = true,
                 chapterId = chapter.ChapterId,
                 title = chapter.Title,
                 orderIndex = chapter.OrderIndex,
-                displayText = $"Chương {chapter.OrderIndex}: {chapter.Title}",
+                displayText = displayText,
                 message = "Tạo chương mới thành công!"
             });
         }
@@ -1531,14 +1642,19 @@ namespace LTW.Controllers
                 return Json(new { success = false, message = "Chương học không tồn tại hoặc bạn không có quyền chỉnh sửa." });
             }
 
-            chapter.Title = title.Trim();
             if (orderIndex.HasValue && orderIndex.Value > 0)
             {
+                bool orderConflict = await _context.Chapters.AnyAsync(c => c.CourseId == chapter.CourseId && c.ChapterId != chapter.ChapterId && c.OrderIndex == orderIndex.Value);
+                if (orderConflict)
+                {
+                    return Json(new { success = false, message = $"Thứ tự chương #{orderIndex.Value} đã bị trùng với một chương khác trong khóa này." });
+                }
                 chapter.OrderIndex = orderIndex.Value;
             }
 
+            chapter.Title = title.Trim();
             await _context.SaveChangesAsync();
-            var displayText = $"Chương {chapter.OrderIndex}: {chapter.Title}";
+            var displayText = FormatChapterTitle(chapter.OrderIndex, chapter.Title);
             return Json(new {
                 success = true,
                 chapterId = chapter.ChapterId,

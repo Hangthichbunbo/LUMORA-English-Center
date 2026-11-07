@@ -1,0 +1,168 @@
+@model IEnumerable<LTW.Models.Exercise>
+@using LTW.Models
+
+@{
+    ViewData["Title"] = "Quản Lý Bài Tập - Admin LUMORA";
+    var courses = ViewBag.Courses as List<Course> ?? new List<Course>();
+    int? selectedCourseId = ViewBag.SelectedCourseId as int?;
+    string search = ViewBag.Search as string ?? "";
+}
+
+<div class="container-fluid px-lg-5 py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="fw-bold text-dark m-0"><i class="bi bi-pencil-square me-2 text-primary"></i>Quản Lý Bài Tập Toàn Hệ Thống</h3>
+            <p class="text-muted small m-0">Quản lý câu hỏi trắc nghiệm, tự luận, cấu hình điểm chuẩn và theo dõi kết quả nộp bài</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-controller="Teacher" asp-action="CreateExercise" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm" style="background-color: #00A896; border-color: #00A896;">
+                <i class="bi bi-plus-circle me-1"></i> Tạo Bài Tập Mới
+            </a>
+            <a asp-action="Dashboard" class="btn btn-outline-secondary rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Admin Navigation Toolbar -->
+    <div class="d-flex flex-wrap gap-2 mb-4 bg-light p-2 rounded-4 border">
+        <a asp-action="Dashboard" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+        </a>
+        <a asp-action="Users" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-people-fill me-1"></i> Users
+        </a>
+        <a asp-action="Courses" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-collection-play-fill me-1"></i> Courses
+        </a>
+        <a asp-action="Classes" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-camera-video-fill me-1"></i> Classes
+        </a>
+        <a asp-action="Schedule" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-calendar-week-fill me-1"></i> Schedule
+        </a>
+        <a asp-action="Lessons" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-book-fill me-1"></i> Lessons
+        </a>
+        <a asp-action="Exercises" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold" style="background-color: #00A896; border-color: #00A896;">
+            <i class="bi bi-pencil-square me-1"></i> Exercises
+        </a>
+        <a asp-action="Tests" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-patch-question-fill me-1"></i> Tests
+        </a>
+        <a asp-action="Tips" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-lightbulb-fill me-1"></i> IELTS Tips
+        </a>
+        <a asp-action="Notifications" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-bell-fill me-1"></i> Notifications
+        </a>
+    </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
+        <form method="get" asp-action="Exercises" class="row g-2 align-items-center">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" name="search" value="@search" class="form-control border-start-0" placeholder="Tìm theo tên bài tập hoặc bài học..." />
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select name="courseId" class="form-select" onchange="this.form.submit()">
+                    <option value="">-- Tất cả khóa học --</option>
+                    @foreach (var c in courses)
+                    {
+                        if (selectedCourseId.HasValue && selectedCourseId.Value == c.CourseId)
+                        {
+                            <option value="@c.CourseId" selected>@c.Title</option>
+                        }
+                        else
+                        {
+                            <option value="@c.CourseId">@c.Title</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-lumora-secondary text-white rounded-pill px-4 flex-grow-1">Lọc Dữ Liệu</button>
+                <a asp-action="Exercises" class="btn btn-outline-secondary rounded-pill px-3">Đặt Lại</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Exercises Table -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-secondary small">
+                    <tr>
+                        <th class="ps-4">#</th>
+                        <th>Tên Bài Tập</th>
+                        <th>Trực Thuộc Bài Học</th>
+                        <th>Số Câu Hỏi</th>
+                        <th>Thời Gian</th>
+                        <th>Số Bài Nộp</th>
+                        <th class="text-end pe-4">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody class="small">
+                    @if (Model != null && Model.Any())
+                    {
+                        int index = 0;
+                        foreach (var e in Model)
+                        {
+                            index++;
+                            <tr>
+                                <td class="ps-4 text-muted">@index</td>
+                                <td>
+                                    <div class="fw-bold text-dark">@e.Title</div>
+                                    @if (e.HasWriting)
+                                    {
+                                        <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25" style="font-size: 10px;">Có tự luận</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-primary">@(e.Lesson?.Title ?? "Chưa gán bài học")</div>
+                                    <div class="text-muted" style="font-size: 11px;">@(e.Lesson?.Chapter?.Course?.Title ?? "")</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-secondary border">@(e.Questions?.Count ?? 0) câu</span>
+                                </td>
+                                <td><span class="badge bg-light text-secondary border">@e.TimeLimitMinutes phút</span></td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">@(e.Submissions?.Count ?? 0) lượt nộp</span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="d-inline-flex gap-2">
+                                        <a asp-controller="Student" asp-action="Exercise" asp-route-id="@e.ExerciseId" class="btn btn-outline-info btn-sm rounded-pill px-3" title="Xem trước bài tập">
+                                            <i class="bi bi-eye me-1"></i> Xem
+                                        </a>
+                                        <a asp-controller="Teacher" asp-action="EditExercise" asp-route-id="@e.ExerciseId" class="btn btn-outline-primary btn-sm rounded-pill px-3" title="Chỉnh sửa">
+                                            <i class="bi bi-pencil-square me-1"></i> Sửa
+                                        </a>
+                                        <form asp-controller="Teacher" asp-action="DeleteExercise" asp-route-id="@e.ExerciseId" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa bài tập này?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                                                <i class="bi bi-trash me-1"></i> Xóa
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-card-checklist fs-1 d-block mb-2 text-muted"></i>
+                                Không tìm thấy bài tập nào phù hợp với bộ lọc.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+

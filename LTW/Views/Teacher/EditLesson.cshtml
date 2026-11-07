@@ -301,9 +301,9 @@
                 var hasSelected = false;
                 chapters.forEach(function(ch) {
                     var chId = ch.ChapterId || ch.chapterId;
-                    var chTitle = ch.Title || ch.title;
+                    var chTitle = (ch.Title || ch.title || '').trim();
                     var chOrder = ch.OrderIndex || ch.orderIndex;
-                    var chDisplay = ch.DisplayText || ch.displayText || ('Chương ' + chOrder + ': ' + chTitle);
+                    var chDisplay = ch.DisplayText || ch.displayText || (chTitle.startsWith('Chương') ? chTitle : ('Chương ' + chOrder + ': ' + chTitle));
 
                     var opt = document.createElement('option');
                     opt.value = chId;

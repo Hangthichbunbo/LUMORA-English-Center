@@ -515,9 +515,9 @@
                 chapters.forEach(function(ch) {
                     var opt = document.createElement('option');
                     var chId = ch.ChapterId || ch.chapterId;
-                    var chTitle = ch.Title || ch.title;
+                    var chTitle = (ch.Title || ch.title || '').trim();
                     var chOrder = ch.OrderIndex || ch.orderIndex;
-                    var chDisplay = ch.DisplayText || ch.displayText || ('Chương ' + chOrder + ': ' + chTitle);
+                    var chDisplay = ch.DisplayText || ch.displayText || (chTitle.startsWith('Chương') ? chTitle : ('Chương ' + chOrder + ': ' + chTitle));
 
                     opt.value = chId;
                     opt.textContent = chDisplay;
@@ -572,9 +572,9 @@
                 lessons.forEach(function(l) {
                     var opt = document.createElement('option');
                     var lId = l.LessonId || l.lessonId;
-                    var lTitle = l.Title || l.title;
+                    var lTitle = (l.Title || l.title || '').trim();
                     var lOrder = l.OrderIndex || l.orderIndex;
-                    var lDisplay = l.DisplayText || l.displayText || ('Bài ' + lOrder + ': ' + lTitle);
+                    var lDisplay = l.DisplayText || l.displayText || (lTitle.startsWith('Bài') ? lTitle : ('Bài ' + lOrder + ': ' + lTitle));
 
                     opt.value = lId;
                     opt.textContent = lDisplay;

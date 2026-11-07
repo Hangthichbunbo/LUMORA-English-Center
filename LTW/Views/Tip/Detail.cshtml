@@ -50,9 +50,22 @@
     <div class="p-4 bg-light rounded-4 d-flex flex-wrap align-items-center justify-content-between gap-3 mb-5 border">
         <div class="d-flex align-items-center gap-2">
             <span class="fw-bold text-dark small"><i class="bi bi-share-fill me-1"></i> Chia sẻ bài viết:</span>
-            <a href="#" class="btn btn-outline-primary btn-sm rounded-circle"><i class="bi bi-facebook"></i></a>
-            <a href="#" class="btn btn-outline-info btn-sm rounded-circle"><i class="bi bi-twitter-x"></i></a>
-            <a href="#" class="btn btn-outline-danger btn-sm rounded-circle"><i class="bi bi-link-45deg"></i></a>
+            <a href="https://www.facebook.com/sharer/sharer.php?u=@Uri.EscapeDataString(Context.Request.Scheme + "://" + Context.Request.Host + Context.Request.Path)" 
+               target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm rounded-circle" title="Chia sẻ lên Facebook">
+                <i class="bi bi-facebook"></i>
+            </a>
+            <a href="https://twitter.com/intent/tweet?url=@Uri.EscapeDataString(Context.Request.Scheme + "://" + Context.Request.Host + Context.Request.Path)&text=@Uri.EscapeDataString(Model.Title)" 
+               target="_blank" rel="noopener noreferrer" class="btn btn-outline-info btn-sm rounded-circle" title="Chia sẻ lên Twitter / X">
+                <i class="bi bi-twitter-x"></i>
+            </a>
+            <a href="https://www.linkedin.com/sharing/share-offsite/?url=@Uri.EscapeDataString(Context.Request.Scheme + "://" + Context.Request.Host + Context.Request.Path)" 
+               target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm rounded-circle" title="Chia sẻ lên LinkedIn">
+                <i class="bi bi-linkedin"></i>
+            </a>
+            <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle" onclick="copyTipUrl(this)" title="Sao chép đường dẫn bài viết">
+                <i class="bi bi-link-45deg"></i>
+            </button>
+            <span id="copyAlert" class="small text-success d-none"><i class="bi bi-check-circle-fill me-1"></i>Đã sao chép!</span>
         </div>
         <a asp-action="Index" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
             <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách Tips
@@ -89,4 +102,22 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    <script>
+        function copyTipUrl(btn) {
+            navigator.clipboard.writeText(window.location.href).then(function() {
+                var alertEl = document.getElementById('copyAlert');
+                if (alertEl) {
+                    alertEl.classList.remove('d-none');
+                    setTimeout(function() {
+                        alertEl.classList.add('d-none');
+                    }, 3000);
+                }
+            }).catch(function() {
+                alert('Đã xảy ra lỗi khi sao chép liên kết.');
+            });
+        }
+    </script>
+}
 

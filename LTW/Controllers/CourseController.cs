@@ -43,7 +43,12 @@ namespace LTW.Controllers
             if (!string.IsNullOrEmpty(search))
             {
                 var s = search.ToLower().Trim();
-                query = query.Where(c => c.Title.ToLower().Contains(s) || c.Description.ToLower().Contains(s));
+                query = query.Where(c => c.Title.ToLower().Contains(s)
+                    || (c.Description != null && c.Description.ToLower().Contains(s))
+                    || (c.ShortDescription != null && c.ShortDescription.ToLower().Contains(s))
+                    || (c.Category != null && c.Category.ToLower().Contains(s))
+                    || (c.Level != null && c.Level.ToLower().Contains(s))
+                    || (c.Teacher != null && c.Teacher.FullName != null && c.Teacher.FullName.ToLower().Contains(s)));
             }
 
             var courses = await query.OrderByDescending(c => c.IsFeatured).ThenByDescending(c => c.CreatedAt).ToListAsync();
@@ -74,19 +79,21 @@ namespace LTW.Controllers
             }
 
             bool isEnrolled = false;
+            bool isCourseInstructor = false;
             bool isTeacher = false;
+            bool isAdmin = false;
+            int? nextLessonId = null;
+
             if (User.Identity?.IsAuthenticated == true)
             {
                 var user = await _userManager.GetUserAsync(User);
                 if (user != null)
                 {
-                    bool isTeacherRole = await _userManager.IsInRoleAsync(user, "Teacher") || user.RoleName == "Teacher";
-                    bool isAdminRole = await _userManager.IsInRoleAsync(user, "Admin") || user.RoleName == "Admin";
-                    bool isCourseInstructor = course.TeacherId == user.Id;
+                    isTeacher = await _userManager.IsInRoleAsync(user, "Teacher") || user.RoleName == "Teacher";
+                    isAdmin = await _userManager.IsInRoleAsync(user, "Admin") || user.RoleName == "Admin";
+                    isCourseInstructor = !string.IsNullOrEmpty(course.TeacherId) && course.TeacherId == user.Id;
 
-                    isTeacher = isTeacherRole || isAdminRole || isCourseInstructor;
-
-                    if (isTeacher)
+                    if (isAdmin || isCourseInstructor)
                     {
                         isEnrolled = true;
                     }
@@ -94,11 +101,38 @@ namespace LTW.Controllers
                     {
                         isEnrolled = await _context.Enrollments.AnyAsync(e => e.StudentId == user.Id && e.CourseId == id && e.PaymentStatus == "Completed");
                     }
+
+                    if (isEnrolled)
+                    {
+                        var completedLessonIds = await _context.LessonProgresses
+                            .Where(lp => lp.StudentId == user.Id && lp.IsCompleted)
+                            .Select(lp => lp.LessonId)
+                            .ToListAsync();
+
+                        var allLessons = course.Chapters
+                            .OrderBy(ch => ch.OrderIndex)
+                            .SelectMany(ch => ch.Lessons.OrderBy(l => l.OrderIndex))
+                            .ToList();
+
+                        var nextLesson = allLessons.FirstOrDefault(l => !completedLessonIds.Contains(l.LessonId)) ?? allLessons.FirstOrDefault();
+                        nextLessonId = nextLesson?.LessonId;
+                    }
                 }
+            }
+            else
+            {
+                var firstLesson = course.Chapters
+                    .OrderBy(ch => ch.OrderIndex)
+                    .SelectMany(ch => ch.Lessons.OrderBy(l => l.OrderIndex))
+                    .FirstOrDefault();
+                nextLessonId = firstLesson?.LessonId;
             }
 
             ViewBag.IsEnrolled = isEnrolled;
+            ViewBag.IsCourseInstructor = isCourseInstructor;
             ViewBag.IsTeacher = isTeacher;
+            ViewBag.IsAdmin = isAdmin;
+            ViewBag.NextLessonId = nextLessonId;
             return View(course);
         }
 
