@@ -1,0 +1,605 @@
+@model LTW.Models.AdminClassDetailsViewModel
+
+@{
+    ViewData["Title"] = $"Chi Tiết Lớp {Model.LiveClass.ClassName} - Admin LUMORA";
+    var cls = Model.LiveClass;
+    var isClosed = cls.Status == LTW.Models.ClassStatus.Closed;
+}
+
+<div class="container-fluid px-lg-5 py-4">
+    <!-- Breadcrumb & Page Header -->
+    <div class="mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a asp-action="Dashboard" class="text-decoration-none">Admin Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-action="Classes" class="text-decoration-none">Quản Lý Lớp Học</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@cls.ClassName</li>
+            </ol>
+        </nav>
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge @(cls.IsPublic ? "bg-success" : "bg-danger") rounded-pill px-3 py-1">
+                        @(cls.IsPublic ? "Public Live Class" : "Private Course Class")
+                    </span>
+                    <span class="badge @(isClosed ? "bg-secondary" : "bg-primary") rounded-pill px-3 py-1">
+                        @cls.Status
+                    </span>
+                    @if (cls.Course != null)
+                    {
+                        <span class="badge bg-light text-primary border rounded-pill px-3 py-1">
+                            <i class="bi bi-mortarboard me-1"></i> Khóa: @cls.Course.Title
+                        </span>
+                    }
+                </div>
+                <h3 class="fw-bold text-dark m-0">@cls.ClassName</h3>
+                <p class="text-muted small m-0 mt-1">
+                    <i class="bi bi-calendar3 me-1 text-primary"></i>Ngày: <strong>@cls.ScheduledDate.ToString("dd/MM/yyyy")</strong> | 
+                    <i class="bi bi-clock me-1 text-primary"></i>Thời gian: <strong>@cls.StartTime.ToString(@"hh\:mm") - @cls.EndTime.ToString(@"hh\:mm")</strong> |
+                    <i class="bi bi-link-45deg me-1 text-primary"></i>Phòng: <a href="@cls.LiveRoomUrl" target="_blank" class="text-decoration-none">@cls.LiveRoomUrl</a>
+                </p>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a asp-controller="Class" asp-action="Join" asp-route-id="@cls.LiveClassId" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm" style="background-color: #00A896; border-color: #00A896;">
+                    <i class="bi bi-broadcast me-1"></i> Vào Phòng Học
+                </a>
+                <a asp-action="EditClass" asp-route-id="@cls.LiveClassId" class="btn btn-outline-primary rounded-pill px-3">
+                    <i class="bi bi-pencil-square me-1"></i> Chỉnh Sửa
+                </a>
+                <form asp-action="CloseClass" asp-route-id="@cls.LiveClassId" method="post" class="d-inline m-0">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn @(isClosed ? "btn-outline-success" : "btn-outline-warning") rounded-pill px-3">
+                        <i class="bi @(isClosed ? "bi-play-fill" : "bi-lock-fill") me-1"></i> @(isClosed ? "Mở Lại Lớp" : "Đóng Lớp")
+                    </button>
+                </form>
+                <a asp-action="Classes" class="btn btn-outline-secondary rounded-pill px-3">
+                    <i class="bi bi-arrow-left me-1"></i> Danh Sách Lớp
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================================
+         THẺ KPI THỐNG KÊ CHI TIẾT LỚP HỌC
+         ==================================================================== -->
+    <div class="row g-3 mb-4">
+        <!-- KPI 1: Sĩ số & Tỉ lệ lấp đầy -->
+        <div class="col-xl-3 col-sm-6">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-primary">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="text-muted small fw-semibold text-uppercase">Sĩ Số / Sức Chứa</div>
+                    <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-circle">
+                        <i class="bi bi-people-fill fs-5"></i>
+                    </div>
+                </div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <div class="fs-2 fw-bold text-dark">@Model.AttendingStudents.Count</div>
+                    <div class="text-muted">/ @Model.Capacity học viên</div>
+                </div>
+                <div class="progress mt-2" style="height: 6px;">
+                    <div class="progress-bar @(Model.OccupancyRate >= 90 ? "bg-danger" : Model.OccupancyRate >= 50 ? "bg-success" : "bg-primary")" 
+                         role="progressbar" style="width: @Model.OccupancyRate%;" aria-valuenow="@Model.OccupancyRate" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="small text-muted mt-2 d-flex justify-content-between">
+                    <span>Tỉ lệ lấp đầy: <strong>@Model.OccupancyRate%</strong></span>
+                    <span>Còn trống: <strong>@Model.RemainingSeats</strong> chỗ</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI 2: Giảng viên trong phòng -->
+        <div class="col-xl-3 col-sm-6">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-success">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="text-muted small fw-semibold text-uppercase">Đội Ngũ Giảng Viên</div>
+                    <div class="bg-success bg-opacity-10 text-success p-2 rounded-circle">
+                        <i class="bi bi-person-workspace fs-5"></i>
+                    </div>
+                </div>
+                <div class="fs-2 fw-bold text-success">@Model.TeacherCount <span class="fs-6 text-muted fw-normal">thầy/cô</span></div>
+                <div class="small text-muted mt-2">
+                    Host: <strong>@(Model.PrimaryTeacher?.FullName ?? "Chưa gán")</strong>
+                </div>
+                <div class="small text-muted">
+                    Giảng viên dự thính / Trợ giảng: <strong>@(Model.Teachers.Count(t => !t.IsPrimary))</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI 3: Tỉ lệ chuyên cần khóa học -->
+        <div class="col-xl-3 col-sm-6">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-info">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="text-muted small fw-semibold text-uppercase">Chuyên Cần Khóa Học</div>
+                    <div class="bg-info bg-opacity-10 text-info p-2 rounded-circle">
+                        <i class="bi bi-award-fill fs-5"></i>
+                    </div>
+                </div>
+                @if (cls.CourseId != null)
+                {
+                    <div class="fs-2 fw-bold text-info">@Model.CourseAttendanceRate%</div>
+                    <div class="progress mt-2" style="height: 6px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: @Model.CourseAttendanceRate%;"></div>
+                    </div>
+                    <div class="small text-muted mt-2">
+                        Đã vào: <strong>@Model.EnrolledAndAttendedCount</strong> / <strong>@Model.EnrolledCourseCount</strong> học viên khóa học
+                    </div>
+                }
+                else
+                {
+                    <div class="fs-3 fw-bold text-muted">Public Class</div>
+                    <div class="small text-muted mt-2">Lớp học mở công khai toàn hệ thống, không giới hạn khóa học cố định.</div>
+                }
+            </div>
+        </div>
+
+        <!-- KPI 4: Cán bộ giám sát (Admin) -->
+        <div class="col-xl-3 col-sm-6">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-warning">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="text-muted small fw-semibold text-uppercase">Cán Bộ Giám Sát</div>
+                    <div class="bg-warning bg-opacity-10 text-warning p-2 rounded-circle">
+                        <i class="bi bi-shield-check fs-5"></i>
+                    </div>
+                </div>
+                <div class="fs-2 fw-bold text-warning">@Model.AdminCount <span class="fs-6 text-muted fw-normal">Admin</span></div>
+                <div class="small text-muted mt-2">
+                    Tổng thành viên trong phòng: <strong>@Model.TotalParticipants</strong> người
+                </div>
+                <div class="small text-muted">
+                    Trạng thái kết nối: <span class="badge @(isClosed ? "bg-secondary" : "bg-success")">@(isClosed ? "Phòng đóng" : "Đang sẵn sàng")</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================================
+         KHU VỰC BIỂU ĐỒ TRỰC QUAN (CHARTS SECTION)
+         ==================================================================== -->
+    <div class="row g-4 mb-4">
+        <!-- Biểu đồ 1: Tỉ lệ Lấp đầy phòng học -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="fw-bold text-dark m-0"><i class="bi bi-pie-chart-fill me-2 text-primary"></i>Tỉ Lệ Lấp Đầy Phòng</h6>
+                    <span class="badge bg-light text-muted border">Capacity: @Model.Capacity</span>
+                </div>
+                <div style="height: 220px;" class="position-relative">
+                    <canvas id="occupancyChart"></canvas>
+                </div>
+                <div class="mt-3 text-center small text-muted">
+                    Đã có mặt: <strong class="text-primary">@Model.AttendingStudents.Count</strong> | Ghế trống: <strong class="text-secondary">@Model.RemainingSeats</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biểu đồ 2: Cơ cấu người tham gia trong lớp -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="fw-bold text-dark m-0"><i class="bi bi-diagram-3-fill me-2 text-success"></i>Cơ Cấu Thành Viên</h6>
+                    <span class="badge bg-light text-muted border">Tổng: @Model.TotalParticipants</span>
+                </div>
+                <div style="height: 220px;" class="position-relative">
+                    <canvas id="participantsChart"></canvas>
+                </div>
+                <div class="mt-3 text-center small text-muted">
+                    Học viên: <strong class="text-primary">@Model.StudentCount</strong> | Giảng viên: <strong class="text-success">@Model.TeacherCount</strong> | Admin: <strong class="text-warning">@Model.AdminCount</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biểu đồ 3: Phân bổ thời gian điểm danh -->
+        <div class="col-lg-4 col-md-12">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="fw-bold text-dark m-0"><i class="bi bi-bar-chart-fill me-2 text-info"></i>Thời Gian Điểm Danh</h6>
+                    <span class="badge bg-light text-muted border">Xu hướng vào lớp</span>
+                </div>
+                <div style="height: 220px;" class="position-relative">
+                    <canvas id="attendanceTimeChart"></canvas>
+                </div>
+                <div class="mt-3 text-center small text-muted">
+                    Vào sớm: <strong class="text-success">@Model.EarlyAttendanceCount</strong> | Đúng giờ: <strong class="text-primary">@Model.OnTimeAttendanceCount</strong> | Vào muộn: <strong class="text-danger">@Model.LateAttendanceCount</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================================
+         DANH SÁCH CHI TIẾT: TABS HỌC VIÊN, GIẢNG VIÊN, KHÓA HỌC & ADMIN
+         ==================================================================== -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
+        <div class="card-header bg-white border-bottom p-0">
+            <ul class="nav nav-tabs nav-fill border-0" id="classDetailsTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active py-3 fw-bold border-0 border-bottom border-3 border-primary" id="students-tab" data-bs-toggle="tab" data-bs-target="#students-pane" type="button" role="tab" aria-controls="students-pane" aria-selected="true">
+                        <i class="bi bi-people-fill me-2 text-primary"></i>Danh Sách Học Viên (@Model.AttendingStudents.Count)
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link py-3 fw-bold border-0 border-bottom border-3 border-transparent" id="teachers-tab" data-bs-toggle="tab" data-bs-target="#teachers-pane" type="button" role="tab" aria-controls="teachers-pane" aria-selected="false">
+                        <i class="bi bi-person-workspace me-2 text-success"></i>Đội Ngũ Giảng Viên (@Model.Teachers.Count)
+                    </button>
+                </li>
+                @if (cls.CourseId != null)
+                {
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link py-3 fw-bold border-0 border-bottom border-3 border-transparent" id="course-students-tab" data-bs-toggle="tab" data-bs-target="#course-students-pane" type="button" role="tab" aria-controls="course-students-pane" aria-selected="false">
+                            <i class="bi bi-mortarboard-fill me-2 text-info"></i>Học Viên Của Khóa Học (@Model.EnrolledStudents.Count)
+                        </button>
+                    </li>
+                }
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link py-3 fw-bold border-0 border-bottom border-3 border-transparent" id="admins-tab" data-bs-toggle="tab" data-bs-target="#admins-pane" type="button" role="tab" aria-controls="admins-pane" aria-selected="false">
+                        <i class="bi bi-shield-lock-fill me-2 text-warning"></i>Ban Quản Trị (@Model.AdminParticipants.Count)
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card-body p-4">
+            <div class="tab-content" id="classDetailsTabContent">
+                <!-- ==================== TAB 1: DANH SÁCH HỌC VIÊN ==================== -->
+                <div class="tab-pane fade show active" id="students-pane" role="tabpanel" aria-labelledby="students-tab" tabindex="0">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+                        <div>
+                            <h6 class="fw-bold text-dark m-0">Danh Sách Học Viên Đã Vào Lớp / Điểm Danh (@Model.AttendingStudents.Count)</h6>
+                            <p class="text-muted small m-0">Hiển thị thông tin liên hệ và thời gian điểm danh thực tế của học viên</p>
+                        </div>
+                        <div>
+                            <input type="text" id="searchStudentInput" class="form-control form-control-sm rounded-pill px-3" placeholder="Tìm theo tên, email..." style="width: 250px;">
+                        </div>
+                    </div>
+
+                    @if (Model.AttendingStudents.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" id="attendingStudentsTable">
+                                <thead class="bg-light text-secondary small">
+                                    <tr>
+                                        <th class="ps-3">Học Viên</th>
+                                        <th>Email</th>
+                                        <th>Số Điện Thoại</th>
+                                        <th>Thời Gian Điểm Danh</th>
+                                        <th>Trạng Thái Khóa Học</th>
+                                        <th class="text-end pe-3">Thao Tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="small">
+                                    @foreach (var s in Model.AttendingStudents)
+                                    {
+                                        <tr>
+                                            <td class="ps-3">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <img src="@(string.IsNullOrEmpty(s.AvatarUrl) ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" : s.AvatarUrl)" 
+                                                         class="rounded-circle" style="width: 38px; height: 38px; object-fit: cover;" alt="Avatar" />
+                                                    <div>
+                                                        <div class="fw-bold text-dark student-name">@s.FullName</div>
+                                                        <div class="text-muted" style="font-size: 11px;">ID: @s.StudentId.Substring(0, Math.Min(8, s.StudentId.Length))...</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="student-email">@s.Email</td>
+                                            <td>@(string.IsNullOrEmpty(s.PhoneNumber) ? "Chưa cập nhật" : s.PhoneNumber)</td>
+                                            <td>
+                                                <div class="fw-semibold text-dark"><i class="bi bi-clock me-1 text-primary"></i>@s.RegisteredAt.ToString("HH:mm:ss")</div>
+                                                <div class="text-muted" style="font-size: 11px;">@s.RegisteredAt.ToString("dd/MM/yyyy")</div>
+                                            </td>
+                                            <td>
+                                                @if (cls.CourseId != null)
+                                                {
+                                                    if (s.IsEnrolledInCourse)
+                                                    {
+                                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1">
+                                                            <i class="bi bi-check-circle me-1"></i> Đã Mua Khóa Học
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-1">
+                                                            <i class="bi bi-exclamation-circle me-1"></i> Khách Dự Thính
+                                                        </span>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-1">
+                                                        <i class="bi bi-unlock me-1"></i> Lớp Mở Public
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td class="text-end pe-3">
+                                                <form asp-action="RemoveStudentFromClass" method="post" class="d-inline m-0" onsubmit="return confirm('Bạn có chắc muốn xóa học viên \'@s.FullName\' khỏi danh sách điểm danh của lớp này?');">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="liveClassId" value="@cls.LiveClassId" />
+                                                    <input type="hidden" name="studentId" value="@s.StudentId" />
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3" title="Xóa khỏi lớp">
+                                                        <i class="bi bi-person-x me-1"></i> Xóa Khỏi Lớp
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-people display-4 text-muted mb-3 d-block"></i>
+                            <h6 class="fw-bold text-dark">Chưa có học viên nào điểm danh vào lớp</h6>
+                            <p class="text-muted small">Học viên sẽ tự động được ghi nhận điểm danh khi truy cập phòng học trực tuyến.</p>
+                        </div>
+                    }
+                </div>
+
+                <!-- ==================== TAB 2: ĐỘI NGŨ GIẢNG VIÊN ==================== -->
+                <div class="tab-pane fade" id="teachers-pane" role="tabpanel" aria-labelledby="teachers-tab" tabindex="0">
+                    <h6 class="fw-bold text-dark mb-3">Đội Ngũ Giảng Viên Phụ Trách & Dự Thính (@Model.Teachers.Count)</h6>
+                    
+                    <div class="row g-3">
+                        @foreach (var t in Model.Teachers)
+                        {
+                            <div class="col-md-6">
+                                <div class="card border rounded-4 p-3 h-100 @(t.IsPrimary ? "border-primary bg-primary bg-opacity-10" : "bg-white")">
+                                    <div class="d-flex align-items-start gap-3">
+                                        <img src="@(string.IsNullOrEmpty(t.AvatarUrl) ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" : t.AvatarUrl)" 
+                                             class="rounded-circle border border-2 border-white shadow-sm" style="width: 56px; height: 56px; object-fit: cover;" alt="Avatar" />
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <h6 class="fw-bold text-dark m-0">@t.FullName</h6>
+                                                <span class="badge @(t.IsPrimary ? "bg-primary" : "bg-warning text-dark") rounded-pill">
+                                                    @t.RoleBadge
+                                                </span>
+                                            </div>
+                                            <div class="text-muted small mt-1"><i class="bi bi-envelope me-1"></i>@t.Email</div>
+                                            <div class="text-muted small"><i class="bi bi-telephone me-1"></i>@(string.IsNullOrEmpty(t.PhoneNumber) ? "Chưa cập nhật SĐT" : t.PhoneNumber)</div>
+                                            @if (t.JoinedAt.HasValue)
+                                            {
+                                                <div class="text-muted small mt-2" style="font-size: 11px;">
+                                                    <i class="bi bi-calendar-check me-1"></i>Ghi nhận: @t.JoinedAt.Value.ToString("HH:mm - dd/MM/yyyy")
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- ==================== TAB 3: HỌC VIÊN CỦA KHÓA HỌC (NẾU CÓ COURSE) ==================== -->
+                @if (cls.CourseId != null)
+                {
+                    <div class="tab-pane fade" id="course-students-pane" role="tabpanel" aria-labelledby="course-students-tab" tabindex="0">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+                            <div>
+                                <h6 class="fw-bold text-dark m-0">Danh Sách Toàn Bộ Học Viên Đã Mua Khóa Học "@cls.Course?.Title" (@Model.EnrolledStudents.Count)</h6>
+                                <p class="text-muted small m-0">Theo dõi đối soát học viên có mặt vs vắng mặt trong buổi học trực tuyến</p>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <span class="badge bg-success-subtle text-success border border-success-subtle p-2">
+                                    <i class="bi bi-check-circle-fill me-1"></i> Có mặt: @Model.EnrolledAndAttendedCount
+                                </span>
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle p-2">
+                                    <i class="bi bi-x-circle-fill me-1"></i> Vắng mặt: @Model.EnrolledAndAbsentCount
+                                </span>
+                            </div>
+                        </div>
+
+                        @if (Model.EnrolledStudents.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="bg-light text-secondary small">
+                                        <tr>
+                                            <th class="ps-3">Học Viên</th>
+                                            <th>Email</th>
+                                            <th>Số Điện Thoại</th>
+                                            <th>Ngày Mua Khóa</th>
+                                            <th>Tình Trạng Buổi Học</th>
+                                            <th class="text-end pe-3">Hành Động</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="small">
+                                        @foreach (var es in Model.EnrolledStudents)
+                                        {
+                                            <tr>
+                                                <td class="ps-3">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <img src="@(string.IsNullOrEmpty(es.AvatarUrl) ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" : es.AvatarUrl)" 
+                                                             class="rounded-circle" style="width: 34px; height: 34px; object-fit: cover;" alt="Avatar" />
+                                                        <span class="fw-bold text-dark">@es.FullName</span>
+                                                    </div>
+                                                </td>
+                                                <td>@es.Email</td>
+                                                <td>@(string.IsNullOrEmpty(es.PhoneNumber) ? "Chưa cập nhật" : es.PhoneNumber)</td>
+                                                <td>@es.EnrolledAt.ToString("dd/MM/yyyy")</td>
+                                                <td>
+                                                    @if (es.HasAttendedClass)
+                                                    {
+                                                        <span class="badge bg-success rounded-pill px-3 py-1">
+                                                            <i class="bi bi-check-circle me-1"></i> Đã Tham Gia Lớp
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-danger rounded-pill px-3 py-1">
+                                                            <i class="bi bi-x-circle me-1"></i> Vắng Mặt
+                                                        </span>
+                                                    }
+                                                </td>
+                                                <td class="text-end pe-3">
+                                                    @if (!es.HasAttendedClass)
+                                                    {
+                                                        <form asp-action="AddStudentToClass" method="post" class="d-inline m-0">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="liveClassId" value="@cls.LiveClassId" />
+                                                            <input type="hidden" name="studentId" value="@es.StudentId" />
+                                                            <button type="submit" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                                                                <i class="bi bi-person-check me-1"></i> Điểm Danh Hộ
+                                                            </button>
+                                                        </form>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted small"><i class="bi bi-check2-all text-success me-1"></i>Đã có mặt</span>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4 text-muted">
+                                Khóa học này hiện chưa có học viên nào đăng ký thanh toán.
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- ==================== TAB 4: BAN QUẢN TRỊ GIÁM SÁT ==================== -->
+                <div class="tab-pane fade" id="admins-pane" role="tabpanel" aria-labelledby="admins-tab" tabindex="0">
+                    <h6 class="fw-bold text-dark mb-3">Cán Bộ Quản Trị Viên Tham Gia Giám Sát Phòng Học (@Model.AdminParticipants.Count)</h6>
+                    @if (Model.AdminParticipants.Any())
+                    {
+                        <div class="row g-3">
+                            @foreach (var a in Model.AdminParticipants)
+                            {
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center gap-3 p-3 border rounded-4 bg-light">
+                                        <img src="@(string.IsNullOrEmpty(a.AvatarUrl) ? "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80" : a.AvatarUrl)" 
+                                             class="rounded-circle shadow-sm" style="width: 48px; height: 48px; object-fit: cover;" alt="Avatar" />
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <h6 class="fw-bold text-dark m-0">@a.FullName</h6>
+                                                <span class="badge bg-danger rounded-pill">Quản Trị Viên</span>
+                                            </div>
+                                            <div class="text-muted small mt-1">@a.Email</div>
+                                            <div class="text-muted small" style="font-size: 11px;">
+                                                <i class="bi bi-clock-history me-1"></i>Thời gian vào giám sát: @a.JoinedAt.ToString("HH:mm:ss - dd/MM/yyyy")
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted">
+                            Chưa có cán bộ quản trị viên nào truy cập phòng học trực tuyến này.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // 1. Biểu đồ Tỉ lệ lấp đầy phòng học (Doughnut Chart)
+            var ctxOcc = document.getElementById('occupancyChart');
+            if (ctxOcc) {
+                new Chart(ctxOcc, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Đã có mặt', 'Ghế trống'],
+                        datasets: [{
+                            data: [@Model.AttendingStudents.Count, @Model.RemainingSeats],
+                            backgroundColor: ['#00A896', '#e2e8f0'],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+                        }
+                    }
+                });
+            }
+
+            // 2. Biểu đồ Cơ cấu thành viên trong phòng (Pie Chart)
+            var ctxPart = document.getElementById('participantsChart');
+            if (ctxPart) {
+                new Chart(ctxPart, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Học viên', 'Giảng viên', 'Quản trị viên'],
+                        datasets: [{
+                            data: [@Model.StudentCount, @Model.TeacherCount, @Model.AdminCount],
+                            backgroundColor: ['#00A896', '#0A2540', '#f59e0b'],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+                        }
+                    }
+                });
+            }
+
+            // 3. Biểu đồ Phân bổ thời gian điểm danh (Bar Chart)
+            var ctxTime = document.getElementById('attendanceTimeChart');
+            if (ctxTime) {
+                new Chart(ctxTime, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Vào sớm (>5p)', 'Đúng giờ (±15p)', 'Vào muộn (>15p)'],
+                        datasets: [{
+                            label: 'Số lượng học viên',
+                            data: [@Model.EarlyAttendanceCount, @Model.OnTimeAttendanceCount, @Model.LateAttendanceCount],
+                            backgroundColor: ['#10b981', '#00A896', '#ef4444'],
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true, ticks: { precision: 0 } }
+                        },
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            }
+
+            // 4. Lọc tìm kiếm học viên trong bảng
+            var searchInput = document.getElementById('searchStudentInput');
+            var table = document.getElementById('attendingStudentsTable');
+            if (searchInput && table) {
+                searchInput.addEventListener('input', function () {
+                    var query = this.value.toLowerCase().trim();
+                    var rows = table.querySelectorAll('tbody tr');
+                    rows.forEach(function (row) {
+                        var name = row.querySelector('.student-name')?.textContent.toLowerCase() || '';
+                        var email = row.querySelector('.student-email')?.textContent.toLowerCase() || '';
+                        if (name.includes(query) || email.includes(query)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+}
+

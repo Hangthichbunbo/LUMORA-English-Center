@@ -253,7 +253,7 @@ namespace LTW.Controllers
 
         // GET: /Student/Exercise/5
         [HttpGet]
-        public async Task<IActionResult> Exercise(int id)
+        public async Task<IActionResult> Exercise(int id, bool retake = false)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
@@ -270,7 +270,18 @@ namespace LTW.Controllers
             var submission = await _context.ExerciseSubmissions
                 .FirstOrDefaultAsync(s => s.ExerciseId == id && s.StudentId == user.Id);
 
-            ViewBag.Submission = submission;
+            if (retake)
+            {
+                ViewBag.Submission = null;
+                ViewBag.PreviousSubmission = submission;
+                ViewBag.IsRetaking = true;
+            }
+            else
+            {
+                ViewBag.Submission = submission;
+                ViewBag.IsRetaking = false;
+            }
+
             return View(exercise);
         }
 

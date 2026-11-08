@@ -119,6 +119,19 @@
         }
     </div>
 
+    @if (ViewBag.IsRetaking == true)
+    {
+        <div class="alert alert-info d-flex align-items-center justify-content-between rounded-4 p-3 mb-4 shadow-sm border-0 bg-info bg-opacity-10">
+            <div>
+                <i class="bi bi-info-circle-fill me-2 fs-5 text-info"></i>
+                <strong class="text-dark">Bạn đang làm lại bài tập.</strong> Hãy chọn lại đáp án và bấm <em>Nộp Bài Chấm Điểm</em> khi hoàn thành.
+            </div>
+            <a asp-action="Exercise" asp-route-id="@Model.ExerciseId" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                Xem kết quả bài nộp trước
+            </a>
+        </div>
+    }
+
     <!-- Questions Form -->
     <form asp-action="SubmitExercise" method="post">
         @Html.AntiForgeryToken()
@@ -265,9 +278,9 @@
             }
             else
             {
-                <button type="submit" class="btn btn-outline-primary px-4 py-2 rounded-pill fw-semibold">
+                <a asp-action="Exercise" asp-route-id="@Model.ExerciseId" asp-route-retake="true" class="btn btn-outline-primary px-4 py-2 rounded-pill fw-semibold">
                     <i class="bi bi-arrow-repeat me-1"></i> Làm Lại Bài Tập
-                </button>
+                </a>
             }
         </div>
     </form>

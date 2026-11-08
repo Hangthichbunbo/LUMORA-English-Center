@@ -2,13 +2,19 @@
 
 @{
     ViewData["Title"] = "Quản Lý Lớp Học Trực Tuyến - Admin LUMORA";
+    var totalClasses = Model?.Count() ?? 0;
+    var totalStudents = Model?.Sum(c => c.ClassStudents?.Count ?? 0) ?? 0;
+    var publicClasses = Model?.Count(c => c.IsPublic) ?? 0;
+    var privateClasses = totalClasses - publicClasses;
+    var openClasses = Model?.Count(c => c.Status != LTW.Models.ClassStatus.Closed) ?? 0;
+    var closedClasses = totalClasses - openClasses;
 }
 
 <div class="container-fluid px-lg-5 py-4">
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
             <h3 class="fw-bold text-dark m-0"><i class="bi bi-camera-video-fill me-2 text-primary"></i>Quản Lý Các Lớp Live Class</h3>
-            <p class="text-muted small m-0">Tạo mới, mở/đóng lớp, phân công giảng viên và quản lý link phòng học</p>
+            <p class="text-muted small m-0">Tạo mới, mở/đóng lớp, phân công giảng viên, xem danh sách học viên và biểu đồ lớp học</p>
         </div>
         <div>
             <a asp-action="CreateClass" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm" style="background-color: #00A896; border-color: #00A896;">
@@ -37,10 +43,10 @@
         <a asp-action="Schedule" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
             <i class="bi bi-calendar-week-fill me-1"></i> Schedule
         </a>
-        <a asp-controller="Teacher" asp-action="Lessons" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+        <a asp-action="Lessons" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
             <i class="bi bi-book-fill me-1"></i> Lessons
         </a>
-        <a asp-controller="Teacher" asp-action="Exercises" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+        <a asp-action="Exercises" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
             <i class="bi bi-pencil-square me-1"></i> Exercises
         </a>
         <a asp-action="Tests" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
@@ -54,7 +60,107 @@
         </a>
     </div>
 
+    <!-- ====================================================================
+         THỐNG KÊ NHANH & MINI CHARTS TỔNG QUAN CÁC LỚP HỌC
+         ==================================================================== -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-primary">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">Tổng Số Lớp Học</div>
+                        <div class="fs-3 fw-bold text-dark mt-1">@totalClasses</div>
+                        <div class="text-success small"><i class="bi bi-check-circle-fill me-1"></i>@openClasses lớp đang mở</div>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle">
+                        <i class="bi bi-camera-video-fill fs-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-sm-6">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-success">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">Tổng Lượt Học Viên</div>
+                        <div class="fs-3 fw-bold text-success mt-1">@totalStudents</div>
+                        <div class="text-muted small">Đã điểm danh vào phòng</div>
+                    </div>
+                    <div class="bg-success bg-opacity-10 text-success p-3 rounded-circle">
+                        <i class="bi bi-people-fill fs-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-sm-6">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-info">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">Phân Loại Lớp</div>
+                        <div class="fs-5 fw-bold text-dark mt-1">
+                            <span class="text-success">@publicClasses Public</span> / <span class="text-danger">@privateClasses Private</span>
+                        </div>
+                        <div class="text-muted small">Cộng đồng & Khóa học</div>
+                    </div>
+                    <div class="bg-info bg-opacity-10 text-info p-3 rounded-circle">
+                        <i class="bi bi-diagram-3-fill fs-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-sm-6">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-warning">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">Tình Trạng Lớp</div>
+                        <div class="fs-5 fw-bold text-dark mt-1">
+                            <span class="text-primary">@openClasses Hoạt Động</span> / <span class="text-secondary">@closedClasses Đã Đóng</span>
+                        </div>
+                        <div class="text-muted small">Theo lịch & trạng thái</div>
+                    </div>
+                    <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-circle">
+                        <i class="bi bi-pie-chart-fill fs-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mini Charts Collapsible Bar -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="fw-bold text-dark m-0"><i class="bi bi-pie-chart me-2 text-primary"></i>Biểu Đồ Trạng Thái & Phân Loại Lớp</h6>
+                    <span class="badge bg-light text-muted border">Tổng quan</span>
+                </div>
+                <div style="height: 190px;" class="position-relative">
+                    <canvas id="classesTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="fw-bold text-dark m-0"><i class="bi bi-bar-chart-line me-2 text-success"></i>Sĩ Số Top Lớp Học Trực Tuyến</h6>
+                    <span class="badge bg-light text-muted border">Top Lớp</span>
+                </div>
+                <div style="height: 190px;" class="position-relative">
+                    <canvas id="classesCapacityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BẢNG DANH SÁCH LỚP HỌC -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+        <div class="p-3 bg-light border-bottom d-flex align-items-center justify-content-between">
+            <h6 class="fw-bold text-dark m-0"><i class="bi bi-table me-2 text-primary"></i>Danh Sách Lớp Học Trực Tuyến (@totalClasses)</h6>
+            <div class="small text-muted">Nhấn <strong>"Chi Tiết & Biểu Đồ"</strong> để xem đầy đủ danh sách học viên, giảng viên và báo cáo chuyên sâu</div>
+        </div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light text-secondary small">
@@ -65,7 +171,7 @@
                         <th>Lịch Học</th>
                         <th>Phân Loại</th>
                         <th>Trạng Thái</th>
-                        <th>Sĩ Số</th>
+                        <th style="min-width: 140px;">Sĩ Số & Tỉ Lệ</th>
                         <th class="text-end pe-4">Thao Tác</th>
                     </tr>
                 </thead>
@@ -74,15 +180,26 @@
                     {
                         foreach (var c in Model)
                         {
+                            var studentCount = c.ClassStudents?.Count ?? 0;
+                            var cap = c.Capacity > 0 ? c.Capacity : 30;
+                            var percent = Math.Min(100, Math.Round((double)studentCount / cap * 100));
+
                             <tr>
                                 <td class="ps-4">
-                                    <div class="fw-bold text-dark">@c.ClassName</div>
+                                    <div class="fw-bold text-dark">
+                                        <a asp-action="ClassDetails" asp-route-id="@c.LiveClassId" class="text-decoration-none text-dark hover-primary">
+                                            @c.ClassName
+                                        </a>
+                                    </div>
                                     <div class="text-muted" style="font-size: 11px;">Phòng: @c.LiveRoomUrl</div>
                                 </td>
                                 <td>@(c.Course?.Title ?? "Lớp Mở Toàn Hệ Thống")</td>
-                                <td>@(c.Teacher?.FullName ?? "Chưa gán")</td>
                                 <td>
-                                    <div>@c.ScheduledDate.ToString("dd/MM/yyyy")</div>
+                                    <div class="fw-semibold text-dark">@(c.Teacher?.FullName ?? "Chưa gán")</div>
+                                    <div class="text-muted" style="font-size: 11px;">@(c.Teacher?.Email ?? "")</div>
+                                </td>
+                                <td>
+                                    <div><i class="bi bi-calendar3 me-1 text-primary"></i>@c.ScheduledDate.ToString("dd/MM/yyyy")</div>
                                     <div class="text-muted" style="font-size: 11px;">@c.StartTime.ToString(@"hh\:mm") - @c.EndTime.ToString(@"hh\:mm")</div>
                                 </td>
                                 <td>
@@ -95,24 +212,46 @@
                                         @c.Status
                                     </span>
                                 </td>
-                                <td>@(c.ClassStudents?.Count ?? 0) / @c.Capacity</td>
+                                <td>
+                                    <div class="d-flex align-items-center justify-content-between mb-1" style="font-size: 11px;">
+                                        <span class="fw-bold">@studentCount / @c.Capacity</span>
+                                        <span class="text-muted">@percent%</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar @(percent >= 90 ? "bg-danger" : percent >= 50 ? "bg-success" : "bg-primary")" 
+                                             role="progressbar" style="width: @percent%;" aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </td>
                                 <td class="text-end pe-4">
-                                    <div class="d-inline-flex gap-2">
+                                    <div class="d-inline-flex flex-wrap gap-1 justify-content-end">
+                                        <!-- Xem Chi Tiết & Biểu Đồ Học Viên / Giáo Viên -->
+                                        <a asp-action="ClassDetails" asp-route-id="@c.LiveClassId" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm fw-semibold" style="background-color: #00A896; border-color: #00A896;" title="Xem danh sách học viên, giảng viên và biểu đồ chi tiết">
+                                            <i class="bi bi-bar-chart-line-fill me-1"></i> Chi Tiết & Biểu Đồ
+                                        </a>
+
                                         <!-- Edit Class -->
-                                        <a asp-action="EditClass" asp-route-id="@c.LiveClassId" class="btn btn-outline-primary btn-sm rounded-pill px-3" title="Chỉnh sửa">
-                                            <i class="bi bi-pencil-square me-1"></i> Sửa
+                                        <a asp-action="EditClass" asp-route-id="@c.LiveClassId" class="btn btn-outline-primary btn-sm rounded-pill px-2" title="Chỉnh sửa">
+                                            <i class="bi bi-pencil-square"></i> Sửa
                                         </a>
 
                                         <!-- Open/Close class -->
-                                        <form asp-action="CloseClass" asp-route-id="@c.LiveClassId" method="post" class="m-0">
+                                        <form asp-action="CloseClass" asp-route-id="@c.LiveClassId" method="post" class="d-inline m-0">
                                             @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn @(c.Status == LTW.Models.ClassStatus.Closed ? "btn-outline-success" : "btn-outline-warning") btn-sm rounded-pill px-3">
-                                                @(c.Status == LTW.Models.ClassStatus.Closed ? "Mở Lại" : "Đóng Lớp")
+                                            <button type="submit" class="btn @(c.Status == LTW.Models.ClassStatus.Closed ? "btn-outline-success" : "btn-outline-warning") btn-sm rounded-pill px-2">
+                                                @(c.Status == LTW.Models.ClassStatus.Closed ? "Mở Lại" : "Đóng")
                                             </button>
                                         </form>
 
-                                        <a asp-controller="Class" asp-action="Join" asp-route-id="@c.LiveClassId" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                                            <i class="bi bi-broadcast me-1"></i> Vào Phòng
+                                        <!-- Delete class -->
+                                        <form asp-action="DeleteClass" asp-route-id="@c.LiveClassId" method="post" class="d-inline m-0" onsubmit="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn lớp học \'@c.ClassName\'? Dữ liệu điểm danh của học viên sẽ bị xóa.');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-2" title="Xóa lớp">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+
+                                        <a asp-controller="Class" asp-action="Join" asp-route-id="@c.LiveClassId" class="btn btn-outline-secondary btn-sm rounded-pill px-2" title="Vào phòng trực tiếp">
+                                            <i class="bi bi-broadcast"></i>
                                         </a>
                                     </div>
                                 </td>
@@ -131,3 +270,82 @@
     </div>
 </div>
 
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Biểu đồ 1: Donut phân bổ lớp
+            var ctx1 = document.getElementById('classesTypeChart');
+            if (ctx1) {
+                new Chart(ctx1, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Lớp Public', 'Lớp Private', 'Đã Đóng'],
+                        datasets: [{
+                            data: [@publicClasses, @privateClasses, @closedClasses],
+                            backgroundColor: ['#00A896', '#0A2540', '#6c757d'],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: { boxWidth: 12, font: { size: 11 } }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Biểu đồ 2: Top lớp học đông nhất
+            var ctx2 = document.getElementById('classesCapacityChart');
+            if (ctx2) {
+                @{
+                    var topClasses = (Model ?? Enumerable.Empty<LTW.Models.LiveClass>())
+                        .OrderByDescending(c => c.ClassStudents?.Count ?? 0)
+                        .Take(5)
+                        .ToList();
+                    var labelsJson = System.Text.Json.JsonSerializer.Serialize(topClasses.Select(c => c.ClassName.Length > 20 ? c.ClassName.Substring(0, 18) + "..." : c.ClassName));
+                    var studentCountsJson = System.Text.Json.JsonSerializer.Serialize(topClasses.Select(c => c.ClassStudents?.Count ?? 0));
+                    var capacitiesJson = System.Text.Json.JsonSerializer.Serialize(topClasses.Select(c => c.Capacity));
+                }
+
+                new Chart(ctx2, {
+                    type: 'bar',
+                    data: {
+                        labels: @Html.Raw(labelsJson),
+                        datasets: [
+                            {
+                                label: 'Học viên đã vào',
+                                data: @Html.Raw(studentCountsJson),
+                                backgroundColor: '#00A896',
+                                borderRadius: 4
+                            },
+                            {
+                                label: 'Sức chứa tối đa',
+                                data: @Html.Raw(capacitiesJson),
+                                backgroundColor: '#e2e8f0',
+                                borderRadius: 4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true, ticks: { precision: 0 } },
+                            x: { ticks: { font: { size: 10 } } }
+                        },
+                        plugins: {
+                            legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+}

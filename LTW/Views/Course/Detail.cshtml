@@ -2,8 +2,16 @@
 
 @{
     ViewData["Title"] = Model.Title + " - LUMORA English Center";
-    bool isTeacher = ViewBag.IsTeacher == true || User.IsInRole("Teacher") || User.IsInRole("Admin");
+    bool isCourseInstructor = ViewBag.IsCourseInstructor == true;
+    bool isAdmin = ViewBag.IsAdmin == true || User.IsInRole("Admin");
+    bool isTeacher = isCourseInstructor || isAdmin;
     bool isEnrolled = ViewBag.IsEnrolled == true || isTeacher;
+    int? nextLessonId = ViewBag.NextLessonId as int?;
+    if (!nextLessonId.HasValue)
+    {
+        var firstLesson = Model.Chapters?.OrderBy(ch => ch.OrderIndex).SelectMany(ch => ch.Lessons.OrderBy(l => l.OrderIndex)).FirstOrDefault();
+        nextLessonId = firstLesson?.LessonId;
+    }
 }
 
 <!-- Course Hero Banner -->
@@ -85,10 +93,10 @@
                     </div>
 
                     <div class="d-grid gap-2 mb-3">
-                        @if (isTeacher)
+                        @if (isCourseInstructor || isAdmin)
                         {
                             <div class="alert alert-info py-2 small text-center mb-2">
-                                <i class="bi bi-person-badge-fill me-1"></i> Bạn là Giảng Viên phụ trách khóa học này
+                                <i class="bi bi-person-badge-fill me-1"></i> @(isAdmin ? "Bạn đang quản lý khóa học này với quyền Admin" : "Bạn là Giảng Viên phụ trách khóa học này")
                             </div>
                             <a asp-controller="Teacher" asp-action="Lessons" class="btn btn-primary py-3 fw-bold rounded-3 shadow-sm mb-1" style="background-color: #00A896; border-color: #00A896;">
                                 <i class="bi bi-journal-text me-2 fs-5"></i> Quản Lý Bài Học & Lớp Giảng
@@ -99,9 +107,18 @@
                             <div class="alert alert-success py-2 small text-center mb-2">
                                 <i class="bi bi-check-circle-fill me-1"></i> Bạn đã sở hữu khóa học này
                             </div>
-                            <a asp-controller="Student" asp-action="MyCourses" class="btn btn-success py-3 fw-bold rounded-3 shadow-sm">
-                                <i class="bi bi-play-circle-fill me-2 fs-5"></i> Tiếp Tục Vào Học Ngay
-                            </a>
+                            @if (nextLessonId.HasValue)
+                            {
+                                <a asp-controller="Student" asp-action="Lesson" asp-route-id="@nextLessonId.Value" class="btn btn-success py-3 fw-bold rounded-3 shadow-sm">
+                                    <i class="bi bi-play-circle-fill me-2 fs-5"></i> Tiếp Tục Vào Học Ngay
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-controller="Student" asp-action="MyCourses" class="btn btn-success py-3 fw-bold rounded-3 shadow-sm">
+                                    <i class="bi bi-play-circle-fill me-2 fs-5"></i> Tiếp Tục Vào Học Ngay
+                                </a>
+                            }
                         }
                         else
                         {
@@ -151,7 +168,7 @@
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="fw-bold text-dark m-0"><i class="bi bi-diagram-3 me-2 text-primary"></i>Lộ Trình Học Chi Tiết (Curriculum)</h4>
-                    <span class="text-muted small">@Model.Chapters.Count Chương • @Model.TotalLessons Bài học • @Model.TotalExercises Bài tập</span>
+                    <span class="text-muted small">@(Model.Chapters?.Count ?? 0) Chương • @Model.TotalLessons Bài học • @Model.TotalExercises Bài tập</span>
                 </div>
 
                 <div class="accordion curriculum-accordion" id="accordionCurriculum">

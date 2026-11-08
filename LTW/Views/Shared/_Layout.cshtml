@@ -304,6 +304,53 @@
                 </div>
             </div>
 
+            <!-- ====================================================================
+                 BẢN ĐỒ HỆ THỐNG CƠ SỞ LUMORA (INTERACTIVE GOOGLE MAP FOOTER)
+                 ==================================================================== -->
+            <div class="footer-map-section mt-4 pt-4 border-top border-secondary border-opacity-25">
+                <div class="row g-4 align-items-center">
+                    <div class="col-lg-4">
+                        <div class="pe-lg-2">
+                            <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold text-uppercase mb-2" style="font-size: 11px;">
+                                <i class="bi bi-geo-alt-fill me-1"></i> Interactive Campus Map
+                            </span>
+                            <h5 class="text-white fw-bold mb-2">Bản Đồ Hệ Thống Cơ Sở</h5>
+                            <p class="text-white small mb-3" style="line-height: 1.6;">
+                                Trực tiếp trải nghiệm không gian học tập chuẩn quốc tế hoặc liên hệ đặt lịch kiểm tra 4 kỹ năng IELTS miễn phí.
+                            </p>
+                            
+                            <!-- Campus Switcher Tabs -->
+                            <div class="d-flex flex-column gap-2 mb-3">
+                                <button type="button" class="btn btn-sm text-start text-white p-2 rounded-3 border campus-switch-btn active-campus" data-campus="caugiay">
+                                    <div class="fw-bold"><i class="bi bi-pin-map-fill text-warning me-1"></i> Trụ sở chính: Cầu Giấy, Hà Nội</div>
+                                    <div class="text-muted small ps-3">Số 3 Cầu Giấy, Láng Thượng, Đống Đa, Hà Nội</div>
+                                </button>
+                                <button type="button" class="btn btn-sm text-start text-white p-2 rounded-3 border campus-switch-btn" data-campus="landmark">
+                                    <div class="fw-bold"><i class="bi bi-pin-map-fill text-warning me-1"></i> Cơ sở 2: Keangnam Landmark 72</div>
+                                    <div class="text-muted small ps-3">Tầng 5, Landmark 72, Nam Từ Liêm, Hà Nội</div>
+                                </button>
+                                <button type="button" class="btn btn-sm text-start text-white p-2 rounded-3 border campus-switch-btn" data-campus="hcm">
+                                    <div class="fw-bold"><i class="bi bi-pin-map-fill text-warning me-1"></i> Cơ sở 3: Bitexco Financial TP.HCM</div>
+                                    <div class="text-muted small ps-3">Tòa nhà Bitexco, 2 Hải Triều, Quận 1, TP.HCM</div>
+                                </button>
+                            </div>
+
+                            <a id="footerMapExternalLink" href="https://maps.google.com/?q=3+Cau+Giay+Hanoi" target="_blank" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                                <i class="bi bi-box-arrow-up-right me-1"></i> Mở trên Google Maps & Chỉ Đường
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="position-relative rounded-4 overflow-hidden border border-secondary border-opacity-25 shadow-lg" style="height: 290px; background: #0a192f;">
+                            <iframe id="footerGoogleMapIframe"
+                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.096956637841!2d105.80053937587095!3d21.02880748777717!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135ab43ad1a017b%3A0xbcf046cb51a2d659!2zMyBD4bqndSBHaeG6pXksIE5n4buNYyBLaMOhbmgsIMSQ4buRbmcgxJBhLCBIw6AgTuG7mWksIFZp4buHdCBOYW0!5e0!3m2!1svi!2s!4v1700000000000!5m2!1svi!2s"
+                                    width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Bản đồ cơ sở LUMORA English Center">
+                            </iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Dòng bản quyền bắt buộc theo yêu cầu -->
             <div class="footer-bottom-statement">
                 <div class="container text-center">
@@ -314,6 +361,9 @@
             </div>
         </div>
     </footer>
+
+    <!-- jQuery Library -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
 
     <!-- Bootstrap 5 JavaScript Bundle -->
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

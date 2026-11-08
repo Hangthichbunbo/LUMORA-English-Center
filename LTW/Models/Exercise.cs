@@ -27,7 +27,8 @@ namespace LTW.Models
         public int TimeLimitMinutes { get; set; } = 30;
 
         [Display(Name = "Điểm đạt (trên 100)")]
-        public int PassingScore { get; set; } = 70;
+        [Column(TypeName = "decimal(5,2)")]
+        public decimal PassingScore { get; set; } = 70m;
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
@@ -151,6 +152,7 @@ namespace LTW.Models
     }
     public class QuestionInputModel
     {
+        public int QuestionId { get; set; }
         public string Format { get; set; } = "MultipleChoice"; // "MultipleChoice" or "Writing"
         public SkillType Skill { get; set; } = SkillType.Reading;
         public string Content { get; set; } = string.Empty;
@@ -159,6 +161,7 @@ namespace LTW.Models
         public string? OptC { get; set; }
         public string? OptD { get; set; }
         public string? CorrectAnswer { get; set; }
+        public string? WritingAnswer { get; set; }
         public string? Explanation { get; set; }
         public decimal Points { get; set; } = 10;
     }

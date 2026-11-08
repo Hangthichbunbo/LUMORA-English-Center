@@ -54,19 +54,29 @@ namespace LTW.Controllers
                 .Include(c => c.Course)
                 .AsQueryable();
 
+            // Non-admin / non-teacher users do not see closed classes
+            if (!isAdmin && !isTeacher)
+            {
+                query = query.Where(c => c.Status != ClassStatus.Closed);
+            }
+
             if (filter == "Public")
             {
                 query = query.Where(c => c.IsPublic);
             }
             else if (filter == "MyClasses" && user != null)
             {
-                if (isTeacher || isAdmin)
+                if (isAdmin)
                 {
-                    query = query.Where(c => isAdmin || c.TeacherId == user.Id || (c.CourseId != null && enrolledCourseIds.Contains(c.CourseId.Value)));
+                    query = query.Where(c => c.TeacherId == user.Id);
+                }
+                else if (isTeacher)
+                {
+                    query = query.Where(c => c.TeacherId == user.Id || (c.Course != null && c.Course.TeacherId == user.Id));
                 }
                 else
                 {
-                    query = query.Where(c => c.IsPublic || (c.CourseId != null && enrolledCourseIds.Contains(c.CourseId.Value)));
+                    query = query.Where(c => c.CourseId != null && enrolledCourseIds.Contains(c.CourseId.Value));
                 }
             }
 
@@ -74,7 +84,8 @@ namespace LTW.Controllers
 
             ViewBag.CurrentFilter = filter ?? "All";
             ViewBag.EnrolledCourseIds = enrolledCourseIds;
-            ViewBag.IsTeacher = isTeacher || isAdmin;
+            ViewBag.IsTeacher = isTeacher;
+            ViewBag.IsAdmin = isAdmin;
             ViewBag.CurrentUserId = user?.Id;
 
             return View(classes);
@@ -94,37 +105,43 @@ namespace LTW.Controllers
             if (liveClass == null) return NotFound();
 
             bool canJoin = false;
-            bool isTeacherOrAdmin = false;
-
-            if (liveClass.IsPublic)
-            {
-                canJoin = true;
-            }
+            bool isTeacher = false;
+            bool isAdmin = false;
+            bool isHostTeacher = false;
 
             if (User.Identity?.IsAuthenticated == true)
             {
                 var user = await _userManager.GetUserAsync(User);
                 if (user != null)
                 {
-                    bool isTeacher = await _userManager.IsInRoleAsync(user, "Teacher") || user.RoleName == "Teacher";
-                    bool isAdmin = await _userManager.IsInRoleAsync(user, "Admin") || user.RoleName == "Admin";
-                    bool isHostOrCourseTeacher = liveClass.TeacherId == user.Id || (liveClass.Course != null && liveClass.Course.TeacherId == user.Id);
+                    isTeacher = await _userManager.IsInRoleAsync(user, "Teacher") || user.RoleName == "Teacher";
+                    isAdmin = await _userManager.IsInRoleAsync(user, "Admin") || user.RoleName == "Admin";
+                    isHostTeacher = liveClass.TeacherId == user.Id || (liveClass.Course != null && liveClass.Course.TeacherId == user.Id);
 
-                    isTeacherOrAdmin = isTeacher || isAdmin || isHostOrCourseTeacher;
-
-                    if (isTeacherOrAdmin)
+                    if (isAdmin || isHostTeacher)
                     {
                         canJoin = true;
                     }
-                    else if (!liveClass.IsPublic && liveClass.CourseId != null)
+                    else if (liveClass.IsPublic)
                     {
-                        canJoin = await _context.Enrollments.AnyAsync(e => e.StudentId == user.Id && e.CourseId == liveClass.CourseId.Value && e.PaymentStatus == "Completed");
+                        canJoin = (liveClass.Status != ClassStatus.Closed);
+                    }
+                    else if (liveClass.CourseId != null)
+                    {
+                        var isEnrolled = await _context.Enrollments.AnyAsync(e => e.StudentId == user.Id && e.CourseId == liveClass.CourseId.Value && e.PaymentStatus == "Completed");
+                        canJoin = isEnrolled && (liveClass.Status != ClassStatus.Closed);
                     }
                 }
             }
+            else
+            {
+                canJoin = liveClass.IsPublic && (liveClass.Status != ClassStatus.Closed);
+            }
 
             ViewBag.CanJoin = canJoin;
-            ViewBag.IsTeacher = isTeacherOrAdmin;
+            ViewBag.IsTeacher = isTeacher;
+            ViewBag.IsAdmin = isAdmin;
+            ViewBag.IsHostTeacher = isHostTeacher;
             return View(liveClass);
         }
 
@@ -144,11 +161,18 @@ namespace LTW.Controllers
 
             bool isTeacher = await _userManager.IsInRoleAsync(user, "Teacher") || user.RoleName == "Teacher";
             bool isAdmin = await _userManager.IsInRoleAsync(user, "Admin") || user.RoleName == "Admin";
-            bool isHostOrCourseTeacher = liveClass.TeacherId == user.Id || (liveClass.Course != null && liveClass.Course.TeacherId == user.Id);
-            bool hasTeachingPrivilege = isTeacher || isAdmin || isHostOrCourseTeacher;
+            bool isHostTeacher = liveClass.TeacherId == user.Id || (liveClass.Course != null && liveClass.Course.TeacherId == user.Id);
 
-            // Business Rule: Check Private Class vs Public Class enrollment (Teachers/Admins have full access)
-            if (!liveClass.IsPublic && liveClass.CourseId != null && !hasTeachingPrivilege)
+            // Business Rule: Check if class is closed
+            if (liveClass.Status == ClassStatus.Closed && !isAdmin)
+            {
+                TempData["ErrorMessage"] = "Lớp học này đã kết thúc hoặc tạm đóng bởi Quản trị viên.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Business Rule: Check Private Class vs Public Class enrollment
+            // Admin and the host teacher of this class can always enter. Other teachers or students must be enrolled in the course if it's private.
+            if (!liveClass.IsPublic && liveClass.CourseId != null && !isAdmin && !isHostTeacher)
             {
                 var isEnrolled = await _context.Enrollments.AnyAsync(e => e.StudentId == user.Id && e.CourseId == liveClass.CourseId.Value && e.PaymentStatus == "Completed");
                 if (!isEnrolled)
@@ -158,8 +182,8 @@ namespace LTW.Controllers
                 }
             }
 
-            // Register student attendance only for regular students
-            if (!hasTeachingPrivilege)
+            // Register attendance for any participant joining the room (guest teacher, admin observer, student) except the host teacher
+            if (!isHostTeacher)
             {
                 var existingAttendance = await _context.LiveClassStudents
                     .FirstOrDefaultAsync(cs => cs.LiveClassId == id && cs.StudentId == user.Id);
@@ -199,11 +223,15 @@ namespace LTW.Controllers
 
             bool isTeacher = await _userManager.IsInRoleAsync(user, "Teacher") || user.RoleName == "Teacher";
             bool isAdmin = await _userManager.IsInRoleAsync(user, "Admin") || user.RoleName == "Admin";
-            bool isHostOrCourseTeacher = liveClass.TeacherId == user.Id || (liveClass.Course != null && liveClass.Course.TeacherId == user.Id);
-            bool hasTeachingPrivilege = isTeacher || isAdmin || isHostOrCourseTeacher;
+            bool isHostTeacher = liveClass.TeacherId == user.Id || (liveClass.Course != null && liveClass.Course.TeacherId == user.Id);
 
-            // Strict check: Only students are checked for course purchase
-            if (!liveClass.IsPublic && liveClass.CourseId != null && !hasTeachingPrivilege)
+            if (liveClass.Status == ClassStatus.Closed && !isAdmin)
+            {
+                TempData["ErrorMessage"] = "Lớp học này đã kết thúc hoặc tạm đóng bởi Quản trị viên.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (!liveClass.IsPublic && liveClass.CourseId != null && !isAdmin && !isHostTeacher)
             {
                 var isEnrolled = await _context.Enrollments.AnyAsync(e => e.StudentId == user.Id && e.CourseId == liveClass.CourseId.Value && e.PaymentStatus == "Completed");
                 if (!isEnrolled)
@@ -213,7 +241,10 @@ namespace LTW.Controllers
                 }
             }
 
-            ViewBag.IsCurrentTeacher = hasTeachingPrivilege;
+            ViewBag.CurrentUser = user;
+            ViewBag.IsHostTeacher = isHostTeacher;
+            ViewBag.IsTeacher = isTeacher;
+            ViewBag.IsAdmin = isAdmin;
             return View(liveClass);
         }
     }

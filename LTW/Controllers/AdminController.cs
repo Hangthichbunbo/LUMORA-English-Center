@@ -191,6 +191,11 @@ namespace LTW.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateCourse(Course course)
         {
+            ModelState.Remove("Teacher");
+            ModelState.Remove("Chapters");
+            ModelState.Remove("LiveClasses");
+            ModelState.Remove("Enrollments");
+
             if (ModelState.IsValid)
             {
                 course.CreatedAt = DateTime.Now;
@@ -265,12 +270,18 @@ namespace LTW.Controllers
         {
             if (id != course.CourseId) return NotFound();
 
+            ModelState.Remove("Teacher");
+            ModelState.Remove("Chapters");
+            ModelState.Remove("LiveClasses");
+            ModelState.Remove("Enrollments");
+
             if (ModelState.IsValid)
             {
                 var existing = await _context.Courses.FindAsync(id);
                 if (existing == null) return NotFound();
 
                 existing.Title = course.Title;
+                existing.ShortDescription = course.ShortDescription;
                 existing.Description = course.Description;
                 existing.Thumbnail = course.Thumbnail;
                 existing.Price = course.Price;
@@ -300,21 +311,220 @@ namespace LTW.Controllers
                 .Include(c => c.Teacher)
                 .Include(c => c.Course)
                 .Include(c => c.ClassStudents)
+                    .ThenInclude(cs => cs.Student)
                 .OrderByDescending(c => c.ScheduledDate)
                 .ToListAsync();
 
             return View(classes);
         }
 
+        // GET: /Admin/ClassDetails/5
+        [HttpGet]
+        public async Task<IActionResult> ClassDetails(int id)
+        {
+            var liveClass = await _context.LiveClasses
+                .Include(c => c.Teacher)
+                .Include(c => c.Course)
+                .Include(c => c.ClassStudents)
+                    .ThenInclude(cs => cs.Student)
+                .FirstOrDefaultAsync(c => c.LiveClassId == id);
+
+            if (liveClass == null) return NotFound();
+
+            var viewModel = new AdminClassDetailsViewModel
+            {
+                LiveClass = liveClass,
+                PrimaryTeacher = liveClass.Teacher
+            };
+
+            // 1. Thêm giáo viên chính vào danh sách giảng viên
+            if (liveClass.Teacher != null)
+            {
+                viewModel.Teachers.Add(new ClassTeacherInfo
+                {
+                    TeacherId = liveClass.Teacher.Id,
+                    FullName = liveClass.Teacher.FullName,
+                    Email = liveClass.Teacher.Email ?? "",
+                    PhoneNumber = liveClass.Teacher.PhoneNumber,
+                    AvatarUrl = liveClass.Teacher.AvatarUrl,
+                    IsPrimary = true,
+                    RoleBadge = "Host / Giảng viên chính",
+                    JoinedAt = liveClass.ScheduledDate
+                });
+            }
+
+            // 2. Phân loại người tham gia trong ClassStudents
+            var attendingStudentIds = new HashSet<string>();
+
+            if (liveClass.ClassStudents != null)
+            {
+                var classStartTime = liveClass.ScheduledDate.Date.Add(liveClass.StartTime);
+
+                foreach (var cs in liveClass.ClassStudents)
+                {
+                    var user = cs.Student;
+                    if (user == null) continue;
+
+                    // Kiểm tra vai trò
+                    if (user.RoleName == "Admin")
+                    {
+                        viewModel.AdminParticipants.Add(new ClassAdminInfo
+                        {
+                            AdminId = user.Id,
+                            FullName = user.FullName,
+                            Email = user.Email ?? "",
+                            AvatarUrl = user.AvatarUrl,
+                            JoinedAt = cs.RegisteredAt
+                        });
+                    }
+                    else if (user.RoleName == "Teacher" || user.Id == liveClass.TeacherId)
+                    {
+                        if (!viewModel.Teachers.Any(t => t.TeacherId == user.Id))
+                        {
+                            viewModel.Teachers.Add(new ClassTeacherInfo
+                            {
+                                TeacherId = user.Id,
+                                FullName = user.FullName,
+                                Email = user.Email ?? "",
+                                PhoneNumber = user.PhoneNumber,
+                                AvatarUrl = user.AvatarUrl,
+                                IsPrimary = false,
+                                RoleBadge = "GV Dự thính / Trợ giảng",
+                                JoinedAt = cs.RegisteredAt
+                            });
+                        }
+                    }
+                    else
+                    {
+                        attendingStudentIds.Add(user.Id);
+                        viewModel.AttendingStudents.Add(new ClassStudentInfo
+                        {
+                            AttendanceId = cs.Id,
+                            StudentId = user.Id,
+                            FullName = user.FullName,
+                            Email = user.Email ?? "",
+                            PhoneNumber = user.PhoneNumber,
+                            AvatarUrl = user.AvatarUrl,
+                            RegisteredAt = cs.RegisteredAt,
+                            StatusLabel = "Đã có mặt"
+                        });
+
+                        // Phân bổ thời gian điểm danh so với mốc bắt đầu lớp
+                        if (cs.RegisteredAt < classStartTime.AddMinutes(-5))
+                        {
+                            viewModel.EarlyAttendanceCount++;
+                        }
+                        else if (cs.RegisteredAt <= classStartTime.AddMinutes(15))
+                        {
+                            viewModel.OnTimeAttendanceCount++;
+                        }
+                        else
+                        {
+                            viewModel.LateAttendanceCount++;
+                        }
+                    }
+                }
+            }
+
+            // Nếu tất cả vào đúng giờ hoặc chưa set mốc, đảm bảo có số liệu hiển thị biểu đồ
+            if (viewModel.EarlyAttendanceCount == 0 && viewModel.OnTimeAttendanceCount == 0 && viewModel.LateAttendanceCount == 0 && viewModel.AttendingStudents.Count > 0)
+            {
+                viewModel.OnTimeAttendanceCount = viewModel.AttendingStudents.Count;
+            }
+
+            // 3. Nếu lớp thuộc khóa học, nạp danh sách toàn bộ học viên đã mua khóa học
+            if (liveClass.CourseId != null)
+            {
+                var enrollments = await _context.Enrollments
+                    .Include(e => e.Student)
+                    .Where(e => e.CourseId == liveClass.CourseId.Value && e.PaymentStatus == "Completed")
+                    .OrderByDescending(e => e.EnrolledAt)
+                    .ToListAsync();
+
+                foreach (var enrollment in enrollments)
+                {
+                    if (enrollment.Student == null) continue;
+
+                    bool attended = attendingStudentIds.Contains(enrollment.StudentId);
+                    viewModel.EnrolledStudents.Add(new CourseEnrolledStudentInfo
+                    {
+                        StudentId = enrollment.StudentId,
+                        FullName = enrollment.Student.FullName,
+                        Email = enrollment.Student.Email ?? "",
+                        PhoneNumber = enrollment.Student.PhoneNumber,
+                        AvatarUrl = enrollment.Student.AvatarUrl,
+                        EnrolledAt = enrollment.EnrolledAt,
+                        HasAttendedClass = attended
+                    });
+
+                    // Đánh dấu học viên đang tham gia là đã mua khóa học
+                    var matchedAttending = viewModel.AttendingStudents.FirstOrDefault(s => s.StudentId == enrollment.StudentId);
+                    if (matchedAttending != null)
+                    {
+                        matchedAttending.IsEnrolledInCourse = true;
+                    }
+                }
+            }
+
+            return View(viewModel);
+        }
+
+        // POST: /Admin/RemoveStudentFromClass
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveStudentFromClass(int liveClassId, string studentId)
+        {
+            var attendance = await _context.LiveClassStudents
+                .FirstOrDefaultAsync(cs => cs.LiveClassId == liveClassId && cs.StudentId == studentId);
+
+            if (attendance != null)
+            {
+                _context.LiveClassStudents.Remove(attendance);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Đã xóa học viên khỏi danh sách lớp học thành công.";
+            }
+
+            return RedirectToAction(nameof(ClassDetails), new { id = liveClassId });
+        }
+
+        // POST: /Admin/AddStudentToClass
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddStudentToClass(int liveClassId, string studentId)
+        {
+            var exists = await _context.LiveClassStudents
+                .AnyAsync(cs => cs.LiveClassId == liveClassId && cs.StudentId == studentId);
+
+            if (!exists)
+            {
+                var attendance = new LiveClassStudent
+                {
+                    LiveClassId = liveClassId,
+                    StudentId = studentId,
+                    RegisteredAt = DateTime.Now
+                };
+                _context.LiveClassStudents.Add(attendance);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Đã thêm và điểm danh học viên vào lớp học thành công.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Học viên này đã có tên trong danh sách lớp học.";
+            }
+
+            return RedirectToAction(nameof(ClassDetails), new { id = liveClassId });
+        }
+
         // GET: /Admin/CreateClass
         [HttpGet]
-        public async Task<IActionResult> CreateClass()
+        public async Task<IActionResult> CreateClass(string? from = null)
         {
             var teachers = await _userManager.GetUsersInRoleAsync("Teacher");
             var courses = await _context.Courses.ToListAsync();
 
             ViewBag.Teachers = new SelectList(teachers, "Id", "FullName");
             ViewBag.Courses = new SelectList(courses, "CourseId", "Title");
+            ViewBag.From = from;
 
             return View(new LiveClass 
             { 
@@ -328,13 +538,21 @@ namespace LTW.Controllers
         // POST: /Admin/CreateClass
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateClass(LiveClass liveClass)
+        public async Task<IActionResult> CreateClass(LiveClass liveClass, string? from = null)
         {
+            ModelState.Remove("Teacher");
+            ModelState.Remove("Course");
+            ModelState.Remove("ClassStudents");
+
             if (ModelState.IsValid)
             {
                 _context.LiveClasses.Add(liveClass);
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = $"Tạo lớp học trực tuyến '{liveClass.ClassName}' thành công!";
+                if (from == "schedule")
+                {
+                    return RedirectToAction(nameof(Schedule));
+                }
                 return RedirectToAction(nameof(Classes));
             }
 
@@ -342,6 +560,7 @@ namespace LTW.Controllers
             var courses = await _context.Courses.ToListAsync();
             ViewBag.Teachers = new SelectList(teachers, "Id", "FullName");
             ViewBag.Courses = new SelectList(courses, "CourseId", "Title");
+            ViewBag.From = from;
             return View(liveClass);
         }
 
@@ -356,6 +575,29 @@ namespace LTW.Controllers
                 cls.Status = cls.Status == ClassStatus.Closed ? ClassStatus.Open : ClassStatus.Closed;
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = $"Đã cập nhật trạng thái lớp '{cls.ClassName}'.";
+            }
+            return RedirectToAction(nameof(Classes));
+        }
+
+        // POST: /Admin/DeleteClass/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteClass(int id)
+        {
+            var cls = await _context.LiveClasses
+                .Include(c => c.ClassStudents)
+                .FirstOrDefaultAsync(c => c.LiveClassId == id);
+
+            if (cls != null)
+            {
+                var className = cls.ClassName;
+                if (cls.ClassStudents != null && cls.ClassStudents.Any())
+                {
+                    _context.LiveClassStudents.RemoveRange(cls.ClassStudents);
+                }
+                _context.LiveClasses.Remove(cls);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Đã xóa lớp học trực tuyến '{className}' thành công.";
             }
             return RedirectToAction(nameof(Classes));
         }
@@ -590,6 +832,80 @@ namespace LTW.Controllers
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = $"Đã phát sóng thông báo đến {targetUsers.Count} người dùng thành công!";
             return RedirectToAction(nameof(Notifications));
+        }
+
+        // GET: /Admin/Lessons
+        [HttpGet]
+        public async Task<IActionResult> Lessons(int? courseId, string? search)
+        {
+            var courses = await _context.Courses.OrderBy(c => c.Title).ToListAsync();
+            ViewBag.Courses = courses;
+            ViewBag.SelectedCourseId = courseId;
+            ViewBag.Search = search ?? "";
+
+            var query = _context.Lessons
+                .Include(l => l.Chapter)
+                    .ThenInclude(ch => ch!.Course)
+                        .ThenInclude(c => c!.Teacher)
+                .Include(l => l.Exercises)
+                .AsQueryable();
+
+            if (courseId.HasValue && courseId.Value > 0)
+            {
+                query = query.Where(l => l.Chapter!.CourseId == courseId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim().ToLower();
+                query = query.Where(l => l.Title.ToLower().Contains(s) || (l.Chapter != null && l.Chapter.Title.ToLower().Contains(s)));
+            }
+
+            var lessons = await query
+                .OrderBy(l => l.Chapter!.Course!.Title)
+                .ThenBy(l => l.Chapter!.OrderIndex)
+                .ThenBy(l => l.OrderIndex)
+                .ToListAsync();
+
+            return View(lessons);
+        }
+
+        // GET: /Admin/Exercises
+        [HttpGet]
+        public async Task<IActionResult> Exercises(int? courseId, string? search)
+        {
+            var courses = await _context.Courses.OrderBy(c => c.Title).ToListAsync();
+            ViewBag.Courses = courses;
+            ViewBag.SelectedCourseId = courseId;
+            ViewBag.Search = search ?? "";
+
+            var query = _context.Exercises
+                .Include(e => e.Questions)
+                .Include(e => e.Submissions)
+                .Include(e => e.Lesson)
+                    .ThenInclude(l => l!.Chapter)
+                        .ThenInclude(ch => ch!.Course)
+                            .ThenInclude(c => c!.Teacher)
+                .AsQueryable();
+
+            if (courseId.HasValue && courseId.Value > 0)
+            {
+                query = query.Where(e => e.Lesson!.Chapter!.CourseId == courseId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim().ToLower();
+                query = query.Where(e => e.Title.ToLower().Contains(s) || (e.Lesson != null && e.Lesson.Title.ToLower().Contains(s)));
+            }
+
+            var exercises = await query
+                .OrderBy(e => e.Lesson!.Chapter!.Course!.Title)
+                .ThenBy(e => e.Lesson!.OrderIndex)
+                .ThenByDescending(e => e.CreatedAt)
+                .ToListAsync();
+
+            return View(exercises);
         }
     }
 }

@@ -123,7 +123,7 @@
                 </div>
             </div>
 
-            <h6 class="fw-bold text-secondary text-uppercase small mb-3">Nội Dung Đa Phương Tiện (Multimedia)</h6>
+            <h6 class="fw-bold text-secondary text-uppercase small mb-3 text--black">Nội Dung Đa Phương Tiện (Multimedia)</h6>
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
                     <label asp-for="VideoUrl" class="form-label small fw-semibold text-secondary">Đường dẫn Video bài giảng (YouTube Embed URL)</label>
@@ -139,7 +139,7 @@
                 </div>
             </div>
 
-            <h6 class="fw-bold text-secondary text-uppercase small mb-3">Nội Dung Bài Học & Học Thuật</h6>
+            <h6 class="fw-bold text-secondary text-uppercase small mb-3 text--black">Nội Dung Bài Học & Học Thuật</h6>
             <div class="mb-3">
                 <label asp-for="Content" class="form-label small fw-semibold text-secondary">Nội dung lý thuyết & hướng dẫn (HTML hỗ trợ)</label>
                 <textarea asp-for="Content" class="form-control font-monospace" rows="6" placeholder="<p>Nội dung chi tiết của bài học...</p>"></textarea>
@@ -282,7 +282,10 @@
                 chapters.forEach(function(ch) {
                     var opt = document.createElement('option');
                     opt.value = ch.ChapterId;
-                    opt.textContent = ch.DisplayText || ('Chương ' + ch.OrderIndex + ': ' + ch.Title);
+                    var chTitle = (ch.Title || ch.title || '').trim();
+                    var chOrder = ch.OrderIndex || ch.orderIndex;
+                    var chDisplay = ch.DisplayText || ch.displayText || (chTitle.startsWith('Chương') ? chTitle : ('Chương ' + chOrder + ': ' + chTitle));
+                    opt.textContent = chDisplay;
                     if (preselectChapterId && String(ch.ChapterId) === String(preselectChapterId)) {
                         opt.selected = true;
                     }
@@ -332,6 +335,19 @@
                         newChapterTitle.focus();
                         return;
                     }
+
+                    var courseObj = coursesData.find(function(c) { return String(c.CourseId) === String(courseId); });
+                    var existingChapters = courseObj ? (courseObj.Chapters || []) : [];
+                    var orderVal = parseInt(order);
+                    if (orderVal > 0) {
+                        var duplicate = existingChapters.find(function(ch) { return (ch.OrderIndex || ch.orderIndex) === orderVal; });
+                        if (duplicate) {
+                            newChapterTitleError.textContent = 'Thứ tự chương #' + orderVal + ' đã tồn tại trong khóa học này. Vui lòng chọn thứ tự khác.';
+                            newChapterOrder.focus();
+                            return;
+                        }
+                    }
+
                     newChapterTitleError.textContent = '';
 
                     btnQuickSaveChapter.disabled = true;
@@ -399,6 +415,20 @@
                             newChapterTitle.focus();
                             return false;
                         }
+
+                        var courseObj2 = coursesData.find(function(c) { return String(c.CourseId) === String(courseSelect.value); });
+                        var existingChapters2 = courseObj2 ? (courseObj2.Chapters || []) : [];
+                        var orderVal2 = parseInt(newChapterOrder.value);
+                        if (orderVal2 > 0) {
+                            var duplicate2 = existingChapters2.find(function(ch) { return (ch.OrderIndex || ch.orderIndex) === orderVal2; });
+                            if (duplicate2) {
+                                e.preventDefault();
+                                newChapterTitleError.textContent = 'Thứ tự chương #' + orderVal2 + ' đã tồn tại trong khóa học này. Vui lòng chọn thứ tự khác.';
+                                newChapterOrder.focus();
+                                return false;
+                            }
+                        }
+
                         chapterSelect.disabled = true;
                     } else {
                         if (!chapterSelect.value || chapterSelect.value === '__NEW_CHAPTER__') {

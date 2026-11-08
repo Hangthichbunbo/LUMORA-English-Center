@@ -36,7 +36,15 @@
 
         <form asp-action="CreateExercise" method="post" id="createExerciseForm">
             @Html.AntiForgeryToken()
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger small mb-3"></div>
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm mb-3 d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill fs-5 me-2 text-danger"></i>
+                    <div><strong>Lỗi:</strong> @TempData["ErrorMessage"]</div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            <div asp-validation-summary="All" class="alert alert-danger small mb-3 @(ViewData.ModelState.IsValid ? "d-none" : "")"></div>
 
             <!-- Thông tin tổng quan bài tập -->
             <div class="row g-3 mb-4">
@@ -98,7 +106,7 @@
                 </div>
                 <div class="col-md-6">
                     <label asp-for="PassingScore" class="form-label small fw-semibold text-secondary"></label>
-                    <input asp-for="PassingScore" class="form-control" type="number" min="0" max="100" value="70" />
+                    <input asp-for="PassingScore" class="form-control" type="number" step="any" min="0" max="100" value="70" />
                 </div>
                 <div class="col-12">
                     <label asp-for="Description" class="form-label small fw-semibold text-secondary"></label>
@@ -146,7 +154,7 @@
                             </div>
                             <div class="d-flex align-items-center gap-1 ms-1">
                                 <label class="small fw-semibold text-secondary me-1">Điểm:</label>
-                                <input type="number" step="0.5" min="0.5" max="100" class="form-control form-control-sm text-center q-points-input" style="width: 65px;" name="questions[0].Points" value="10" />
+                                <input type="number" step="any" min="0" max="100" class="form-control form-control-sm text-center q-points-input" style="width: 70px;" name="questions[0].Points" value="10" />
                             </div>
                         </div>
                         <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1 btn-remove-q" onclick="removeQuestion(this)" title="Xóa câu hỏi">
@@ -359,7 +367,7 @@
                         </div>
                         <div class="d-flex align-items-center gap-1 ms-1">
                             <label class="small fw-semibold text-secondary me-1">Điểm:</label>
-                            <input type="number" step="0.5" min="0.5" max="100" class="form-control form-control-sm text-center q-points-input" style="width: 65px;" name="questions[${newIndex}].Points" value="10" />
+                            <input type="number" step="any" min="0" max="100" class="form-control form-control-sm text-center q-points-input" style="width: 70px;" name="questions[${newIndex}].Points" value="10" />
                         </div>
                     </div>
                     <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1 btn-remove-q" onclick="removeQuestion(this)" title="Xóa câu hỏi">
@@ -483,8 +491,11 @@
                     return;
                 }
 
-                var course = hierarchyData.find(function(c) { return String(c.CourseId) === String(courseId); });
-                var chapters = course ? course.Chapters : [];
+                var course = hierarchyData.find(function(c) {
+                    var cid = c.CourseId || c.courseId;
+                    return String(cid) === String(courseId);
+                });
+                var chapters = course ? (course.Chapters || course.chapters || []) : [];
 
                 if (!chapters || chapters.length === 0) {
                     chapterSelect.disabled = true;
@@ -503,9 +514,14 @@
 
                 chapters.forEach(function(ch) {
                     var opt = document.createElement('option');
-                    opt.value = ch.ChapterId;
-                    opt.textContent = ch.DisplayText || ('Chương ' + ch.OrderIndex + ': ' + ch.Title);
-                    if (targetChapterId && String(ch.ChapterId) === String(targetChapterId)) {
+                    var chId = ch.ChapterId || ch.chapterId;
+                    var chTitle = (ch.Title || ch.title || '').trim();
+                    var chOrder = ch.OrderIndex || ch.orderIndex;
+                    var chDisplay = ch.DisplayText || ch.displayText || (chTitle.startsWith('Chương') ? chTitle : ('Chương ' + chOrder + ': ' + chTitle));
+
+                    opt.value = chId;
+                    opt.textContent = chDisplay;
+                    if (targetChapterId && String(chId) === String(targetChapterId)) {
                         opt.selected = true;
                     }
                     chapterSelect.appendChild(opt);
@@ -528,9 +544,15 @@
                     return;
                 }
 
-                var course = hierarchyData.find(function(c) { return String(c.CourseId) === String(courseId); });
-                var chapter = course && course.Chapters ? course.Chapters.find(function(ch) { return String(ch.ChapterId) === String(chapterId); }) : null;
-                var lessons = chapter ? chapter.Lessons : [];
+                var course = hierarchyData.find(function(c) {
+                    var cid = c.CourseId || c.courseId;
+                    return String(cid) === String(courseId);
+                });
+                var chapter = course && (course.Chapters || course.chapters) ? (course.Chapters || course.chapters).find(function(ch) {
+                    var chId = ch.ChapterId || ch.chapterId;
+                    return String(chId) === String(chapterId);
+                }) : null;
+                var lessons = chapter ? (chapter.Lessons || chapter.lessons || []) : [];
 
                 if (!lessons || lessons.length === 0) {
                     lessonSelect.disabled = true;
@@ -549,9 +571,14 @@
 
                 lessons.forEach(function(l) {
                     var opt = document.createElement('option');
-                    opt.value = l.LessonId;
-                    opt.textContent = l.DisplayText || ('Bài ' + l.OrderIndex + ': ' + l.Title);
-                    if (targetLessonId && String(l.LessonId) === String(targetLessonId)) {
+                    var lId = l.LessonId || l.lessonId;
+                    var lTitle = (l.Title || l.title || '').trim();
+                    var lOrder = l.OrderIndex || l.orderIndex;
+                    var lDisplay = l.DisplayText || l.displayText || (lTitle.startsWith('Bài') ? lTitle : ('Bài ' + lOrder + ': ' + lTitle));
+
+                    opt.value = lId;
+                    opt.textContent = lDisplay;
+                    if (targetLessonId && String(lId) === String(targetLessonId)) {
                         opt.selected = true;
                     }
                     lessonSelect.appendChild(opt);
@@ -574,12 +601,17 @@
             if (selectedLessonId && !selectedCourseId) {
                 for (var i = 0; i < hierarchyData.length; i++) {
                     var c = hierarchyData[i];
-                    for (var j = 0; j < (c.Chapters || []).length; j++) {
-                        var ch = c.Chapters[j];
-                        var found = (ch.Lessons || []).some(function (l) { return String(l.LessonId) === String(selectedLessonId); });
+                    var chList = c.Chapters || c.chapters || [];
+                    for (var j = 0; j < chList.length; j++) {
+                        var ch = chList[j];
+                        var lList = ch.Lessons || ch.lessons || [];
+                        var found = lList.some(function (l) {
+                            var lId = l.LessonId || l.lessonId;
+                            return String(lId) === String(selectedLessonId);
+                        });
                         if (found) {
-                            selectedCourseId = c.CourseId;
-                            selectedChapterId = ch.ChapterId;
+                            selectedCourseId = c.CourseId || c.courseId;
+                            selectedChapterId = ch.ChapterId || ch.chapterId;
                             break;
                         }
                     }
@@ -605,50 +637,70 @@
                         return false;
                     }
 
+                    // Always ensure lessonSelect is enabled so browser includes it in POST payload
+                    lessonSelect.disabled = false;
+
                     var cards = document.querySelectorAll('#questionsContainer .exercise-q-card');
-                    cards.forEach(function (card, index) {
+                    if (cards.length > 1) {
+                        cards.forEach(function (card) {
+                            var contentInput = card.querySelector('.q-content-input');
+                            if (contentInput && !contentInput.value.trim()) {
+                                card.remove();
+                            }
+                        });
+                        reindexQuestions();
+                    }
+
+                    cards = document.querySelectorAll('#questionsContainer .exercise-q-card');
+                    cards.forEach(function (card) {
                         var formatSelect = card.querySelector('.q-format-select');
                         var isWriting = formatSelect && formatSelect.value === 'Writing';
+                        var correctMc = card.querySelector('.q-correct-mc');
+                        var writingRubric = card.querySelector('.q-writing-rubric');
+                        var rubricVal = writingRubric ? writingRubric.value.trim() : '';
 
                         if (isWriting) {
-                            var writingRubric = card.querySelector('.q-writing-rubric');
-                            var rubricVal = writingRubric ? writingRubric.value.trim() : '';
-                            // Make sure CorrectAnswer receives writing rubric
-                            var correctMc = card.querySelector('.q-correct-mc');
                             if (correctMc) {
-                                correctMc.value = rubricVal || 'Tự luận - Giảng viên chấm điểm theo rubric';
+                                correctMc.disabled = false;
+                                var val = rubricVal ? rubricVal : 'Tự luận - Giảng viên chấm điểm theo rubric';
+                                var opt = correctMc.querySelector('option[value="' + CSS.escape(val) + '"]');
+                                if (!opt) {
+                                    opt = document.createElement('option');
+                                    opt.value = val;
+                                    opt.textContent = val;
+                                    correctMc.appendChild(opt);
+                                }
+                                correctMc.value = val;
                             }
                         } else {
-                            var correctMc = card.querySelector('.q-correct-mc');
-                            var choice = correctMc ? correctMc.value : 'A';
-                            var optInput = card.querySelector('.q-opt-' + choice.toLowerCase());
-                            var optVal = optInput ? optInput.value.trim() : '';
-                            if (optVal && correctMc) {
-                                correctMc.value = choice + '. ' + optVal;
-                            }
+                            if (correctMc) correctMc.disabled = false;
                         }
                     });
 
-                    // Populate legacy fallback fields from question 0 if available
-                    if (cards.length > 0) {
-                        var firstCard = cards[0];
-                        var firstContent = firstCard.querySelector('.q-content-input');
-                        var firstOptA = firstCard.querySelector('.q-opt-a');
-                        var firstOptB = firstCard.querySelector('.q-opt-b');
-                        var firstOptC = firstCard.querySelector('.q-opt-c');
-                        var firstOptD = firstCard.querySelector('.q-opt-d');
-                        var firstCorrect = firstCard.querySelector('.q-correct-mc');
-                        var firstExplanation = firstCard.querySelector('.q-explanation-input');
+                    // Normalize float comma to dot for Points and PassingScore
+                    document.querySelectorAll('.q-points-input, #PassingScore').forEach(function(inp) {
+                        if (inp && inp.value && inp.value.includes(',')) {
+                            inp.value = inp.value.replace(',', '.');
+                        }
+                    });
 
-                        if (firstContent) document.getElementById('fallbackQuestionContent').value = firstContent.value;
-                        if (firstOptA) document.getElementById('fallbackOptA').value = firstOptA.value;
-                        if (firstOptB) document.getElementById('fallbackOptB').value = firstOptB.value;
-                        if (firstOptC) document.getElementById('fallbackOptC').value = firstOptC.value;
-                        if (firstOptD) document.getElementById('fallbackOptD').value = firstOptD.value;
-                        if (firstCorrect) document.getElementById('fallbackCorrectOpt').value = firstCorrect.value;
-                        if (firstExplanation) document.getElementById('fallbackExplanation').value = firstExplanation.value;
-                    }
+                    // Clear legacy fallback fields so they never interfere with questions list
+                    document.getElementById('fallbackQuestionContent').value = '';
+                    document.getElementById('fallbackOptA').value = '';
+                    document.getElementById('fallbackOptB').value = '';
+                    document.getElementById('fallbackOptC').value = '';
+                    document.getElementById('fallbackOptD').value = '';
+                    document.getElementById('fallbackCorrectOpt').value = '';
+                    document.getElementById('fallbackExplanation').value = '';
                 });
+            }
+        });
+        // Auto replace comma with dot for float numbers
+        document.addEventListener('input', function(e) {
+            if (e.target && (e.target.classList.contains('q-points-input') || e.target.id === 'PassingScore')) {
+                if (e.target.value.includes(',')) {
+                    e.target.value = e.target.value.replace(',', '.');
+                }
             }
         });
     </script>
