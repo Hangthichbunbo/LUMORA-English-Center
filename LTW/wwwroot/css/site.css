@@ -1795,3 +1795,33 @@ h1, h2, h3, h4, h5, h6 {
 .active.text--black {
     color: rgba(var(--bs-dark-rgb),var(--bs-text-opacity)) !important
 }
+
+.mbt-8 {
+    margin-bottom: 8px;
+}
+
+.pdt-72 {
+    padding-top: 72px;
+}
+
+.mt--72 {
+    margin-top: -72px;
+}
+
+.page-content {
+    min-height: calc(100vh - 76px);
+    padding: 48px 0 72px 0;
+    display: flex;
+    align-items: center;
+}
+
+/* Mobile & Tablet */
+@media (max-width: 991.98px) {
+    .pdt-72 {
+        padding-top: 0px
+    }
+
+    .mt--72 {
+        margin-top: 0px;
+    }
+}
