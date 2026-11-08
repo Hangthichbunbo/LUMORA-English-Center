@@ -10,6 +10,18 @@
     {
         try { submittedAnswers = JsonSerializer.Deserialize<Dictionary<string, string>>(submission.AnswersJson); } catch { }
     }
+
+    // Determine exercise-level audio link:
+    string? exerciseAudio = Model.Questions.FirstOrDefault(q => !string.IsNullOrEmpty(q.AudioUrl))?.AudioUrl;
+    if (string.IsNullOrEmpty(exerciseAudio))
+    {
+        exerciseAudio = Model.Lesson?.AudioUrl;
+    }
+    if (string.IsNullOrEmpty(exerciseAudio))
+    {
+        exerciseAudio = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+    }
+    bool hasListening = Model.Questions.Any(q => q.Skill == SkillType.Listening) || Model.Title.Contains("Listening", StringComparison.OrdinalIgnoreCase);
 }
 
 <div class="container py-5" style="max-width: 960px;">
@@ -121,14 +133,63 @@
 
     @if (ViewBag.IsRetaking == true)
     {
-        <div class="alert alert-info d-flex align-items-center justify-content-between rounded-4 p-3 mb-4 shadow-sm border-0 bg-info bg-opacity-10">
-            <div>
-                <i class="bi bi-info-circle-fill me-2 fs-5 text-info"></i>
-                <strong class="text-dark">Bạn đang làm lại bài tập.</strong> Hãy chọn lại đáp án và bấm <em>Nộp Bài Chấm Điểm</em> khi hoàn thành.
+        <div class="alert alert-info rounded-4 p-3 mb-4 shadow-sm border-0 bg-info bg-opacity-10">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-arrow-repeat fs-4 text-info"></i>
+                    <div>
+                        <strong class="text-dark d-block">Bạn đang làm lại bài tập.</strong>
+                        <span class="text-muted small">Hãy nghe kỹ đoạn audio ngắn bên dưới và chọn lại đáp án chính xác nhất.</span>
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="@exerciseAudio" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm" style="background-color: #00A896; border-color: #00A896;">
+                        <i class="bi bi-headphones me-1"></i> Gắn link audio
+                    </a>
+                    <a asp-action="Exercise" asp-route-id="@Model.ExerciseId" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                        <i class="bi bi-clock-history me-1"></i> Xem bài nộp trước
+                    </a>
+                </div>
             </div>
-            <a asp-action="Exercise" asp-route-id="@Model.ExerciseId" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                Xem kết quả bài nộp trước
-            </a>
+        </div>
+    }
+
+    <!-- Audio Player cho bài tập (Đặc biệt cho kỹ năng Listening / Làm lại bài) -->
+    @if (!string.IsNullOrEmpty(exerciseAudio))
+    {
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white border-start border-4 border-primary">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle">
+                        <i class="bi bi-headphones fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold text-dark m-0 d-flex align-items-center gap-2">
+                            <span>Audio Nghe Cho Bài Tập</span>
+                            <span class="badge bg-primary text-white rounded-pill px-2 py-1 small" style="background-color: #00A896 !important; font-size: 0.75rem;">Audio ngắn</span>
+                        </h5>
+                        <small class="text-muted">Học viên nghe đoạn audio ngắn bên dưới để trả lời hoặc làm lại các câu hỏi:</small>
+                    </div>
+                </div>
+                <div>
+                    <a href="@exerciseAudio" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                        <i class="bi bi-box-arrow-up-right me-1"></i> Mở link audio
+                    </a>
+                </div>
+            </div>
+            <div class="p-3 bg-light rounded-3 border">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="small fw-semibold text-secondary"><i class="bi bi-volume-up-fill text-primary me-1"></i> Trình phát Audio:</span>
+                    <a href="@exerciseAudio" target="_blank" class="small text-decoration-none text-muted text-truncate" style="max-width: 320px;">
+                        <i class="bi bi-link-45deg"></i> @exerciseAudio
+                    </a>
+                </div>
+                <audio controls class="w-100" style="outline: none;">
+                    <source src="@exerciseAudio" type="audio/mpeg" />
+                    <source src="@exerciseAudio" type="audio/mp3" />
+                    Trình duyệt không hỗ trợ audio player. <a href="@exerciseAudio" target="_blank">Bấm vào đây để nghe trực tiếp</a>.
+                </audio>
+            </div>
         </div>
     }
 
@@ -196,6 +257,26 @@
                 </div>
 
                 <h6 class="fw-bold text-dark mb-3 text--black">@q.Content</h6>
+
+                @{
+                    var qAudio = !string.IsNullOrEmpty(q.AudioUrl) ? q.AudioUrl : (q.Skill == SkillType.Listening ? exerciseAudio : null);
+                }
+                @if (!string.IsNullOrEmpty(qAudio))
+                {
+                    <div class="p-3 bg-light rounded-3 mb-3 border">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small fw-semibold text-primary"><i class="bi bi-headphones me-1"></i> Audio cho câu @qCount:</span>
+                            <a href="@qAudio" target="_blank" rel="noopener noreferrer" class="small text-primary text-decoration-none">
+                                <i class="bi bi-link-45deg me-1"></i>Gắn link audio
+                            </a>
+                        </div>
+                        <audio controls class="w-100" style="outline: none;">
+                            <source src="@qAudio" type="audio/mpeg" />
+                            <source src="@qAudio" type="audio/mp3" />
+                            Trình duyệt không hỗ trợ phát audio. <a href="@qAudio" target="_blank">Nghe tại đây</a>.
+                        </audio>
+                    </div>
+                }
 
                 <!-- Options / Answer Area -->
                 @{

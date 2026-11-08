@@ -1,7 +1,7 @@
 @model LTW.Models.Lesson
 
 @{
-    ViewData["Title"] = "Thêm Bài Học Mới - Giảng Viên LUMORA";
+    ViewData["Title"] = User.IsInRole("Admin") ? "Thêm Bài Học Mới - Admin LUMORA" : "Thêm Bài Học Mới - Giảng Viên LUMORA";
 }
 
 <div class="container py-4" style="max-width: 900px;">
@@ -11,9 +11,18 @@
                 <h3 class="fw-bold text-dark m-0"><i class="bi bi-file-earmark-plus me-2 text-primary"></i>Tạo Bài Học Mới</h3>
                 <p class="text-muted small m-0">Đăng tải nội dung lý thuyết, video, audio và từ vựng trọng tâm</p>
             </div>
-            <a asp-action="Lessons" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-                <i class="bi bi-arrow-left me-1"></i> Quay Lại
-            </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-controller="Admin" asp-action="Lessons" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    <i class="bi bi-arrow-left me-1"></i> Quay Lại
+                </a>
+            }
+            else
+            {
+                <a asp-action="Lessons" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    <i class="bi bi-arrow-left me-1"></i> Quay Lại
+                </a>
+            }
         </div>
 
         <form asp-action="CreateLesson" method="post" id="createLessonForm">
@@ -164,7 +173,19 @@
                 </label>
             </div>
 
-            <div class="d-flex justify-content-end gap-2">
+            <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-controller="Admin" asp-action="Lessons" class="btn btn-outline-secondary px-4 py-2 rounded-pill">
+                        Hủy Bỏ
+                    </a>
+                }
+                else
+                {
+                    <a asp-action="Lessons" class="btn btn-outline-secondary px-4 py-2 rounded-pill">
+                        Hủy Bỏ
+                    </a>
+                }
                 <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold rounded-pill shadow-sm" style="background-color: #00A896; border-color: #00A896;">
                     <i class="bi bi-save me-1"></i> Lưu Bài Học
                 </button>

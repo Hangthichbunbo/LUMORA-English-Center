@@ -1,7 +1,9 @@
 @model LTW.Models.Exercise
 
 @{
-    ViewData["Title"] = $"Chỉnh Sửa Bài Tập: {Model.Title} - Giảng Viên LUMORA";
+    ViewData["Title"] = User.IsInRole("Admin") 
+        ? $"Chỉnh Sửa Bài Tập: {Model.Title} - Admin LUMORA" 
+        : $"Chỉnh Sửa Bài Tập: {Model.Title} - Giảng Viên LUMORA";
 }
 
 <style>
@@ -29,9 +31,18 @@
                 <h3 class="fw-bold text-dark m-0"><i class="bi bi-pencil-square me-2 text-warning"></i>Chỉnh Sửa Bài Tập & Bộ Câu Hỏi</h3>
                 <p class="text-muted small m-0">Cập nhật nội dung câu hỏi trắc nghiệm / tự luận, đáp án chuẩn và thang điểm</p>
             </div>
-            <a asp-action="Exercises" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-                <i class="bi bi-arrow-left me-1"></i> Quay Lại
-            </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-controller="Admin" asp-action="Exercises" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    <i class="bi bi-arrow-left me-1"></i> Quay Lại
+                </a>
+            }
+            else
+            {
+                <a asp-action="Exercises" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    <i class="bi bi-arrow-left me-1"></i> Quay Lại
+                </a>
+            }
         </div>
 
         <form asp-action="EditExercise" asp-route-id="@Model.ExerciseId" method="post" id="editExerciseForm">
@@ -280,10 +291,16 @@
                             </div>
                         </div>
 
-                        <!-- Giải thích chi tiết cho học viên -->
-                        <div>
-                            <label class="form-label small text-secondary">Giải thích / Feedback chi tiết cho học viên</label>
-                            <input type="text" name="questions[@qIdx].Explanation" class="form-control q-explanation-input" placeholder="Feedback giải thích vì sao đáp án đúng, hoặc lưu ý từ vựng, ngữ pháp..." value="@q.Explanation" />
+                        <!-- Audio URL & Giải thích chi tiết cho học viên -->
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label small text-secondary"><i class="bi bi-headphones me-1"></i>Link Audio riêng câu hỏi (nếu có)</label>
+                                <input type="text" name="questions[@qIdx].AudioUrl" class="form-control q-audiourl-input" placeholder="https://example.com/audio.mp3" value="@q.AudioUrl" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small text-secondary"><i class="bi bi-lightbulb me-1"></i>Giải thích / Feedback chi tiết</label>
+                                <input type="text" name="questions[@qIdx].Explanation" class="form-control q-explanation-input" placeholder="Feedback giải thích vì sao đáp án đúng..." value="@q.Explanation" />
+                            </div>
                         </div>
                     </div>
                     qIdx++;
@@ -299,7 +316,14 @@
 
             <!-- Actions footer -->
             <div class="d-flex justify-content-end gap-2 pt-3 border-top">
-                <a asp-action="Exercises" class="btn btn-light rounded-pill px-4">Hủy bỏ</a>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-controller="Admin" asp-action="Exercises" class="btn btn-light rounded-pill px-4">Hủy bỏ</a>
+                }
+                else
+                {
+                    <a asp-action="Exercises" class="btn btn-light rounded-pill px-4">Hủy bỏ</a>
+                }
                 <button type="submit" class="btn btn-warning text-dark px-4 py-2 rounded-pill fw-semibold shadow-sm">
                     <i class="bi bi-check-circle-fill me-1"></i> Lưu Thay Đổi Bài Tập
                 </button>
@@ -373,6 +397,9 @@
 
                 var explanation = card.querySelector('.q-explanation-input');
                 if (explanation) explanation.name = 'questions[' + index + '].Explanation';
+
+                var audioUrl = card.querySelector('.q-audiourl-input');
+                if (audioUrl) audioUrl.name = 'questions[' + index + '].AudioUrl';
 
                 var removeBtn = card.querySelector('.btn-remove-q');
                 if (removeBtn) {
@@ -485,9 +512,15 @@
                     </div>
                 </div>
 
-                <div>
-                    <label class="form-label small text-secondary">Giải thích / Feedback chi tiết cho học viên</label>
-                    <input type="text" name="questions[${newIndex}].Explanation" class="form-control q-explanation-input" placeholder="Feedback giải thích vì sao đáp án đúng, hoặc lưu ý từ vựng, ngữ pháp..." />
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary"><i class="bi bi-headphones me-1"></i>Link Audio riêng câu hỏi (nếu có)</label>
+                        <input type="text" name="questions[${newIndex}].AudioUrl" class="form-control q-audiourl-input" placeholder="https://example.com/audio.mp3" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary"><i class="bi bi-lightbulb me-1"></i>Giải thích / Feedback chi tiết</label>
+                        <input type="text" name="questions[${newIndex}].Explanation" class="form-control q-explanation-input" placeholder="Feedback giải thích vì sao đáp án đúng..." />
+                    </div>
                 </div>
             `;
 

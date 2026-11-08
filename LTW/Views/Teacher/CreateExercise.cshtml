@@ -1,7 +1,7 @@
 @model LTW.Models.Exercise
 
 @{
-    ViewData["Title"] = "Tạo Bài Tập Mới - Giảng Viên LUMORA";
+    ViewData["Title"] = User.IsInRole("Admin") ? "Tạo Bài Tập Mới - Admin LUMORA" : "Tạo Bài Tập Mới - Giảng Viên LUMORA";
 }
 
 <style>
@@ -29,9 +29,18 @@
                 <h3 class="fw-bold text-dark m-0"><i class="bi bi-pencil-square me-2 text-primary"></i>Tạo Bài Tập & Soạn Bộ Câu Hỏi</h3>
                 <p class="text-muted small m-0">Thiết lập bài tập và tạo nhiều câu hỏi trắc nghiệm hoặc tự luận kèm đáp án, hướng dẫn chi tiết</p>
             </div>
-            <a asp-action="Exercises" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-                <i class="bi bi-arrow-left me-1"></i> Quay Lại
-            </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-controller="Admin" asp-action="Exercises" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    <i class="bi bi-arrow-left me-1"></i> Quay Lại
+                </a>
+            }
+            else
+            {
+                <a asp-action="Exercises" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    <i class="bi bi-arrow-left me-1"></i> Quay Lại
+                </a>
+            }
         </div>
 
         <form asp-action="CreateExercise" method="post" id="createExerciseForm">
@@ -225,10 +234,16 @@
                         </div>
                     </div>
 
-                    <!-- Giải thích chi tiết cho học viên -->
-                    <div>
-                        <label class="form-label small text-secondary">Giải thích / Feedback chi tiết cho học viên</label>
-                        <input type="text" name="questions[0].Explanation" class="form-control q-explanation-input" placeholder="Feedback giải thích vì sao đáp án đúng, hoặc lưu ý từ vựng, ngữ pháp..." />
+                    <!-- Audio URL & Giải thích chi tiết cho học viên -->
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary"><i class="bi bi-headphones me-1"></i>Link Audio riêng câu hỏi (nếu có)</label>
+                            <input type="text" name="questions[0].AudioUrl" class="form-control q-audiourl-input" placeholder="https://example.com/audio.mp3" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary"><i class="bi bi-lightbulb me-1"></i>Giải thích / Feedback chi tiết</label>
+                            <input type="text" name="questions[0].Explanation" class="form-control q-explanation-input" placeholder="Feedback giải thích vì sao đáp án đúng..." />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -250,9 +265,18 @@
             <input type="hidden" name="explanation" id="fallbackExplanation" />
 
             <div class="d-flex justify-content-between align-items-center pt-3 border-top">
-                <a asp-action="Exercises" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-semibold">
-                    <i class="bi bi-arrow-left me-1"></i> Hủy
-                </a>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-controller="Admin" asp-action="Exercises" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-semibold">
+                        <i class="bi bi-arrow-left me-1"></i> Hủy
+                    </a>
+                }
+                else
+                {
+                    <a asp-action="Exercises" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-semibold">
+                        <i class="bi bi-arrow-left me-1"></i> Hủy
+                    </a>
+                }
                 <button type="submit" class="btn btn-primary px-5 py-3 fw-bold rounded-pill shadow-sm" style="background-color: #00A896; border-color: #00A896;">
                     <i class="bi bi-save me-2"></i> Lưu Bài Tập & Toàn Bộ Câu Hỏi
                 </button>
@@ -323,6 +347,9 @@
 
                 var explanation = card.querySelector('.q-explanation-input');
                 if (explanation) explanation.name = 'questions[' + index + '].Explanation';
+
+                var audioUrl = card.querySelector('.q-audiourl-input');
+                if (audioUrl) audioUrl.name = 'questions[' + index + '].AudioUrl';
 
                 // Manage remove button visibility
                 var removeBtn = card.querySelector('.btn-remove-q');
@@ -435,9 +462,15 @@
                     </div>
                 </div>
 
-                <div>
-                    <label class="form-label small text-secondary">Giải thích / Feedback chi tiết cho học viên</label>
-                    <input type="text" name="questions[${newIndex}].Explanation" class="form-control q-explanation-input" placeholder="Feedback giải thích vì sao đáp án đúng, hoặc lưu ý từ vựng, ngữ pháp..." />
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary"><i class="bi bi-headphones me-1"></i>Link Audio riêng câu hỏi (nếu có)</label>
+                        <input type="text" name="questions[${newIndex}].AudioUrl" class="form-control q-audiourl-input" placeholder="https://example.com/audio.mp3" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary"><i class="bi bi-lightbulb me-1"></i>Giải thích / Feedback chi tiết</label>
+                        <input type="text" name="questions[${newIndex}].Explanation" class="form-control q-explanation-input" placeholder="Feedback giải thích vì sao đáp án đúng..." />
+                    </div>
                 </div>
             `;
 

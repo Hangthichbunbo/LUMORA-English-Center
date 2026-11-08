@@ -1,7 +1,9 @@
 @model LTW.Models.Lesson
 
 @{
-    ViewData["Title"] = $"Chỉnh Sửa Bài Học: {Model.Title} - Giảng Viên LUMORA";
+    ViewData["Title"] = User.IsInRole("Admin") 
+        ? $"Chỉnh Sửa Bài Học: {Model.Title} - Admin LUMORA" 
+        : $"Chỉnh Sửa Bài Học: {Model.Title} - Giảng Viên LUMORA";
 }
 
 <div class="container py-4" style="max-width: 900px;">
@@ -11,9 +13,18 @@
                 <h3 class="fw-bold text-dark m-0"><i class="bi bi-pencil-square me-2 text-warning"></i>Chỉnh Sửa Bài Học</h3>
                 <p class="text-muted small m-0">Cập nhật nội dung lý thuyết, video, audio nghe, tài liệu và từ vựng trọng tâm</p>
             </div>
-            <a asp-action="Lessons" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-                <i class="bi bi-arrow-left me-1"></i> Quay Lại
-            </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-controller="Admin" asp-action="Lessons" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    <i class="bi bi-arrow-left me-1"></i> Quay Lại
+                </a>
+            }
+            else
+            {
+                <a asp-action="Lessons" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    <i class="bi bi-arrow-left me-1"></i> Quay Lại
+                </a>
+            }
         </div>
 
         <form asp-action="EditLesson" asp-route-id="@Model.LessonId" method="post" id="editLessonForm">
@@ -205,7 +216,14 @@
             </div>
 
             <div class="d-flex justify-content-end gap-2 pt-3 border-top">
-                <a asp-action="Lessons" class="btn btn-light rounded-pill px-4">Hủy bỏ</a>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-controller="Admin" asp-action="Lessons" class="btn btn-light rounded-pill px-4">Hủy bỏ</a>
+                }
+                else
+                {
+                    <a asp-action="Lessons" class="btn btn-light rounded-pill px-4">Hủy bỏ</a>
+                }
                 <button type="submit" class="btn btn-warning text-dark px-4 py-2 rounded-pill fw-semibold shadow-sm">
                     <i class="bi bi-check-circle-fill me-1"></i> Lưu Thay Đổi Bài Học
                 </button>

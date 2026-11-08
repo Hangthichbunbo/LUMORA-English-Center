@@ -163,6 +163,7 @@ namespace LTW.Models
         public string? CorrectAnswer { get; set; }
         public string? WritingAnswer { get; set; }
         public string? Explanation { get; set; }
+        public string? AudioUrl { get; set; }
         public decimal Points { get; set; } = 10;
     }
 }

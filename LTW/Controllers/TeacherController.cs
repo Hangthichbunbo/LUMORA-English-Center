@@ -394,6 +394,10 @@ namespace LTW.Controllers
                 TempData["SuccessMessage"] = isNewChapter
                     ? $"Đã tạo chương mới '{newChapterTitle}' và thêm bài học '{lesson.Title}' thành công!"
                     : $"Thêm bài học '{lesson.Title}' thành công!";
+                if (User.IsInRole("Admin"))
+                {
+                    return RedirectToAction("Lessons", "Admin");
+                }
                 return RedirectToAction(nameof(Lessons));
             }
 
@@ -613,6 +617,10 @@ namespace LTW.Controllers
                 }
 
                 TempData["SuccessMessage"] = $"Cập nhật bài học '{existingLesson.Title}' thành công!";
+                if (User.IsInRole("Admin"))
+                {
+                    return RedirectToAction("Lessons", "Admin");
+                }
                 return RedirectToAction(nameof(Lessons));
             }
 
@@ -693,6 +701,10 @@ namespace LTW.Controllers
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = $"Đã xóa bài học '{lessonTitle}' thành công!";
+            if (User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Lessons", "Admin");
+            }
             return RedirectToAction(nameof(Lessons));
         }
 
@@ -909,6 +921,7 @@ namespace LTW.Controllers
                             Skill = qItem.Skill != 0 ? qItem.Skill : (isWriting ? SkillType.Writing : SkillType.Reading),
                             Format = format,
                             Content = qItem.Content.Trim(),
+                            AudioUrl = !string.IsNullOrWhiteSpace(qItem.AudioUrl) ? qItem.AudioUrl.Trim() : null,
                             OptionsJson = optionsJson,
                             CorrectAnswer = correctAnswer,
                             Explanation = qItem.Explanation,
@@ -941,6 +954,10 @@ namespace LTW.Controllers
                 await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = $"Tạo bài tập '{exercise.Title}' và {questionsAdded} câu hỏi thành công!";
+                if (User.IsInRole("Admin"))
+                {
+                    return RedirectToAction("Exercises", "Admin");
+                }
                 return RedirectToAction(nameof(Exercises));
             }
 
@@ -1239,6 +1256,7 @@ namespace LTW.Controllers
                             Skill = qItem.Skill != 0 ? qItem.Skill : (isWriting ? SkillType.Writing : SkillType.Reading),
                             Format = format,
                             Content = qItem.Content.Trim(),
+                            AudioUrl = !string.IsNullOrWhiteSpace(qItem.AudioUrl) ? qItem.AudioUrl.Trim() : null,
                             OptionsJson = optionsJson,
                             CorrectAnswer = correctAnswer,
                             Explanation = qItem.Explanation,
@@ -1270,6 +1288,10 @@ namespace LTW.Controllers
                 await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = $"Cập nhật bài tập '{existingExercise.Title}' và {questionsAdded} câu hỏi thành công!";
+                if (User.IsInRole("Admin"))
+                {
+                    return RedirectToAction("Exercises", "Admin");
+                }
                 return RedirectToAction(nameof(Exercises));
             }
 
@@ -1410,6 +1432,10 @@ namespace LTW.Controllers
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = $"Đã xóa bài tập '{title}' thành công!";
+            if (User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Exercises", "Admin");
+            }
             return RedirectToAction(nameof(Exercises));
         }
 

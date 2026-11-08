@@ -6,6 +6,46 @@
     var isClosed = cls.Status == LTW.Models.ClassStatus.Closed;
 }
 
+<style>
+    #classDetailsTab {
+        background-color: #f8fafc;
+        border-bottom: 2px solid #e2e8f0 !important;
+    }
+    #classDetailsTab .nav-link {
+        color: #64748b !important;
+        background: transparent !important;
+        border: none !important;
+        border-bottom: 3px solid transparent !important;
+        margin-bottom: -2px;
+        transition: all 0.25s ease-in-out;
+        font-weight: 600;
+        border-radius: 0;
+    }
+    #classDetailsTab .nav-link:hover {
+        color: #1e293b !important;
+        background-color: rgba(0, 0, 0, 0.02) !important;
+    }
+    #classDetailsTab .nav-link.active {
+        background-color: #ffffff !important;
+    }
+    #classDetailsTab #students-tab.active {
+        color: #0d6efd !important;
+        border-bottom: 3px solid #0d6efd !important;
+    }
+    #classDetailsTab #teachers-tab.active {
+        color: #198754 !important;
+        border-bottom: 3px solid #198754 !important;
+    }
+    #classDetailsTab #course-students-tab.active {
+        color: #0891b2 !important;
+        border-bottom: 3px solid #0891b2 !important;
+    }
+    #classDetailsTab #admins-tab.active {
+        color: #d97706 !important;
+        border-bottom: 3px solid #d97706 !important;
+    }
+</style>
+
 <div class="container-fluid px-lg-5 py-4">
     <!-- Breadcrumb & Page Header -->
     <div class="mb-4">
@@ -213,25 +253,25 @@
         <div class="card-header bg-white border-bottom p-0">
             <ul class="nav nav-tabs nav-fill border-0" id="classDetailsTab" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active py-3 fw-bold border-0 border-bottom border-3 border-primary" id="students-tab" data-bs-toggle="tab" data-bs-target="#students-pane" type="button" role="tab" aria-controls="students-pane" aria-selected="true">
+                    <button class="nav-link active py-3 fw-bold border-0" id="students-tab" data-bs-toggle="tab" data-bs-target="#students-pane" type="button" role="tab" aria-controls="students-pane" aria-selected="true">
                         <i class="bi bi-people-fill me-2 text-primary"></i>Danh Sách Học Viên (@Model.AttendingStudents.Count)
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link py-3 fw-bold border-0 border-bottom border-3 border-transparent" id="teachers-tab" data-bs-toggle="tab" data-bs-target="#teachers-pane" type="button" role="tab" aria-controls="teachers-pane" aria-selected="false">
+                    <button class="nav-link py-3 fw-bold border-0" id="teachers-tab" data-bs-toggle="tab" data-bs-target="#teachers-pane" type="button" role="tab" aria-controls="teachers-pane" aria-selected="false">
                         <i class="bi bi-person-workspace me-2 text-success"></i>Đội Ngũ Giảng Viên (@Model.Teachers.Count)
                     </button>
                 </li>
                 @if (cls.CourseId != null)
                 {
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link py-3 fw-bold border-0 border-bottom border-3 border-transparent" id="course-students-tab" data-bs-toggle="tab" data-bs-target="#course-students-pane" type="button" role="tab" aria-controls="course-students-pane" aria-selected="false">
+                        <button class="nav-link py-3 fw-bold border-0" id="course-students-tab" data-bs-toggle="tab" data-bs-target="#course-students-pane" type="button" role="tab" aria-controls="course-students-pane" aria-selected="false">
                             <i class="bi bi-mortarboard-fill me-2 text-info"></i>Học Viên Của Khóa Học (@Model.EnrolledStudents.Count)
                         </button>
                     </li>
                 }
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link py-3 fw-bold border-0 border-bottom border-3 border-transparent" id="admins-tab" data-bs-toggle="tab" data-bs-target="#admins-pane" type="button" role="tab" aria-controls="admins-pane" aria-selected="false">
+                    <button class="nav-link py-3 fw-bold border-0" id="admins-tab" data-bs-toggle="tab" data-bs-target="#admins-pane" type="button" role="tab" aria-controls="admins-pane" aria-selected="false">
                         <i class="bi bi-shield-lock-fill me-2 text-warning"></i>Ban Quản Trị (@Model.AdminParticipants.Count)
                     </button>
                 </li>
@@ -337,7 +377,7 @@
 
                 <!-- ==================== TAB 2: ĐỘI NGŨ GIẢNG VIÊN ==================== -->
                 <div class="tab-pane fade" id="teachers-pane" role="tabpanel" aria-labelledby="teachers-tab" tabindex="0">
-                    <h6 class="fw-bold text-dark mb-3">Đội Ngũ Giảng Viên Phụ Trách & Dự Thính (@Model.Teachers.Count)</h6>
+                    <h6 class="fw-bold text-dark mb-3 text--black">Đội Ngũ Giảng Viên Phụ Trách & Dự Thính (@Model.Teachers.Count)</h6>
                     
                     <div class="row g-3">
                         @foreach (var t in Model.Teachers)
@@ -465,7 +505,7 @@
 
                 <!-- ==================== TAB 4: BAN QUẢN TRỊ GIÁM SÁT ==================== -->
                 <div class="tab-pane fade" id="admins-pane" role="tabpanel" aria-labelledby="admins-tab" tabindex="0">
-                    <h6 class="fw-bold text-dark mb-3">Cán Bộ Quản Trị Viên Tham Gia Giám Sát Phòng Học (@Model.AdminParticipants.Count)</h6>
+                    <h6 class="fw-bold text-dark mb-3 text--black">Cán Bộ Quản Trị Viên Tham Gia Giám Sát Phòng Học (@Model.AdminParticipants.Count)</h6>
                     @if (Model.AdminParticipants.Any())
                     {
                         <div class="row g-3">

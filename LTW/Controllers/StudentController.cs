@@ -267,6 +267,21 @@ namespace LTW.Controllers
 
             if (exercise == null) return NotFound();
 
+            // Đảm bảo các câu hỏi nghe (Listening) hoặc khi làm lại bài có liên kết audio khả dụng
+            string fallbackAudio = !string.IsNullOrEmpty(exercise.Lesson?.AudioUrl) 
+                ? exercise.Lesson.AudioUrl 
+                : "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+
+            foreach (var q in exercise.Questions)
+            {
+                if (q.Skill == SkillType.Listening && string.IsNullOrEmpty(q.AudioUrl))
+                {
+                    q.AudioUrl = fallbackAudio;
+                }
+            }
+
+            ViewBag.ExerciseAudio = exercise.Questions.FirstOrDefault(q => !string.IsNullOrEmpty(q.AudioUrl))?.AudioUrl ?? fallbackAudio;
+
             var submission = await _context.ExerciseSubmissions
                 .FirstOrDefaultAsync(s => s.ExerciseId == id && s.StudentId == user.Id);
 
