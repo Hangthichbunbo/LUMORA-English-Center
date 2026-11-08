@@ -43,7 +43,12 @@ namespace LTW.Controllers
             if (!string.IsNullOrEmpty(search))
             {
                 var s = search.ToLower().Trim();
-                query = query.Where(c => c.Title.ToLower().Contains(s) || c.Description.ToLower().Contains(s));
+                query = query.Where(c => c.Title.ToLower().Contains(s)
+                    || (c.Description != null && c.Description.ToLower().Contains(s))
+                    || (c.ShortDescription != null && c.ShortDescription.ToLower().Contains(s))
+                    || (c.Category != null && c.Category.ToLower().Contains(s))
+                    || (c.Level != null && c.Level.ToLower().Contains(s))
+                    || (c.Teacher != null && c.Teacher.FullName != null && c.Teacher.FullName.ToLower().Contains(s)));
             }
 
             var courses = await query.OrderByDescending(c => c.IsFeatured).ThenByDescending(c => c.CreatedAt).ToListAsync();
@@ -64,6 +69,7 @@ namespace LTW.Controllers
                 .Include(c => c.Chapters.OrderBy(ch => ch.OrderIndex))
                     .ThenInclude(ch => ch.Lessons.OrderBy(l => l.OrderIndex))
                         .ThenInclude(l => l.Exercises)
+                            .ThenInclude(ex => ex.Questions)
                 .Include(c => c.LiveClasses.OrderBy(lc => lc.ScheduledDate))
                 .FirstOrDefaultAsync(c => c.CourseId == id);
 
@@ -73,16 +79,60 @@ namespace LTW.Controllers
             }
 
             bool isEnrolled = false;
+            bool isCourseInstructor = false;
+            bool isTeacher = false;
+            bool isAdmin = false;
+            int? nextLessonId = null;
+
             if (User.Identity?.IsAuthenticated == true)
             {
                 var user = await _userManager.GetUserAsync(User);
                 if (user != null)
                 {
-                    isEnrolled = await _context.Enrollments.AnyAsync(e => e.StudentId == user.Id && e.CourseId == id);
+                    isTeacher = await _userManager.IsInRoleAsync(user, "Teacher") || user.RoleName == "Teacher";
+                    isAdmin = await _userManager.IsInRoleAsync(user, "Admin") || user.RoleName == "Admin";
+                    isCourseInstructor = !string.IsNullOrEmpty(course.TeacherId) && course.TeacherId == user.Id;
+
+                    if (isAdmin || isCourseInstructor)
+                    {
+                        isEnrolled = true;
+                    }
+                    else
+                    {
+                        isEnrolled = await _context.Enrollments.AnyAsync(e => e.StudentId == user.Id && e.CourseId == id && e.PaymentStatus == "Completed");
+                    }
+
+                    if (isEnrolled)
+                    {
+                        var completedLessonIds = await _context.LessonProgresses
+                            .Where(lp => lp.StudentId == user.Id && lp.IsCompleted)
+                            .Select(lp => lp.LessonId)
+                            .ToListAsync();
+
+                        var allLessons = course.Chapters
+                            .OrderBy(ch => ch.OrderIndex)
+                            .SelectMany(ch => ch.Lessons.OrderBy(l => l.OrderIndex))
+                            .ToList();
+
+                        var nextLesson = allLessons.FirstOrDefault(l => !completedLessonIds.Contains(l.LessonId)) ?? allLessons.FirstOrDefault();
+                        nextLessonId = nextLesson?.LessonId;
+                    }
                 }
+            }
+            else
+            {
+                var firstLesson = course.Chapters
+                    .OrderBy(ch => ch.OrderIndex)
+                    .SelectMany(ch => ch.Lessons.OrderBy(l => l.OrderIndex))
+                    .FirstOrDefault();
+                nextLessonId = firstLesson?.LessonId;
             }
 
             ViewBag.IsEnrolled = isEnrolled;
+            ViewBag.IsCourseInstructor = isCourseInstructor;
+            ViewBag.IsTeacher = isTeacher;
+            ViewBag.IsAdmin = isAdmin;
+            ViewBag.NextLessonId = nextLessonId;
             return View(course);
         }
 
@@ -103,7 +153,15 @@ namespace LTW.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
-            var alreadyEnrolled = await _context.Enrollments.AnyAsync(e => e.StudentId == user.Id && e.CourseId == id);
+            bool isTeacher = await _userManager.IsInRoleAsync(user, "Teacher") || user.RoleName == "Teacher";
+            bool isAdmin = await _userManager.IsInRoleAsync(user, "Admin") || user.RoleName == "Admin";
+            if (isTeacher || isAdmin || course.TeacherId == user.Id)
+            {
+                TempData["SuccessMessage"] = "Bạn là Giảng viên phụ trách nên có toàn quyền truy cập nội dung khóa học mà không cần đăng ký mua!";
+                return RedirectToAction("Detail", new { id });
+            }
+
+            var alreadyEnrolled = await _context.Enrollments.AnyAsync(e => e.StudentId == user.Id && e.CourseId == id && e.PaymentStatus == "Completed");
             if (alreadyEnrolled)
             {
                 TempData["SuccessMessage"] = "Bạn đã đăng ký và sở hữu khóa học này rồi!";

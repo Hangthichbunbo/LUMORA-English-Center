@@ -114,27 +114,72 @@
 
                 <!-- Tab Members -->
                 <div class="tab-pane fade flex-grow-1 overflow-auto" id="membersTabPane" role="tabpanel">
-                    <div class="d-flex flex-column gap-2 small">
-                        <div class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-secondary bg-opacity-25">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-primary">Host</span>
-                                <span>@(Model.Teacher?.FullName ?? "Giảng viên")</span>
+                    <div class="d-flex flex-column gap-2">
+                        @{
+                            var currentUser = ViewBag.CurrentUser as LTW.Data.ApplicationUser;
+                            bool isHostTeacher = ViewBag.IsHostTeacher == true;
+                            bool isAdmin = ViewBag.IsAdmin == true || User.IsInRole("Admin");
+                            bool isTeacherRole = ViewBag.IsTeacher == true || User.IsInRole("Teacher");
+                            string currentUserId = currentUser?.Id ?? "";
+                        }
+                        @if (isHostTeacher)
+                        {
+                            <div class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-primary bg-opacity-25 border border-primary border-opacity-25">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-primary">Host / Bạn</span>
+                                    <span class="fw-bold text-info">@(currentUser?.FullName ?? Model.Teacher?.FullName ?? "Giảng viên chủ phòng")</span>
+                                </div>
+                                <i class="bi bi-mic-fill text-success"></i>
                             </div>
-                            <i class="bi bi-mic-fill text-success"></i>
-                        </div>
-                        <div class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-secondary bg-opacity-25">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-secondary">Bạn</span>
-                                <span>@(User.Identity?.Name ?? "Học viên")</span>
+                        }
+                        else
+                        {
+                            <div class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-secondary bg-opacity-25">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-primary">Host</span>
+                                    <span class="text-white">@(Model.Teacher?.FullName ?? "Giảng viên chủ phòng")</span>
+                                </div>
+                                <i class="bi bi-mic-fill text-success"></i>
                             </div>
-                            <i class="bi bi-mic-fill text-muted"></i>
-                        </div>
+                            <div class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-info bg-opacity-25 border border-info border-opacity-25">
+                                <div class="d-flex align-items-center gap-2">
+                                    @if (isAdmin)
+                                    {
+                                        <span class="badge bg-danger">Admin / Bạn</span>
+                                    }
+                                    else if (isTeacherRole)
+                                    {
+                                        <span class="badge bg-warning text-dark">GV Dự thính / Bạn</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Bạn</span>
+                                    }
+                                    <span class="fw-bold text-white">@(currentUser?.FullName ?? User.Identity?.Name ?? "Thành viên")</span>
+                                </div>
+                                <i class="bi bi-mic-fill text-muted"></i>
+                            </div>
+                        }
                         @if (Model.ClassStudents != null)
                         {
-                            foreach (var cs in Model.ClassStudents)
+                            foreach (var cs in Model.ClassStudents.Where(cs => cs.StudentId != currentUserId && cs.StudentId != Model.TeacherId))
                             {
                                 <div class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-secondary bg-opacity-25">
-                                    <span>@(cs.Student?.FullName ?? "Học viên")</span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if (cs.Student?.RoleName == "Admin")
+                                        {
+                                            <span class="badge bg-danger">Admin</span>
+                                        }
+                                        else if (cs.Student?.RoleName == "Teacher")
+                                        {
+                                            <span class="badge bg-warning text-dark">GV Dự thính</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Học viên</span>
+                                        }
+                                        <span class="text-white">@(cs.Student?.FullName ?? "Thành viên")</span>
+                                    </div>
                                     <i class="bi bi-mic-mute-fill text-danger"></i>
                                 </div>
                             }

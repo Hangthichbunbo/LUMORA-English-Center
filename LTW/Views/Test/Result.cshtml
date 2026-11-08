@@ -10,7 +10,7 @@
         <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-semibold mb-3">
             <i class="bi bi-award-fill me-1"></i> CANDIDATE PERFORMANCE REPORT
         </span>
-        <h1 class="fw-bold mb-2 text--white">Diagnostic Assessment Results</h1>
+        <h1 class="fw-bold mb-2 text-white">Diagnostic Assessment Results</h1>
         <p class="text-white-50">Candidate: <strong>@Model.FullName</strong> | Date: @Model.CompletedAt.ToString("dd/MM/yyyy HH:mm")</p>
     </div>
 </div>
@@ -90,40 +90,86 @@
             </a>
         </div>
 
-        <div class="row g-4">
-            <!-- Course Card 1 -->
-            <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden p-4 bg-white">
-                    <span class="badge bg-warning text-dark align-self-start px-3 py-2 rounded-pill fw-semibold mb-3">
-                        <i class="bi bi-star-fill me-1"></i> RECOMMENDED PATHWAY
-                    </span>
-                    <h5 class="fw-bold text-dark mb-2">IELTS Masterclass 7.5+ Toàn Diện</h5>
-                    <p class="text-muted small mb-3">Comprehensive 4-skills curriculum focusing on advanced Writing Task 2 cohesion and fluent Speaking Part 3 expression.</p>
-                    <div class="mt-auto d-flex align-items-center justify-content-between pt-2 border-top">
-                        <span class="fw-bold text-danger fs-5">2,450,000 đ</span>
-                        <a asp-controller="Course" asp-action="Index" class="btn btn-lumora-secondary text-white rounded-pill px-4 fw-semibold">
-                            Explore Course
-                        </a>
-                    </div>
-                </div>
-            </div>
+        @{
+            var recCourses = new List<(int CourseId, string Title, decimal Price, string Level)>();
+            if (!string.IsNullOrEmpty(Model.RecommendedCoursesJson))
+            {
+                try
+                {
+                    using var doc = System.Text.Json.JsonDocument.Parse(Model.RecommendedCoursesJson);
+                    foreach (var elem in doc.RootElement.EnumerateArray())
+                    {
+                        int cId = elem.TryGetProperty("CourseId", out var idProp) ? idProp.GetInt32() : (elem.TryGetProperty("courseId", out var idProp2) ? idProp2.GetInt32() : 1);
+                        string cTitle = elem.TryGetProperty("Title", out var tProp) ? (tProp.GetString() ?? "") : (elem.TryGetProperty("title", out var tProp2) ? (tProp2.GetString() ?? "") : "Khóa học IELTS");
+                        decimal cPrice = elem.TryGetProperty("Price", out var pProp) ? pProp.GetDecimal() : (elem.TryGetProperty("price", out var pProp2) ? pProp2.GetDecimal() : 2450000m);
+                        string cLevel = elem.TryGetProperty("Level", out var lProp) ? (lProp.GetString() ?? "") : (elem.TryGetProperty("level", out var lProp2) ? (lProp2.GetString() ?? "") : "All Levels");
+                        recCourses.Add((cId, cTitle, cPrice, cLevel));
+                    }
+                }
+                catch { }
+            }
+        }
 
-            <!-- Course Card 2 -->
-            <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden p-4 bg-white">
-                    <span class="badge bg-info text-dark align-self-start px-3 py-2 rounded-pill fw-semibold mb-3">
-                        <i class="bi bi-graph-up me-1"></i> SKILL SPECIALIZATION
-                    </span>
-                    <h5 class="fw-bold text-dark mb-2">Ngữ Pháp Chuyên Sâu & Viết Học Thuật Writing 7.0+</h5>
-                    <p class="text-muted small mb-3">Targeted module rectifying complex sentence grammar, academic collocation variety, and essay coherence.</p>
-                    <div class="mt-auto d-flex align-items-center justify-content-between pt-2 border-top">
-                        <span class="fw-bold text-danger fs-5">1,450,000 đ</span>
-                        <a asp-controller="Course" asp-action="Index" class="btn btn-outline-lumora-primary rounded-pill px-4 fw-semibold">
-                            Explore Course
-                        </a>
+        <div class="row g-4">
+            @if (recCourses.Any())
+            {
+                int cIdx = 0;
+                foreach (var rc in recCourses)
+                {
+                    cIdx++;
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden p-4 bg-white">
+                            <span class="badge @(cIdx == 1 ? "bg-warning text-dark" : "bg-info text-dark") align-self-start px-3 py-2 rounded-pill fw-semibold mb-3">
+                                <i class="bi @(cIdx == 1 ? "bi-star-fill" : "bi-graph-up") me-1"></i> @(cIdx == 1 ? "RECOMMENDED PATHWAY" : "SKILL SPECIALIZATION") (@rc.Level)
+                            </span>
+                            <h5 class="fw-bold text-dark mb-2">@rc.Title</h5>
+                            <p class="text-muted small mb-3">Chương trình đào tạo chuyên sâu được cá nhân hóa phù hợp với trình độ mục tiêu và kết quả bài thi thử của bạn.</p>
+                            <div class="mt-auto d-flex align-items-center justify-content-between pt-2 border-top">
+                                <span class="fw-bold text-danger fs-5">@rc.Price.ToString("N0") đ</span>
+                                <a asp-controller="Course" asp-action="Detail" asp-route-id="@rc.CourseId" class="btn btn-lumora-secondary text-white rounded-pill px-4 fw-semibold">
+                                    Explore Course
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <!-- Fallback Course Card 1 -->
+                <div class="col-md-6">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden p-4 bg-white">
+                        <span class="badge bg-warning text-dark align-self-start px-3 py-2 rounded-pill fw-semibold mb-3">
+                            <i class="bi bi-star-fill me-1"></i> RECOMMENDED PATHWAY
+                        </span>
+                        <h5 class="fw-bold text-dark mb-2">IELTS Masterclass 7.5+ Toàn Diện</h5>
+                        <p class="text-muted small mb-3">Comprehensive 4-skills curriculum focusing on advanced Writing Task 2 cohesion and fluent Speaking Part 3 expression.</p>
+                        <div class="mt-auto d-flex align-items-center justify-content-between pt-2 border-top">
+                            <span class="fw-bold text-danger fs-5">2,450,000 đ</span>
+                            <a asp-controller="Course" asp-action="Detail" asp-route-id="1" class="btn btn-lumora-secondary text-white rounded-pill px-4 fw-semibold">
+                                Explore Course
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
+
+                <!-- Fallback Course Card 2 -->
+                <div class="col-md-6">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden p-4 bg-white">
+                        <span class="badge bg-info text-dark align-self-start px-3 py-2 rounded-pill fw-semibold mb-3">
+                            <i class="bi bi-graph-up me-1"></i> SKILL SPECIALIZATION
+                        </span>
+                        <h5 class="fw-bold text-dark mb-2">Ngữ Pháp Chuyên Sâu & Viết Học Thuật Writing 7.0+</h5>
+                        <p class="text-muted small mb-3">Targeted module rectifying complex sentence grammar, academic collocation variety, and essay coherence.</p>
+                        <div class="mt-auto d-flex align-items-center justify-content-between pt-2 border-top">
+                            <span class="fw-bold text-danger fs-5">1,450,000 đ</span>
+                            <a asp-controller="Course" asp-action="Detail" asp-route-id="2" class="btn btn-outline-lumora-primary rounded-pill px-4 fw-semibold">
+                                Explore Course
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 

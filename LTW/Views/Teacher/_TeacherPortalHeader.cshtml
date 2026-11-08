@@ -1,0 +1,62 @@
+@using LTW.Models
+@{
+    var activeTab = (ViewBag.ActiveTeacherTab as string) ?? "Dashboard";
+    var myClassesCount = ViewBag.HeaderMyClassesCount != null ? (int)ViewBag.HeaderMyClassesCount : 0;
+    var totalStudents = ViewBag.HeaderTotalStudents != null ? (int)ViewBag.HeaderTotalStudents : 0;
+    var pendingAssessments = ViewBag.HeaderPendingAssessments != null ? (int)ViewBag.HeaderPendingAssessments : 0;
+}
+
+<div class="py-4 bg-light border-bottom">
+    <div class="container-fluid px-lg-5">
+        <div class="row align-items-center g-3">
+            <div class="col-md-7">
+                <span class="badge bg-primary text-white rounded-pill px-3 py-1 small fw-semibold mb-2">TEACHER PORTAL</span>
+                <h3 class="fw-bold text-dark m-0">Không Gian Giảng Dạy & Quản Lý Học Viên</h3>
+            </div>
+            <div class="col-md-5 text-md-end">
+                <a asp-controller="Teacher" asp-action="CreateLesson" class="btn btn-outline-primary rounded-pill px-3 fw-semibold me-2">
+                    <i class="bi bi-plus-circle me-1"></i> Tạo Bài Học Mới
+                </a>
+                <a asp-controller="Teacher" asp-action="CreateExercise" class="btn btn-primary rounded-pill px-3 fw-semibold shadow-sm" style="background-color: #00A896; border-color: #00A896;">
+                    <i class="bi bi-pencil-square me-1"></i> Tạo Bài Tập Mới
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-lg-5 pt-4 pb-2">
+    <!-- Quick Nav Pills for Teacher -->
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a asp-controller="Teacher" asp-action="Dashboard" 
+           class="btn btn-sm rounded-pill px-3 @(activeTab == "Dashboard" ? "btn-primary fw-bold text-white shadow-sm" : "btn-outline-secondary")" 
+           style="@(activeTab == "Dashboard" ? "background-color: #00A896; border-color: #00A896;" : "")">
+            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+        </a>
+        <a asp-controller="Teacher" asp-action="MyClasses" 
+           class="btn btn-sm rounded-pill px-3 @(activeTab == "MyClasses" ? "btn-primary fw-bold text-white shadow-sm" : "btn-outline-secondary")"
+           style="@(activeTab == "MyClasses" ? "background-color: #00A896; border-color: #00A896;" : "")">
+            <i class="bi bi-camera-video me-1"></i> Lớp Của Tôi (@myClassesCount)
+        </a>
+        <a asp-controller="Teacher" asp-action="Lessons" 
+           class="btn btn-sm rounded-pill px-3 @(activeTab == "Lessons" ? "btn-primary fw-bold text-white shadow-sm" : "btn-outline-secondary")"
+           style="@(activeTab == "Lessons" ? "background-color: #00A896; border-color: #00A896;" : "")">
+            <i class="bi bi-journal-text me-1"></i> Quản Lý Bài Học
+        </a>
+        <a asp-controller="Teacher" asp-action="Exercises" 
+           class="btn btn-sm rounded-pill px-3 @(activeTab == "Exercises" ? "btn-primary fw-bold text-white shadow-sm" : "btn-outline-secondary")"
+           style="@(activeTab == "Exercises" ? "background-color: #00A896; border-color: #00A896;" : "")">
+            <i class="bi bi-clipboard-check me-1"></i> Quản Lý Bài Tập
+        </a>
+        <a asp-controller="Teacher" asp-action="Students" 
+           class="btn btn-sm rounded-pill px-3 @(activeTab == "Students" ? "btn-primary fw-bold text-white shadow-sm" : "btn-outline-secondary")"
+           style="@(activeTab == "Students" ? "background-color: #00A896; border-color: #00A896;" : "")">
+            <i class="bi bi-people me-1"></i> Danh Sách Học Viên (@totalStudents)
+        </a>
+        <a asp-controller="Teacher" asp-action="Assessments" 
+           class="btn btn-sm rounded-pill px-3 @(activeTab == "Assessments" ? "btn-primary fw-bold text-white shadow-sm" : "btn-outline-secondary")"
+           style="@(activeTab == "Assessments" ? "background-color: #00A896; border-color: #00A896;" : "")">
+            <i class="bi bi-check2-square me-1"></i> Chấm Điểm Bài Nộp (@pendingAssessments)
+        </a>
+    </div>
+</div>

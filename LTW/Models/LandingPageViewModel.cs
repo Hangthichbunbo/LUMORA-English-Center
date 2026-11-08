@@ -585,6 +585,6 @@ namespace LTW.Models
         public string TargetBand { get; set; } = "7.0+";
 
         [Display(Name = "Lời nhắn / Nhu cầu tư vấn")]
-        public string Message { get; set; } = string.Empty;
+        public string? Message { get; set; } = string.Empty;
     }
 }

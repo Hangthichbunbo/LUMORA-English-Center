@@ -1017,6 +1017,47 @@ namespace LTW.Data
                 }
             }
             await context.SaveChangesAsync();
+
+            // 12. Seed Demo Attendance for Live Classes (For Admin Class & Chart Views)
+            if (!await context.LiveClassStudents.AnyAsync())
+            {
+                var firstClass = await context.LiveClasses.FirstOrDefaultAsync();
+                var demoStudentUser = await userManager.FindByEmailAsync("student@lumora.edu.vn");
+                var teacherJames = await userManager.FindByEmailAsync("teacher.james@lumora.edu.vn");
+                var adminAccount = await userManager.FindByEmailAsync("admin@lumora.edu.vn");
+
+                if (firstClass != null)
+                {
+                    if (demoStudentUser != null)
+                    {
+                        context.LiveClassStudents.Add(new LiveClassStudent
+                        {
+                            LiveClassId = firstClass.LiveClassId,
+                            StudentId = demoStudentUser.Id,
+                            RegisteredAt = DateTime.Now.AddHours(-1)
+                        });
+                    }
+                    if (teacherJames != null)
+                    {
+                        context.LiveClassStudents.Add(new LiveClassStudent
+                        {
+                            LiveClassId = firstClass.LiveClassId,
+                            StudentId = teacherJames.Id,
+                            RegisteredAt = DateTime.Now.AddHours(-2)
+                        });
+                    }
+                    if (adminAccount != null)
+                    {
+                        context.LiveClassStudents.Add(new LiveClassStudent
+                        {
+                            LiveClassId = firstClass.LiveClassId,
+                            StudentId = adminAccount.Id,
+                            RegisteredAt = DateTime.Now.AddMinutes(-30)
+                        });
+                    }
+                    await context.SaveChangesAsync();
+                }
+            }
         }
     }
 }
