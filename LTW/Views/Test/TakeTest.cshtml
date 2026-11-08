@@ -43,7 +43,7 @@
                 @if (User.Identity?.IsAuthenticated != true)
                 {
                     <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-light border-start border-4 border-primary">
-                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-person-badge me-2 text-primary"></i>Candidate Information</h6>
+                        <h6 class="fw-bold text-dark mb-3 text--black"><i class="bi bi-person-badge me-2 text-primary"></i>Candidate Information</h6>
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label small fw-semibold text-secondary">Full Name</label>
@@ -106,7 +106,7 @@
                         }
 
                         <!-- Question Prompt / Content -->
-                        <h6 class="fw-bold text-dark mb-3" style="line-height: 1.6;">@q.Content</h6>
+                        <h6 class="fw-bold text-dark mb-3 text--black" style="line-height: 1.6;">@q.Content</h6>
 
                         <!-- Answer Options or Input -->
                         @if (q.Skill == LTW.Models.SkillType.Listening || q.Skill == LTW.Models.SkillType.Reading || q.Format == LTW.Models.QuestionFormat.MultipleChoice || q.Format == LTW.Models.QuestionFormat.TrueFalse)
@@ -175,7 +175,7 @@
             <!-- Right Column: Question Navigation Palette -->
             <div class="col-lg-3">
                 <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 90px;">
-                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-grid-3x3-gap-fill me-2 text-primary"></i>Question Palette</h6>
+                    <h6 class="fw-bold text-dark mb-3 text--black"><i class="bi bi-grid-3x3-gap-fill me-2 text-primary"></i>Question Palette</h6>
                     
                     <div class="d-flex flex-wrap gap-2 mb-4">
                         @for (int i = 1; i <= questionsList.Count; i++)
