@@ -43,25 +43,6 @@ Dự án sử dụng **ASP.NET Core MVC trên .NET 10**, giao diện Razor, **En
 - Xem và quản lý nội dung bài học, bài tập với quyền Admin.
 - Xem thông báo và gửi thông báo trong hệ thống theo nhóm vai trò.
 
-## Mức độ triển khai
-
-Đây là sản phẩm phục vụ học tập và minh họa nghiệp vụ. Những giới hạn dưới đây cần được phân biệt với các chức năng đã có xử lý dữ liệu:
-
-| Thành phần | Hiện trạng trong source |
-|---|---|
-| Trang chủ | Nội dung quảng bá, khóa học và đội ngũ giảng viên được tạo sẵn trong `LandingPageViewModel`; trang Courses và hồ sơ giảng viên đích đọc database. |
-| Tìm kiếm khóa học | Có tìm kiếm và lọc danh mục; backend nhận thêm `level` nhưng trang danh sách chưa có bộ chọn trình độ. Sắp xếp cố định, chưa phân trang. |
-| Tư vấn | Có kiểm tra dữ liệu và phản hồi từ controller; chưa lưu yêu cầu hoặc gửi email. |
-| Giữ chỗ Live Lesson tại Home | JavaScript hiển thị xác nhận trên trình duyệt; chưa lưu đăng ký. |
-| Thanh toán | `ProcessPayment` tự ghi enrollment có trạng thái `Completed`; chưa tích hợp xác nhận từ cổng thanh toán. |
-| Phòng học trực tuyến | Có kiểm quyền vào lớp và dữ liệu thành viên; mic, camera, chat, giơ tay và chia sẻ màn hình đang mô phỏng giao diện. |
-| Thi thử/xếp lớp | Có lưu kết quả; Writing được ước lượng theo độ dài văn bản, Speaking dùng điểm mô phỏng. |
-| Tài liệu bài học | Lưu URL video/audio/tài liệu; chưa có quy trình tải tệp lên trong form bài học. |
-| Email và Google | Nhắc email/OTP hiện có phần mô phỏng. Google OAuth chỉ được đăng ký khi có cấu hình; đăng nhập nhanh tài khoản demo là luồng riêng. |
-| Phân quyền và thống kê | Cần hoàn thiện kiểm quyền sở hữu ở thao tác lưu điểm, kiểm chủ ghi danh ở trang xác nhận, xác minh OTP tại bước reset mật khẩu và phạm vi tính điểm theo khóa. |
-
-Các nhận định trên dựa trên source, không thay thế kết quả kiểm thử tích hợp hoặc xác nhận hệ thống đã sẵn sàng triển khai thực tế.
-
 ## Công nghệ và tổ chức mã nguồn
 
 | Thành phần | Công nghệ |
@@ -123,7 +104,7 @@ Các lệnh tiếp theo chạy tại thư mục gốc repository, nơi chứa RE
 Ứng dụng đọc khóa `ConnectionStrings:DefaultConnection`. Thiết lập giá trị phù hợp với máy bằng biến môi trường trong terminal PowerShell hiện tại. Ví dụ cho Windows LocalDB:
 
 ```powershell
-$env:ConnectionStrings__DefaultConnection = 'Server=(localdb)\MSSQLLocalDB;Database=LumoraEnglishCenterDev;Trusted_Connection=True;TrustServerCertificate=True;'
+$env:ConnectionStrings__DefaultConnection = 'Server=(localdb)\MSSQLLocalDB;Database=LumoraEnglishCenterDb;Trusted_Connection=True;TrustServerCertificate=True;'
 ```
 
 Đây là ví dụ cấu hình cho database phát triển riêng, không phải thông tin kết nối của hệ thống đang vận hành. Nếu dùng SQL Server instance khác, thay tên server/database và cơ chế xác thực tương ứng. Biến môi trường ghi đè giá trị cùng khóa trong `appsettings.json`.
@@ -160,7 +141,7 @@ Theo `LTW/Properties/launchSettings.json`, profile `https` lắng nghe tại:
 
 Ứng dụng bật chuyển hướng HTTPS. Nếu đổi cổng hoặc profile, sử dụng địa chỉ thực tế được in trong terminal. Dừng bằng `Ctrl+C`.
 
-Với Visual Studio, mở `LTW/LTW.slnx` hoặc `LTW/LTW.csproj`, chọn profile `https` rồi chạy bằng F5/Ctrl+F5.
+#Với Visual Studio, mở `LTW/LTW.slnx` hoặc `LTW/LTW.csproj`, chọn profile `https` rồi chạy bằng F5/Ctrl+F5.
 
 ### Google OAuth — tùy chọn
 
@@ -189,17 +170,6 @@ Route MVC mặc định: `{controller=Home}/{action=Index}/{id?}`.
 | `/Notification` | Thông báo của tài khoản hiện tại |
 
 Tên controller không tự giới hạn vai trò: ví dụ StudentController sử dụng `[Authorize]` mà không khóa riêng role Student; các action còn có quy tắc truy cập riêng. Portal Teacher và Admin có kiểm role tương ứng.
-
-## Tài liệu phân tích
-
-- [Home](docs/feature-analysis/01-home-analysis.md)
-- [Courses](docs/feature-analysis/02-courses-analysis.md)
-- [Chức năng Teacher](docs/feature-analysis/03-teacher-features.md)
-- [Xác thực và phân quyền](docs/feature-analysis/04-teacher-authentication-authorization.md)
-- [Triển khai kỹ thuật và bản đồ route](docs/feature-analysis/05-technical-implementation.md)
-- [Bảng tổng hợp chức năng](docs/feature-analysis/06-feature-summary.md)
-- [Hướng dẫn thuyết trình](docs/feature-analysis/07-presentation-guide.md)
-- [Phân tích toàn hệ thống](docs/system-analysis/README.md)
 
 ## Hướng phát triển
 
