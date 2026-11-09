@@ -5,7 +5,7 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject ApplicationDbContext DbContext
 
-<div class="d-flex align-items-center gap-2 ms-lg-3 mt-3 mt-lg-0">
+<div class="d-flex align-items-center gap-2 ms-lg-3 mt-3 mt-lg-0 navbar-user-toolbar justify-content-between justify-content-lg-start w-100 w-lg-auto">
     @if (SignInManager.IsSignedIn(User))
     {
         var currentUser = await UserManager.GetUserAsync(User);
@@ -27,7 +27,7 @@
                     </span>
                 }
             </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 p-2" style="width: 320px;">
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 p-2" style="width: min(320px, 90vw);">
                 <li class="d-flex justify-content-between align-items-center px-2 py-1 mb-2 border-bottom">
                     <span class="fw-bold small text-dark"><i class="bi bi-bell me-1"></i> Thông Báo</span>
                     <a asp-controller="Notification" asp-action="Index" class="small text-primary text-decoration-none">Xem tất cả</a>
@@ -56,13 +56,13 @@
         </div>
 
         <!-- User Profile Dropdown -->
-        <div class="dropdown">
-            <button class="btn btn-outline-light border text-dark bg-white d-flex align-items-center gap-2 rounded-pill px-3 py-1 shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <div class="dropdown flex-grow-1 flex-lg-grow-0 text-end">
+            <button class="btn btn-outline-light border text-dark bg-white d-inline-flex align-items-center gap-2 rounded-pill px-3 py-1 shadow-sm dropdown-toggle w-auto" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <img src="@(string.IsNullOrEmpty(currentUser?.AvatarUrl) ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" : currentUser.AvatarUrl)" 
                      alt="Avatar" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover;" />
-                <span class="fw-semibold small d-none d-md-inline">@(currentUser?.FullName ?? UserManager.GetUserName(User))</span>
+                <span class="fw-semibold small text-truncate" style="max-width: 140px;">@(currentUser?.FullName ?? UserManager.GetUserName(User))</span>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 p-2" style="min-width: 200px;">
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 p-2" style="min-width: 220px; max-width: 90vw;">
                 <li class="px-3 py-2 border-bottom mb-1">
                     <div class="fw-bold small text-dark">@(currentUser?.FullName ?? "Học viên")</div>
                     <div class="text-muted" style="font-size: 11px;">&#64;@UserManager.GetUserName(User)</div>
@@ -119,11 +119,13 @@
     }
     else
     {
-        <a class="btn btn-outline-secondary btn-sm px-3 rounded-pill fw-semibold" asp-controller="Account" asp-action="Login">
-            <i class="bi bi-box-arrow-in-right me-1"></i> Đăng Nhập
-        </a>
-        <a class="btn btn-lumora-secondary btn-sm px-3 rounded-pill fw-semibold shadow-sm text-white" asp-controller="Account" asp-action="Register">
-            <i class="bi bi-person-plus-fill me-1"></i> Đăng Ký
-        </a>
+        <div class="d-flex align-items-center gap-2 w-100 flex-column flex-sm-row auth-buttons-wrapper">
+            <a class="btn btn-outline-secondary btn-sm px-3 rounded-pill fw-semibold flex-fill text-center w-100 w-sm-auto" asp-controller="Account" asp-action="Login">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Đăng Nhập
+            </a>
+            <a class="btn btn-lumora-secondary btn-sm px-3 rounded-pill fw-semibold shadow-sm text-white flex-fill text-center w-100 w-sm-auto" asp-controller="Account" asp-action="Register">
+                <i class="bi bi-person-plus-fill me-1"></i> Đăng Ký
+            </a>
+        </div>
     }
 </div>

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace LTW.Models
 {
@@ -113,6 +114,9 @@ namespace LTW.Models
 
         [Display(Name = "Ảnh đại diện")]
         public string? AvatarUrl { get; set; }
+
+        [Display(Name = "Tải lên ảnh từ thiết bị")]
+        public IFormFile? AvatarFile { get; set; }
 
         [Display(Name = "Vai trò người dùng")]
         public string RoleName { get; set; } = "Student";

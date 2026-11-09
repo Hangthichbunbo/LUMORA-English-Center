@@ -354,6 +354,132 @@ h1, h2, h3, h4, h5, h6 {
     }
 
 /* --------------------------------------------------------------------------
+   NAVBAR RESPONSIVE & MOBILE DRAWER STYLES
+   -------------------------------------------------------------------------- */
+.navbar-iot-clean .navbar-toggler {
+    padding: 7px 11px;
+    border-radius: 10px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: var(--navy-2);
+    transition: all 0.2s ease-in-out;
+}
+
+.navbar-iot-clean .navbar-toggler:hover,
+.navbar-iot-clean .navbar-toggler:focus {
+    background-color: #e2e8f0;
+    box-shadow: 0 0 0 3px rgba(0, 168, 150, 0.15);
+    outline: none;
+}
+
+@media (max-width: 991.98px) {
+    /* Khung drawer dropdown menu trên điện thoại và tablet */
+    .navbar-iot-clean .navbar-collapse {
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+        padding: 16px;
+        margin-top: 10px;
+        max-height: calc(100vh - 85px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Danh sách menu điều hướng */
+    .navbar-iot-clean .navbar-nav {
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f1f5f9;
+        margin-bottom: 12px !important;
+        gap: 3px;
+    }
+
+    .navbar-iot-clean .nav-link {
+        padding: 10px 14px !important;
+        font-size: 15px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Submenu dropdown trong chế độ mobile */
+    .navbar-iot-clean .navbar-nav .dropdown-menu {
+        position: static !important;
+        float: none !important;
+        transform: none !important;
+        border: 1px solid #e2e8f0 !important;
+        background-color: #f8fafc !important;
+        box-shadow: none !important;
+        padding: 6px 10px;
+        margin: 4px 0 8px 12px;
+        border-radius: 12px;
+    }
+
+    .navbar-iot-clean .dropdown-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .navbar-iot-clean .dropdown-toggle::after {
+        margin-left: auto;
+        transition: transform 0.2s ease;
+    }
+
+    .navbar-iot-clean .dropdown-toggle.show::after {
+        transform: rotate(180deg);
+    }
+
+    .navbar-iot-clean .dropdown-item {
+        padding: 9px 12px;
+        border-radius: 8px;
+    }
+
+    /* Toolbar tài khoản và thông báo trên mobile */
+    .navbar-iot-clean .navbar-user-toolbar {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    /* Nút đăng nhập/đăng ký trên mobile */
+    .navbar-iot-clean .auth-buttons-wrapper {
+        width: 100%;
+    }
+
+    .navbar-iot-clean .auth-buttons-wrapper .btn {
+        padding: 9px 14px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    /* Thu gọn nhẹ logo trên màn hình nhỏ để tránh tràn dòng */
+    .navbar-brand {
+        font-size: 1.15rem;
+        gap: 8px;
+    }
+
+    .brand-symbol-box {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
+        border-radius: 8px;
+    }
+}
+
+@media (max-width: 380px) {
+    .navbar-brand {
+        font-size: 1.05rem;
+    }
+
+    .brand-title-main {
+        font-size: 1.05rem;
+    }
+}
+
+/* --------------------------------------------------------------------------
    6. HERO SECTION VỚI STYLES CHÍNH THỨC CỦA LUMORA ENGLISH CENTER
    background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(50, 179, 199, 0.12) 100%)
    -------------------------------------------------------------------------- */

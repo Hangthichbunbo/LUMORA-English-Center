@@ -567,7 +567,7 @@ namespace LTW.Controllers
         // POST: /Admin/CloseClass
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CloseClass(int id)
+        public async Task<IActionResult> CloseClass(int id, string? returnUrl = null)
         {
             var cls = await _context.LiveClasses.FindAsync(id);
             if (cls != null)
@@ -576,6 +576,12 @@ namespace LTW.Controllers
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = $"Đã cập nhật trạng thái lớp '{cls.ClassName}'.";
             }
+
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+
             return RedirectToAction(nameof(Classes));
         }
 

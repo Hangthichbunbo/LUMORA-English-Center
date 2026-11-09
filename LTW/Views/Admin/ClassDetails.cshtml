@@ -88,6 +88,7 @@
                 </a>
                 <form asp-action="CloseClass" asp-route-id="@cls.LiveClassId" method="post" class="d-inline m-0">
                     @Html.AntiForgeryToken()
+                    <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
                     <button type="submit" class="btn @(isClosed ? "btn-outline-success" : "btn-outline-warning") rounded-pill px-3">
                         <i class="bi @(isClosed ? "bi-play-fill" : "bi-lock-fill") me-1"></i> @(isClosed ? "Mở Lại Lớp" : "Đóng Lớp")
                     </button>
@@ -316,7 +317,7 @@
                                                          class="rounded-circle" style="width: 38px; height: 38px; object-fit: cover;" alt="Avatar" />
                                                     <div>
                                                         <div class="fw-bold text-dark student-name">@s.FullName</div>
-                                                        <div class="text-muted" style="font-size: 11px;">ID: @s.StudentId.Substring(0, Math.Min(8, s.StudentId.Length))...</div>
+                                                        <div class="text-muted" style="font-size: 11px;">ID: @(string.IsNullOrEmpty(s.StudentId) ? "N/A" : s.StudentId.Substring(0, Math.Min(8, s.StudentId.Length)) + "...")</div>
                                                     </div>
                                                 </div>
                                             </td>

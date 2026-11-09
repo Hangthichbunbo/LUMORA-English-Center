@@ -16,19 +16,22 @@ namespace LTW.Controllers
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ApplicationDbContext _context;
         private readonly ILogger<AccountController> _logger;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             RoleManager<IdentityRole> roleManager,
             ApplicationDbContext context,
-            ILogger<AccountController> logger)
+            ILogger<AccountController> logger,
+            IWebHostEnvironment webHostEnvironment)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _context = context;
             _logger = logger;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: /Account/Login
@@ -513,18 +516,68 @@ namespace LTW.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return NotFound();
 
+            // 1. Kiểm tra và xử lý file upload ảnh đại diện nếu có
+            string? uploadedAvatarUrl = null;
+            if (model.AvatarFile != null && model.AvatarFile.Length > 0)
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                var extension = Path.GetExtension(model.AvatarFile.FileName).ToLowerInvariant();
+
+                if (!allowedExtensions.Contains(extension))
+                {
+                    ModelState.AddModelError("AvatarFile", "Định dạng file không hợp lệ. Vui lòng chọn ảnh định dạng JPG, PNG, WEBP hoặc GIF.");
+                }
+                else if (model.AvatarFile.Length > 5 * 1024 * 1024)
+                {
+                    ModelState.AddModelError("AvatarFile", "Dung lượng ảnh tối đa cho phép là 5MB.");
+                }
+                else
+                {
+                    try
+                    {
+                        var webRoot = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                        var uploadsFolder = Path.Combine(webRoot, "uploads", "avatars");
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        var uniqueFileName = $"avatar_{user.Id}_{DateTime.Now:yyyyMMddHHmmssfff}{extension}";
+                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await model.AvatarFile.CopyToAsync(fileStream);
+                        }
+
+                        uploadedAvatarUrl = $"/uploads/avatars/{uniqueFileName}";
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Lỗi khi lưu file ảnh đại diện người dùng {UserId}", user.Id);
+                        ModelState.AddModelError("AvatarFile", "Không thể lưu file ảnh lên máy chủ. Vui lòng thử lại.");
+                    }
+                }
+            }
+
             if (!ModelState.IsValid)
             {
                 model.Email = user.Email ?? "";
                 model.Username = user.UserName ?? "";
                 model.RoleName = user.RoleName;
+                model.AvatarUrl = user.AvatarUrl;
                 return View(model);
             }
 
             user.FullName = model.FullName;
             user.PhoneNumber = model.PhoneNumber;
             user.Bio = model.Bio;
-            if (!string.IsNullOrEmpty(model.AvatarUrl))
+            
+            if (!string.IsNullOrEmpty(uploadedAvatarUrl))
+            {
+                user.AvatarUrl = uploadedAvatarUrl;
+            }
+            else if (!string.IsNullOrEmpty(model.AvatarUrl))
             {
                 user.AvatarUrl = model.AvatarUrl;
             }

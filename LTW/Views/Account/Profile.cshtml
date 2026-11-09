@@ -10,7 +10,7 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm rounded-4 text-center p-4">
                 <div class="position-relative d-inline-block mx-auto mb-3">
-                    <img src="@(string.IsNullOrEmpty(Model.AvatarUrl) ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=250&q=80" : Model.AvatarUrl)" 
+                    <img id="avatarSidebarPreview" src="@(string.IsNullOrEmpty(Model.AvatarUrl) ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=250&q=80" : Model.AvatarUrl)" 
                          alt="@Model.FullName" class="rounded-circle shadow" style="width: 120px; height: 120px; object-fit: cover; border: 4px solid #fff;" />
                     <span class="position-absolute bottom-0 end-0 badge rounded-pill bg-success p-2">
                         <i class="bi bi-check"></i>
@@ -64,7 +64,7 @@
                     </div>
                 }
 
-                <form asp-action="Profile" method="post">
+                <form asp-action="Profile" method="post" enctype="multipart/form-data">
                     @Html.AntiForgeryToken()
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger small py-2 mb-3"></div>
 
@@ -88,10 +88,43 @@
                             <label class="form-label small fw-semibold text-secondary">Tên đăng nhập</label>
                             <input value="@Model.Username" class="form-control bg-light" readonly />
                         </div>
+
+                        <!-- Khu vực tải lên ảnh đại diện -->
                         <div class="col-12">
-                            <label asp-for="AvatarUrl" class="form-label small fw-semibold text-secondary">Đường dẫn ảnh đại diện (URL)</label>
-                            <input asp-for="AvatarUrl" class="form-control" placeholder="https://example.com/avatar.jpg" />
+                            <label class="form-label small fw-semibold text-secondary">
+                                <i class="bi bi-image me-1 text-primary"></i>Ảnh đại diện
+                            </label>
+                            <div class="p-3 bg-light rounded-4 border">
+                                <div class="d-flex flex-wrap align-items-center gap-3">
+                                    <div class="position-relative">
+                                        <img id="avatarFormPreview" 
+                                             src="@(string.IsNullOrEmpty(Model.AvatarUrl) ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80" : Model.AvatarUrl)" 
+                                             class="rounded-circle border border-2 border-white shadow-sm" 
+                                             style="width: 72px; height: 72px; object-fit: cover;" alt="Avatar Preview" />
+                                    </div>
+                                    <div class="flex-grow-1" style="min-width: 240px;">
+                                        <label for="AvatarFile" class="form-label small fw-semibold text-dark m-0 mb-1">
+                                            Chọn tệp ảnh từ máy tính / điện thoại
+                                        </label>
+                                        <input asp-for="AvatarFile" type="file" class="form-control form-control-sm" id="AvatarFile" accept="image/png, image/jpeg, image/jpg, image/webp, image/gif" />
+                                        <span asp-validation-for="AvatarFile" class="text-danger small"></span>
+                                        <div class="form-text text-muted" style="font-size: 11px;">
+                                            <i class="bi bi-info-circle me-1"></i>Hỗ trợ các định dạng JPG, PNG, WEBP, GIF (Dung lượng tối đa 5MB).
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-2 pt-2 border-top">
+                                    <a class="small text-decoration-none text-muted" data-bs-toggle="collapse" href="#collapseAvatarUrl" role="button" aria-expanded="false" aria-controls="collapseAvatarUrl">
+                                        <i class="bi bi-link-45deg me-1"></i>Hoặc sử dụng liên kết ảnh bên ngoài (URL) <i class="bi bi-chevron-down small"></i>
+                                    </a>
+                                    <div class="collapse mt-2 @(!string.IsNullOrEmpty(Model.AvatarUrl) && Model.AvatarUrl.StartsWith("http") ? "show" : "")" id="collapseAvatarUrl">
+                                        <input asp-for="AvatarUrl" class="form-control form-control-sm" id="AvatarUrlInput" placeholder="https://example.com/avatar.jpg" />
+                                        <span class="form-text text-muted" style="font-size: 11px;">Nếu không chọn file mới, hệ thống sẽ sử dụng đường dẫn này.</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+
                         <div class="col-12">
                             <label asp-for="Bio" class="form-label small fw-semibold text-secondary"></label>
                             <textarea asp-for="Bio" class="form-control" rows="3" placeholder="Chia sẻ mục tiêu học tiếng Anh của bạn..."></textarea>
@@ -132,5 +165,34 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var fileInput = document.getElementById('AvatarFile');
+            var formPreview = document.getElementById('avatarFormPreview');
+            var sidebarPreview = document.getElementById('avatarSidebarPreview');
+            var urlInput = document.getElementById('AvatarUrlInput');
+
+            if (fileInput) {
+                fileInput.addEventListener('change', function () {
+                    var file = this.files && this.files[0];
+                    if (file) {
+                        var objectUrl = URL.createObjectURL(file);
+                        if (formPreview) formPreview.src = objectUrl;
+                        if (sidebarPreview) sidebarPreview.src = objectUrl;
+                    }
+                });
+            }
+
+            if (urlInput) {
+                urlInput.addEventListener('input', function () {
+                    var url = this.value.trim();
+                    if (url && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/'))) {
+                        if (formPreview) formPreview.src = url;
+                        if (sidebarPreview) sidebarPreview.src = url;
+                    }
+                });
+            }
+        });
+    </script>
 }
 

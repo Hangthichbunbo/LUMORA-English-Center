@@ -11,15 +11,15 @@
 document.addEventListener('DOMContentLoaded', function () {
     console.log("LTW Landing Page initialized - Designed by hoangthuhang");
 
-    // 1. Tự động đóng navbar menu khi người dùng click vào một link trên mobile
-    const navLinks = document.querySelectorAll('.navbar-nav .nav-link, .navbar-nav .dropdown-item');
+    // 1. Tự động đóng navbar menu khi người dùng click vào một link điều hướng trên mobile (loại trừ dropdown-toggle)
+    const navLinks = document.querySelectorAll('.navbar-nav .nav-link:not(.dropdown-toggle), .navbar-nav .dropdown-item');
     const navbarCollapse = document.getElementById('navbarMainNavigation') || document.getElementById('navbarMain');
 
     if (navbarCollapse && typeof bootstrap !== 'undefined') {
-        const bsCollapse = new bootstrap.Collapse(navbarCollapse, { toggle: false });
         navLinks.forEach(function (link) {
             link.addEventListener('click', function () {
                 if (window.innerWidth < 992 && navbarCollapse.classList.contains('show')) {
+                    const bsCollapse = bootstrap.Collapse.getInstance(navbarCollapse) || new bootstrap.Collapse(navbarCollapse, { toggle: false });
                     bsCollapse.hide();
                 }
             });
