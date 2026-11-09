@@ -141,7 +141,7 @@ Theo `LTW/Properties/launchSettings.json`, profile `https` lắng nghe tại:
 
 Ứng dụng bật chuyển hướng HTTPS. Nếu đổi cổng hoặc profile, sử dụng địa chỉ thực tế được in trong terminal. Dừng bằng `Ctrl+C`.
 
-#Với Visual Studio, mở `LTW/LTW.slnx` hoặc `LTW/LTW.csproj`, chọn profile `https` rồi chạy bằng F5/Ctrl+F5.
+*Với Visual Studio, mở `LTW/LTW.slnx` hoặc `LTW/LTW.csproj`, chọn profile `https` rồi chạy bằng F5/Ctrl+F5.*
 
 ### Google OAuth — tùy chọn
 
