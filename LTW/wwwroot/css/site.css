@@ -329,15 +329,30 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--brand) !important;
 }
 
+.navbar-iot-clean .navbar-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
 .navbar-iot-clean .nav-link {
     font-family: "Montserrat", sans-serif;
     font-weight: 600;
     font-size: 14px;
     color: var(--text);
-    padding: 8px 14px !important;
+    padding: 8px 12px !important;
     border-radius: 8px;
     transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
 }
+
+    .navbar-iot-clean .nav-link i {
+        font-size: 1rem;
+        line-height: 1;
+        display: inline-block;
+    }
 
     .navbar-iot-clean .nav-link:hover,
     .navbar-iot-clean .nav-link.active,
@@ -352,6 +367,14 @@ h1, h2, h3, h4, h5, h6 {
         color: var(--brand) !important;
         font-weight: 600;
     }
+
+.navbar-iot-clean .navbar-user-toolbar {
+    flex-shrink: 0;
+}
+
+.navbar-iot-clean .auth-buttons-wrapper {
+    flex-shrink: 0;
+}
 
 /* --------------------------------------------------------------------------
    NAVBAR RESPONSIVE & MOBILE DRAWER STYLES
@@ -391,7 +414,11 @@ h1, h2, h3, h4, h5, h6 {
         padding-bottom: 12px;
         border-bottom: 1px solid #f1f5f9;
         margin-bottom: 12px !important;
-        gap: 3px;
+        gap: 4px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
     }
 
     .navbar-iot-clean .nav-link {
@@ -400,6 +427,7 @@ h1, h2, h3, h4, h5, h6 {
         border-radius: 10px;
         display: flex;
         align-items: center;
+        width: 100%;
     }
 
     /* Submenu dropdown trong chế độ mobile */
@@ -446,11 +474,18 @@ h1, h2, h3, h4, h5, h6 {
     /* Nút đăng nhập/đăng ký trên mobile */
     .navbar-iot-clean .auth-buttons-wrapper {
         width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
     }
 
     .navbar-iot-clean .auth-buttons-wrapper .btn {
+        width: 100%;
         padding: 9px 14px;
         font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 }
 

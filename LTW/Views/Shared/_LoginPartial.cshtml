@@ -5,7 +5,7 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject ApplicationDbContext DbContext
 
-<div class="d-flex align-items-center gap-2 ms-lg-3 mt-3 mt-lg-0 navbar-user-toolbar justify-content-between justify-content-lg-start w-100 w-lg-auto">
+<div class="d-flex align-items-center gap-2 ms-lg-3 mt-3 mt-lg-0 navbar-user-toolbar">
     @if (SignInManager.IsSignedIn(User))
     {
         var currentUser = await UserManager.GetUserAsync(User);
@@ -119,11 +119,11 @@
     }
     else
     {
-        <div class="d-flex align-items-center gap-2 w-100 flex-column flex-sm-row auth-buttons-wrapper">
-            <a class="btn btn-outline-secondary btn-sm px-3 rounded-pill fw-semibold flex-fill text-center w-100 w-sm-auto" asp-controller="Account" asp-action="Login">
+        <div class="auth-buttons-wrapper d-flex align-items-center gap-2">
+            <a class="btn btn-outline-secondary btn-sm px-3 rounded-pill fw-semibold text-nowrap" asp-controller="Account" asp-action="Login">
                 <i class="bi bi-box-arrow-in-right me-1"></i> Đăng Nhập
             </a>
-            <a class="btn btn-lumora-secondary btn-sm px-3 rounded-pill fw-semibold shadow-sm text-white flex-fill text-center w-100 w-sm-auto" asp-controller="Account" asp-action="Register">
+            <a class="btn btn-lumora-secondary btn-sm px-3 rounded-pill fw-semibold shadow-sm text-white text-nowrap" asp-controller="Account" asp-action="Register">
                 <i class="bi bi-person-plus-fill me-1"></i> Đăng Ký
             </a>
         </div>
